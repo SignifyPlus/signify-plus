@@ -12,6 +12,7 @@
   "dependencies": {
     "aws-sdk": "^2.1691.0",
     "firebase": "^11.0.1",
+    "mongodb": "6.10",
     "mysql": "^2.18.1"
   }
 }
