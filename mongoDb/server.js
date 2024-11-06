@@ -1,9 +1,13 @@
-const mysql = require("mysql")
-//TODO : fetch from Firebase secret manager (free)
-const signifyPlusDb = mysql.createConnection({
-    host : "signify-plus-db.c7gou8oq62vc.eu-north-1.rds.amazonaws.com", 
-    port : "3306",
-    user: "",
-    password: "",
-    database: "",
+const mysql = require("express")
+const mongoose = require("mongoose")
+const fs = require('fs');
+const yaml = require('js-yaml');
+
+const signifyPlusApp = express()
+
+//use these for reading connecting string from firebase
+mongoose.connect('mongodb+srv://admin:yunogasai9862@signifyplus.pbbbj.mongodb.net/SignifyPlus')
+
+signifyPlusApp.listen(3001, () => {
+    console.log("Server is Running")
 })
