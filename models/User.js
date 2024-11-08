@@ -1,8 +1,7 @@
 const mongoose = require('mongoose')
-const { Long } = require('bson')
 
 const UserSchema = new mongoose.Schema({
-    userId : {type: Long, required: true, unique: true},
+    userId : {type: Number, required: true, unique: true},
     name : {type: String, required: true},
     phoneNumber : {type: String, required: true, unique: true},
     passwordHash : {type: String, required: true},
@@ -11,3 +10,4 @@ const UserSchema = new mongoose.Schema({
 })
 
 const User = mongoose.model("User", UserSchema)
+module.exports = User;
