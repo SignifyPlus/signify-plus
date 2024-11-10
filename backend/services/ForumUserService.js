@@ -5,12 +5,6 @@ class ForumUserService extends AbstractService {
     }
     async getData() {
     }
-
-    async saveData(data) {
-    }
-
-    async deleteData(data) {
-    }
 }
 
 module.exports = ForumUserService;
