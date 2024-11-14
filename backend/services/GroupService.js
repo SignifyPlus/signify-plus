@@ -1,5 +1,5 @@
 const AbstractService = require('./AbstractService')
-class ForumUserService extends AbstractService {
+class GroupService extends AbstractService {
     constructor(model) {
         this.model = model;
     }
@@ -7,4 +7,4 @@ class ForumUserService extends AbstractService {
     }
 }
 
-module.exports = ForumUserService;
+module.exports = GroupService;
