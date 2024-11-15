@@ -46,8 +46,6 @@ export const ChatList: React.FC<ChatListProps> = ({ chats }) => {
   );
 };
 
-// color={{ light: "#A1CEDC", dark: "#1D3D47" }}
-
 const styles = StyleSheet.create({
   list: {
     // padding: 10,
