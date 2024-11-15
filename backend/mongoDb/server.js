@@ -4,14 +4,20 @@ const mongoose = require("mongoose");
 const fs = require('fs');
 const User = require("../models/User");
 const yaml = require('js-yaml');
+require("dotenv").config();
 const WebSocketManager = require("../managers/websocketManager");
 
 
 const signifyPlusApp = express()
 const mainServer = http.createServer(signifyPlusApp);
 
+const mongoDburl = process.env.MONGO_DB_URL;
+const port = process.env.PORT;
+
 //use these for reading connecting string from firebase
-mongoose.connect('mongodb+srv://admin:yunogasai9862@signifyplus.pbbbj.mongodb.net/SignifyPlus')
+mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
+.catch((err) => console.error('MongoDB connection error:', err));
+
 //seprate this out into service, just testing if its working or not
 
 //root
@@ -50,7 +56,7 @@ const createUser = async() => {
 
 //createUser();
 
-mainServer.listen(3001, () => {
+mainServer.listen(port, () => {
     console.log("Server is Running")
     const websocketManager = new WebSocketManager(mainServer);
 })
