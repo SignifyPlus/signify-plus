@@ -1,12 +1,14 @@
 import React from "react";
-import { Stack } from "expo-router";
-import { Image, Text, View } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { chats } from "@/mocks/mock-chats-list";
 import { Ionicons } from "@expo/vector-icons";
+import { useAppStore } from "@/store/store";
 
 const HeaderTitle = (props: { children: string }) => {
   const phoneNumber = props.children;
 
+  const router = useRouter();
   const chat = chats.find((chat) => chat.phoneNumber === phoneNumber);
 
   return (
@@ -23,7 +25,7 @@ const HeaderTitle = (props: { children: string }) => {
           flexDirection: "row",
           alignItems: "center",
           gap: 12,
-          width: "75%",
+          width: "70%",
         }}
       >
         <Image
@@ -32,17 +34,27 @@ const HeaderTitle = (props: { children: string }) => {
         />
         <Text>{props.children}</Text>
       </View>
-      <View
-        style={{
-          width: 30,
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
+      <TouchableOpacity
+        disabled={!chat}
+        onPress={() => {
+          if (chat?.phoneNumber) {
+            router.push(`/chats/video-call/${chat.phoneNumber}`);
+          }
         }}
       >
-        <Ionicons size={24} name="videocam-outline" color="#1D3D47" />
-      </View>
+        <View
+          style={{
+            width: 30,
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            borderRadius: 16,
+          }}
+        >
+          <Ionicons size={24} name="videocam-outline" color="#1D3D47" />
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };

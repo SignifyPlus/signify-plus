@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dc72e5ba-2f02-44a5-9ffb-45b1fd263e79" name="Changes" comment="" />
+    <list default="true" id="dc72e5ba-2f02-44a5-9ffb-45b1fd263e79" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/chats/[chatId].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/chats/[chatId].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/chats/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/chats/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/chats/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/chats/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/page-view/page-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/page-view/page-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,42 +31,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "/Users/osamatanveer/Desktop/Iman/SignifyPlus/assets/images",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "prettierjs.PrettierConfiguration.Package": "/Users/osamatanveer/.nvm/versions/node/v20.11.1/lib/node_modules/prettier",
-    "settings.editor.selected.configurable": "actions.on.save",
-    "ts.external.directory.path": "/Users/osamatanveer/Desktop/Iman/SignifyPlus/node_modules/typescript/lib",
-    "typescript.add.unambiguous.imports.on.the.fly": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/osamatanveer/Desktop/Iman/SignifyPlus&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/osamatanveer/.nvm/versions/node/v20.11.1/lib/node_modules/prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/osamatanveer/Desktop/Iman/SignifyPlus/node_modules/typescript/lib&quot;,
+    &quot;typescript.add.unambiguous.imports.on.the.fly&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/assets/images" />
       <recent name="$PROJECT_DIR$/app/(tabs)" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/app/(tabs)/chats/video-call" />
       <recent name="$PROJECT_DIR$/app" />
       <recent name="$PROJECT_DIR$/app/login" />
       <recent name="$PROJECT_DIR$/app/(tabs)/settings" />
       <recent name="$PROJECT_DIR$/app/(tabs)/(chats)" />
-      <recent name="$PROJECT_DIR$/app/(tabs)" />
     </key>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-WS-242.23726.96" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -69,7 +73,12 @@
       <workItem from="1731198188907" duration="10370000" />
       <workItem from="1731236598953" duration="11868000" />
       <workItem from="1731265709439" duration="1866000" />
-      <workItem from="1731275262049" duration="1201000" />
+      <workItem from="1731275262049" duration="1943000" />
+      <workItem from="1731366220574" duration="321000" />
+      <workItem from="1731459419670" duration="1008000" />
+      <workItem from="1731631274285" duration="3340000" />
+      <workItem from="1731675299046" duration="8000" />
+      <workItem from="1731696581930" duration="771000" />
     </task>
     <servers />
   </component>

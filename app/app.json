@@ -13,13 +13,23 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "SignifyPlus needs access to your Camera.",
+        "NSMicrophoneUsageDescription": "SignifyPlus needs access to your Microphone."
+      },
+      "bundleIdentifier": "com.anonymous.SignifyPlus"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.anonymous.SignifyPlus"
     },
     "web": {
       "bundler": "metro",
@@ -27,7 +37,15 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "SignifyPlus needs access to your Camera.",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "SignifyPlus needs access to your Microphone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

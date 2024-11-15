@@ -14,6 +14,6 @@ export const PageView = (props: PageViewProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingTop: Platform.OS === "ios" ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS !== "ios" ? StatusBar.currentHeight : 0,
   },
 });
