@@ -1,11 +1,20 @@
 const AbstractService = require('./AbstractService')
 class MessageService extends AbstractService {
-    constructor(model) {
-        this.model = model;
-    }
     async getData() {
+        super.getData();
     }
-    //specific queries will go here
+
+    async updateData(schemaModel, filterConditions, updateFields) {
+        super.updateData(schemaModel, filterConditions, updateFields);
+    }
+
+    async saveData(schemaModel,data) {
+        super.saveData(schemaModel, data);
+    }
+
+    async deleteData(schemaModel, filterConditions) {
+        super.saveData(schemaModel, filterConditions);
+    }
 }
 
 module.exports = MessageService;
