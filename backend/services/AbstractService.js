@@ -5,7 +5,7 @@ class AbstractService {
         this.schemaModel = schemaModel;
     }
 
-    async getData() {
+    async getDocument() {
         try{
             return await this.schemaModel.find();
         }catch(exception){
@@ -13,7 +13,15 @@ class AbstractService {
         }
     }
 
-    async updateData(filterConditions, updateFields) {
+    async getDocumentById(objectId) {
+        try{
+            return await this.schemaModel.findById(objectId);
+        }catch(exception){
+            throw new Error(`Error Fetching the Document with Id: ${objectId}, ${exception.message}`);
+        }
+    }
+
+    async updateDocument(filterConditions, updateFields) {
         try{
             const entity = await this.schemaModel.findOneAndUpdate(filterConditions, updateFields, {new : true});
             console.log(`Updated Entity: ${entity}`)
@@ -22,7 +30,7 @@ class AbstractService {
         }
     }
 
-    async saveData(data) {
+    async saveDocument(data) {
         try{
             const entity = await this.schemaModel.create(data);
             console.log(`Saved Entity: ${entity}`)
@@ -31,7 +39,7 @@ class AbstractService {
         }
     }
 
-    async deleteData(filterConditions) {
+    async deleteDocument(filterConditions) {
         try{
             const entity = await this.schemaModel.findOneAndDelete(filterConditions, {new : true})
             console.log(`Deleted Entity: ${entity}`)

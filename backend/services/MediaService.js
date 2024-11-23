@@ -1,19 +1,26 @@
 const AbstractService = require('./AbstractService')
 class MediaService extends AbstractService {
-    async getData() {
-        super.getData();
+    constructor(schemaModel) {
+        super(schemaModel);
+    }
+    async getDocument() {
+        super.getDocument();
     }
 
-    async updateData(schemaModel, filterConditions, updateFields) {
-        super.updateData(schemaModel, filterConditions, updateFields);
+    async getDocumentById(objectId) {
+        super.getDocumentById(objectId)
     }
 
-    async saveData(schemaModel,data) {
-        super.saveData(schemaModel, data);
+    async updateDocument(schemaModel, filterConditions, updateFields) {
+        super.updateDocument(schemaModel, filterConditions, updateFields);
     }
 
-    async deleteData(schemaModel, filterConditions) {
-        super.saveData(schemaModel, filterConditions);
+    async saveDocument(schemaModel,data) {
+        super.saveDocument(schemaModel, data);
+    }
+
+    async deleteDocument(schemaModel, filterConditions) {
+        super.deleteDocument(schemaModel, filterConditions);
     }
 }
 
