@@ -8,7 +8,7 @@ class ThreadCommentController {
             const threadComments = await ThreadCommentService.getDocument();
             response.json(threadComments);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ThreadCommentController {
             const threadComment = await ThreadCommentService.getDocument(threadCommentId);
             response.json(threadComment);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

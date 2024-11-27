@@ -1,12 +1,13 @@
 const express = require('express');
-//please just create a single router and use it everywhere!
-const signifyPlusRouter = express.Router();
+const userRouter = express.Router();
 const UserController = require('../controllers/UserController.js');
 
-//the base/app will use users/ route to get all users
+userRouter.get('/', UserController.getAllUsers);
 
-signifyPlusRouter.get('/', UserController.getAllUsers);
+userRouter.get('/:id', UserController.getUserById);
 
-signifyPlusRouter.get('/:id', UserController.getUserById);
+userRouter.get('/create', UserController.createUser)
 
-module.exports = signifyPlusRouter
+userRouter.get('/delete', UserController.deleteUser)
+
+module.exports = userRouter;

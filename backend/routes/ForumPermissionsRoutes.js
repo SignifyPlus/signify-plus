@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const forumPermissionsRouter = express.Router();
+const ForumPermissionsController = require('../controllers/ForumPermissionsController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+forumPermissionsRouter.get('/', ForumPermissionsController.getAllForumPermissionss);
 
 
-module.exports = signifyPlusRouter
+module.exports = forumPermissionsRouter;

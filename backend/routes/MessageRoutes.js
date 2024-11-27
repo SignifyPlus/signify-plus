@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const messageRouter = express.Router();
+const MessageController = require('../controllers/MessageController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+messageRouter.get('/', MessageController.getAllMessages);
 
 
-module.exports = signifyPlusRouter
+module.exports = messageRouter;

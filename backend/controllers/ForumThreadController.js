@@ -8,7 +8,7 @@ class ForumThreadController {
             const forumThreads = await ForumThreadService.getDocument();
             response.json(forumThreads);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ForumThreadController {
             const forumThread = await ForumThreadService.getDocument(forumThreadId);
             response.json(forumThread);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

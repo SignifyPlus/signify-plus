@@ -8,7 +8,7 @@ class ReactionController {
             const reactions = await ReactionService.getDocument();
             response.json(reactions);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ReactionController {
             const reaction = await ReactionService.getDocument(reactionId);
             response.json(reaction);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

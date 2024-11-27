@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const threadCommentRouter = express.Router();
+const ThreadCommentController = require('../controllers/ThreadCommentController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+threadCommentRouter.get('/', ThreadCommentController.getAllThreadComments);
 
 
-module.exports = signifyPlusRouter
+module.exports = threadCommentRouter;

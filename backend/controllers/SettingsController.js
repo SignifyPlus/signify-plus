@@ -3,12 +3,12 @@ const SettingsService = require("../services/SettingsService")
 class SettingsController {
     
     //Get all Settingss
-    static async getAllSettingss(request, response) {
+    static async getAllSettings(request, response) {
         try {
             const settings = await SettingsService.getDocument();
             response.json(settings);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class SettingsController {
             const settings = await SettingsService.getDocument(settingsId);
             response.json(settings);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

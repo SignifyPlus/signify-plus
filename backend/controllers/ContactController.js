@@ -8,7 +8,7 @@ class ContactController {
             const contacts = await ContactService.getDocument();
             response.json(contacts);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ContactController {
             const contact = await ContactService.getDocument(contactId);
             response.json(contact);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

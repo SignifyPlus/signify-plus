@@ -8,7 +8,7 @@ class ForumPermissionsController {
             const forumPermissionss = await ForumPermissionsService.getDocument();
             response.json(forumPermissionss);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ForumPermissionsController {
             const forumPermissions = await ForumPermissionsService.getDocument(forumPermissionsId);
             response.json(forumPermissions);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

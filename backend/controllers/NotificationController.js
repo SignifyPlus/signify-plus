@@ -8,7 +8,7 @@ class NotificationController {
             const notifications = await NotificationService.getDocument();
             response.json(notifications);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class NotificationController {
             const notification = await NotificationService.getDocument(notificationId);
             response.json(notification);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

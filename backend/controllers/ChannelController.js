@@ -8,7 +8,7 @@ class ChannelController {
             const channels = await ChannelService.getDocument();
             response.json(channels);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ChannelController {
             const channel = await ChannelService.getDocument(channelId);
             response.json(channel);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

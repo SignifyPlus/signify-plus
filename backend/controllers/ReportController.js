@@ -8,7 +8,7 @@ class ReportController {
             const reports = await ReportService.getDocument();
             response.json(reports);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ReportController {
             const report = await ReportService.getDocument(reportId);
             response.json(report);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

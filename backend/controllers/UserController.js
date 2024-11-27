@@ -8,7 +8,7 @@ class UserController {
             const users = await UserService.getDocument();
             response.json(users);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,10 +19,31 @@ class UserController {
             const user = await UserService.getDocument(userId);
             response.json(user);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
+    //Creates a user
+    static async createUser(request, response) {
+        try {
+            const user = request.body;
+            const userObject = await UserService.saveDocument(User, user);
+            response.json(userObject);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
+    }
+
+    //Deletes a user
+    static async deleteUser(request, response) {
+        try {
+            const user = request.body;
+            const userObject = await UserService.deleteDocument(User, user);
+            response.json(userObject);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
+    }
 
 }
 

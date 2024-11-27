@@ -8,7 +8,7 @@ class GroupMemberController {
             const groupMembers = await GroupMemberService.getDocument();
             response.json(groupMembers);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class GroupMemberController {
             const groupMember = await GroupMemberService.getDocument(groupMemberId);
             response.json(groupMember);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

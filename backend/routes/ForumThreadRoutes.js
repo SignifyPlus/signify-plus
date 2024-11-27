@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const forumThreadRouter = express.Router();
+const ForumThreadController = require('../controllers/ForumThreadController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+forumThreadRouter.get('/', ForumThreadController.getAllForumThreads);
 
 
-module.exports = signifyPlusRouter
+module.exports = forumThreadRouter;

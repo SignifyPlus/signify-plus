@@ -8,7 +8,7 @@ class MessageController {
             const messages = await MessageService.getDocument();
             response.json(messages);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class MessageController {
             const message = await MessageService.getDocument(messageId);
             response.json(message);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

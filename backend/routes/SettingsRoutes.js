@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const settingsRouter = express.Router();
+const SettingsController = require('../controllers/SettingsController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+settingsRouter.get('/', SettingsController.getAllSettings);
 
 
-module.exports = signifyPlusRouter
+module.exports = settingsRouter;

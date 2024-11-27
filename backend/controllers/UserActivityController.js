@@ -8,7 +8,7 @@ class UserActivityController {
             const userActivities = await UserActivityService.getDocument();
             response.json(userActivities);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class UserActivityController {
             const userActivity = await UserActivityService.getDocument(userActivityId);
             response.json(userActivity);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

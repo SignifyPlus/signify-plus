@@ -7,7 +7,7 @@ class CallHistoryController {
             const callHistories = await CallHistoryService.getDocument();
             response.json(callHistories);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -17,7 +17,7 @@ class CallHistoryController {
             const callHistory = await CallHistoryService.getDocument(callHistoryByUserId);
             response.json(callHistory);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

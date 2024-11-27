@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const mediaRouter = express.Router();
+const MediaController = require('../controllers/MediaController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+mediaRouter.get('/', MediaController.getAllMedia);
 
 
-module.exports = signifyPlusRouter
+module.exports = mediaRouter;

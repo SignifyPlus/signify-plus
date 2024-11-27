@@ -8,7 +8,7 @@ class ForumController {
             const forums = await ForumService.getDocument();
             response.json(forums);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 
@@ -19,7 +19,7 @@ class ForumController {
             const forum = await ForumService.getDocument(forumId);
             response.json(forum);
         }catch(exception) {
-            response.status(500).json({error: error.message})
+            response.status(500).json({error: exception.message})
         }
     }
 

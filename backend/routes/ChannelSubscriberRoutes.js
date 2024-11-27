@@ -1,9 +1,9 @@
 const express = require('express');
-const signifyPlusRouter = express.Router();
-const UserActivityController = require('../controllers/UserActivityController.js');
+const channelSubcriberRouter = express.Router();
+const channelSubcriberController = require('../controllers/ChannelSubscriberController.js');
 
 
-signifyPlusRouter.get('/', UserActivityController.getAllUserActivities());
+channelSubcriberRouter.get('/', channelSubcriberController.getAllChannelSubscribers);
 
 
-module.exports = signifyPlusRouter
+module.exports = channelSubcriberRoute;r
