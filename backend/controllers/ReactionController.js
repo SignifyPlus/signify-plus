@@ -1,11 +1,16 @@
 const Reaction = require("../models/Reaction")
 const ReactionService = require("../services/ReactionService")
 class ReactionController {
-    
+
+    constructor(){
+        this.reactionService = new ReactionService(Reaction);
+        this.getAllReactions = this.getAllReactions.bind(this);
+        this.getReactionById = this.getReactionById.bind(this);
+    }
     //Get all Reactions
-    static async getAllReactions(request, response) {
+    async getAllReactions(request, response) {
         try {
-            const reactions = await ReactionService.getDocument();
+            const reactions = await this.reactionService.getDocument();
             response.json(reactions);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class ReactionController {
     }
 
     //Get single Reaction
-    static async getReactionById(request, response) {
+    async getReactionById(request, response) {
         try {
             const reactionId = request.params.id;
-            const reaction = await ReactionService.getDocument(reactionId);
+            const reaction = await this.reactionService.getDocument(reactionId);
             response.json(reaction);
         }catch(exception) {
             response.status(500).json({error: exception.message})

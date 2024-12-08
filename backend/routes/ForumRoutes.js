@@ -3,7 +3,7 @@ const forumRouter = express.Router();
 const ForumController = require('../controllers/ForumController.js');
 
 
-forumRouter.get('/', ForumController.getAllForums);
+forumRouter.get('/all', ForumController.getAllForums);
 
 
 module.exports = forumRouter;

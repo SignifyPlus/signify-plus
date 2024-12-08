@@ -2,10 +2,15 @@ const Media = require("../models/Media")
 const MediaService = require("../services/MediaService")
 class MediaController {
     
+    constructor(){
+        this.mediaService = new MediaService(Media);
+        this.getAllMedia = this.getAllMedia.bind(this);
+        this.getMediaById = this.getMediaById.bind(this);
+    }
     //Get all Medias
-    static async getAllMedia(request, response) {
+    async getAllMedia(request, response) {
         try {
-            const media = await MediaService.getDocument();
+            const media = await this.mediaService.getDocument();
             response.json(media);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class MediaController {
     }
 
     //Get single Media
-    static async getMediaById(request, response) {
+    async getMediaById(request, response) {
         try {
             const mediaId = request.params.id;
-            const media = await MediaService.getDocument(mediaId);
+            const media = await this.mediaService.getDocument(mediaId);
             response.json(media);
         }catch(exception) {
             response.status(500).json({error: exception.message})

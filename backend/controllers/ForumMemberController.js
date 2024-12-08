@@ -2,10 +2,15 @@ const ForumMember = require("../models/ForumMember")
 const ForumMemberService = require("../services/ForumMemberService")
 class ForumMemberController {
     
+    constructor(){
+        this.forumMemberService = new ForumMemberService(ForumMember);
+        this.getAllForumMembers = this.getAllForumMembers.bind(this);
+        this.getForumMemberById = this.getForumMemberById.bind(this);
+    }
     //Get all ForumMembers
-    static async getAllForumMembers(request, response) {
+    async getAllForumMembers(request, response) {
         try {
-            const forumMembers = await ForumMemberService.getDocument();
+            const forumMembers = await this.forumMemberService.getDocument();
             response.json(forumMembers);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class ForumMemberController {
     }
 
     //Get single ForumMember
-    static async getForumMemberById(request, response) {
+    async getForumMemberById(request, response) {
         try {
             const forumMemberId = request.params.id;
-            const forumMember = await ForumMemberService.getDocument(forumMemberId);
+            const forumMember = await this.forumMemberService.getDocument(forumMemberId);
             response.json(forumMember);
         }catch(exception) {
             response.status(500).json({error: exception.message})

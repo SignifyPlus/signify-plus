@@ -3,7 +3,7 @@ const forumMemberRouter = express.Router();
 const ForumMemberController = require('../controllers/ForumMemberController.js');
 
 
-forumMemberRouter.get('/', ForumMemberController.getAllForumMembers);
+forumMemberRouter.get('/all', ForumMemberController.getAllForumMembers);
 
 
 module.exports = forumMemberRouter;

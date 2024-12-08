@@ -3,7 +3,7 @@ const settingsRouter = express.Router();
 const SettingsController = require('../controllers/SettingsController.js');
 
 
-settingsRouter.get('/', SettingsController.getAllSettings);
+settingsRouter.get('/all', SettingsController.getAllSettings);
 
 
 module.exports = settingsRouter;

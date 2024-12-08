@@ -2,10 +2,15 @@ const Forum = require("../models/Forum")
 const ForumService = require("../services/ForumService")
 class ForumController {
     
+    constructor(){
+        this.forumService = new ForumService(Forum);
+        this.getAllForums = this.getAllForums.bind(this);
+        this.getForumById = this.getForumById.bind(this);
+    }
     //Get all Forums
-    static async getAllForums(request, response) {
+    async getAllForums(request, response) {
         try {
-            const forums = await ForumService.getDocument();
+            const forums = await this.forumService.getDocument();
             response.json(forums);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class ForumController {
     }
 
     //Get single Forum
-    static async getForumById(request, response) {
+    async getForumById(request, response) {
         try {
             const forumId = request.params.id;
-            const forum = await ForumService.getDocument(forumId);
+            const forum = await this.forumService.getDocument(forumId);
             response.json(forum);
         }catch(exception) {
             response.status(500).json({error: exception.message})

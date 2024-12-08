@@ -2,10 +2,15 @@ const GroupMember = require("../models/GroupMember")
 const GroupMemberService = require("../services/GroupMemberService")
 class GroupMemberController {
     
+    constructor(){
+        this.groupMemberService = new GroupMemberService(GroupMember);
+        this.getAllGroupMembers = this.getAllGroupMembers.bind(this);
+        this.getGroupMemberById = this.getGroupMemberById.bind(this);
+    }
     //Get all GroupMembers
-    static async getAllGroupMembers(request, response) {
+    async getAllGroupMembers(request, response) {
         try {
-            const groupMembers = await GroupMemberService.getDocument();
+            const groupMembers = await this.groupMemberService.getDocument();
             response.json(groupMembers);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class GroupMemberController {
     }
 
     //Get single GroupMember
-    static async getGroupMemberById(request, response) {
+    async getGroupMemberById(request, response) {
         try {
             const groupMemberId = request.params.id;
-            const groupMember = await GroupMemberService.getDocument(groupMemberId);
+            const groupMember = await this.groupMemberService.getDocument(groupMemberId);
             response.json(groupMember);
         }catch(exception) {
             response.status(500).json({error: exception.message})

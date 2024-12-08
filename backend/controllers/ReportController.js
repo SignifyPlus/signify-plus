@@ -2,10 +2,16 @@ const Report = require("../models/Report")
 const ReportService = require("../services/ReportService")
 class ReportController {
     
+    constructor(){
+        this.reportService = new ReportService(Report);
+        this.getAllReports = this.getAllReports.bind(this);
+        this.getReportById = this.getReportById.bind(this);
+    }
+
     //Get all Reports
-    static async getAllReports(request, response) {
+    async getAllReports(request, response) {
         try {
-            const reports = await ReportService.getDocument();
+            const reports = await this.reportService.getDocument();
             response.json(reports);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +19,10 @@ class ReportController {
     }
 
     //Get single Report
-    static async getReportById(request, response) {
+    async getReportById(request, response) {
         try {
             const reportId = request.params.id;
-            const report = await ReportService.getDocument(reportId);
+            const report = await this.reportService.getDocument(reportId);
             response.json(report);
         }catch(exception) {
             response.status(500).json({error: exception.message})

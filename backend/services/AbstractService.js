@@ -7,6 +7,7 @@ class AbstractService {
 
     async getDocument() {
         try{
+            console.log("Called getDocument()");
             return await this.schemaModel.find();
         }catch(exception){
             throw new Error(`Error Fetching the Documents: ${exception.message}`);
@@ -15,6 +16,7 @@ class AbstractService {
 
     async getDocumentById(objectId) {
         try{
+            console.log("Called getDocumentById()");
             return await this.schemaModel.findById(objectId);
         }catch(exception){
             throw new Error(`Error Fetching the Document with Id: ${objectId}, ${exception.message}`);

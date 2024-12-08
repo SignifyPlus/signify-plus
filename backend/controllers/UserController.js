@@ -13,7 +13,7 @@ class UserController {
     //Get all Users
     async getAllUsers(request, response) {
         try {
-            response.send("Inside Call");
+            console.log("Fetching all users from getAllUsers...");
             const users = await this.userService.getDocument();
             response.json(users);
         }catch(exception) {
@@ -24,6 +24,7 @@ class UserController {
     //Get single user
     async getUserById(request, response) {
         try {
+            console.log("Fetching all users from getUserById...");
             const userId = request.params.id;
             const user = await this.userService.getDocument(userId);
             response.json(user);

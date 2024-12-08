@@ -3,7 +3,7 @@ const forumPermissionsRouter = express.Router();
 const ForumPermissionsController = require('../controllers/ForumPermissionsController.js');
 
 
-forumPermissionsRouter.get('/', ForumPermissionsController.getAllForumPermissionss);
+forumPermissionsRouter.get('/all', ForumPermissionsController.getAllForumPermissionss);
 
 
 module.exports = forumPermissionsRouter;

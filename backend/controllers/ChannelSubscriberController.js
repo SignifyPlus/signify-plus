@@ -2,10 +2,15 @@ const ChannelSubscriber = require("../models/ChannelSubscriber")
 const ChannelSubscriberService = require("../services/ChannelSubscriberService")
 class ChannelSubscriberController {
     
+    constructor(){
+        this.channelSubscriberService = new ChannelSubscriberService(ChannelSubscriber);
+        this.getAllChannelSubscribers = this.getAllChannelSubscribers.bind(this);
+        this.getChannelSubscriberById = this.getChannelSubscriberById.bind(this);
+    }
     //Get all ChannelSubscribers
-    static async getAllChannelSubscribers(request, response) {
+    async getAllChannelSubscribers(request, response) {
         try {
-            const channelSubscribers = await ChannelSubscriberService.getDocument();
+            const channelSubscribers = await this.channelSubscriberService.getDocument();
             response.json(channelSubscribers);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class ChannelSubscriberController {
     }
 
     //Get single ChannelSubscriber
-    static async getChannelSubscriberById(request, response) {
+    async getChannelSubscriberById(request, response) {
         try {
             const channelSubscriberId = request.params.id;
-            const ChannelSubscriber = await ChannelSubscriberService.getDocument(channelSubscriberId);
+            const ChannelSubscriber = await this.channelSubscriberService.getDocument(channelSubscriberId);
             response.json(ChannelSubscriber);
         }catch(exception) {
             response.status(500).json({error: exception.message})

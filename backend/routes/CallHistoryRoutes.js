@@ -3,7 +3,7 @@ const callHistoryRouter = express.Router();
 const CallHistoryController = require('../controllers/CallHistoryController.js');
 
 
-callHistoryRouter.get('/', CallHistoryController.getCallHistory);
+callHistoryRouter.get('/all', CallHistoryController.getCallHistory);
 
 
 module.exports = callHistoryRouter;

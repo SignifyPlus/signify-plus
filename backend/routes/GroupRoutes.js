@@ -3,7 +3,7 @@ const groupRouter = express.Router();
 const GroupController = require('../controllers/GroupController.js');
 
 
-groupRouter.get('/', GroupController.getAllGroups);
+groupRouter.get('/all', GroupController.getAllGroups);
 
 
 module.exports = groupRouter;

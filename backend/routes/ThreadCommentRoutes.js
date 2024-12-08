@@ -3,7 +3,7 @@ const threadCommentRouter = express.Router();
 const ThreadCommentController = require('../controllers/ThreadCommentController.js');
 
 
-threadCommentRouter.get('/', ThreadCommentController.getAllThreadComments);
+threadCommentRouter.get('/all', ThreadCommentController.getAllThreadComments);
 
 
 module.exports = threadCommentRouter;

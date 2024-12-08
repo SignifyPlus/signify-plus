@@ -1,20 +1,26 @@
 const CallHistory = require("../models/CallHistory")
 const CallHistoryService = require("../services/CallHistoryService")
 class CallHistoryController {
-    
-    static async getCallHistory(request, response) {
+
+    constructor(){
+        this.callHistoryService = new CallHistoryService(CallHistory);
+        this.getCallHistory = this.getCallHistory.bind(this);
+        this.getCallHistoryByUserId = this.getCallHistoryByUserId.bind(this);
+    }
+
+    async getCallHistory(request, response) {
         try {
-            const callHistories = await CallHistoryService.getDocument();
+            const callHistories = await this.callHistoryService.getDocument();
             response.json(callHistories);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
 
-    static async getUserById(request, response) {
+    async getCallHistoryByUserId(request, response) {
         try {
             const callHistoryByUserId= request.params.id;
-            const callHistory = await CallHistoryService.getDocument(callHistoryByUserId);
+            const callHistory = await this.callHistoryService.getDocument(callHistoryByUserId);
             response.json(callHistory);
         }catch(exception) {
             response.status(500).json({error: exception.message})

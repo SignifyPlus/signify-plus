@@ -2,10 +2,15 @@ const Contact = require("../models/Contact")
 const ContactService = require("../services/ContactService")
 class ContactController {
     
+    constructor(){
+        this.contactService = new ContactService(Contact);
+        this.getAllContacts = this.getAllContacts.bind(this);
+        this.getContactById = this.getContactById.bind(this);
+    }
     //Get all Contacts
-    static async getAllContacts(request, response) {
+    async getAllContacts(request, response) {
         try {
-            const contacts = await ContactService.getDocument();
+            const contacts = await this.contactService.getDocument();
             response.json(contacts);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +18,10 @@ class ContactController {
     }
 
     //Get single Contact
-    static async getContactById(request, response) {
+    async getContactById(request, response) {
         try {
             const contactId = request.params.id;
-            const contact = await ContactService.getDocument(contactId);
+            const contact = await this.contactService.getDocument(contactId);
             response.json(contact);
         }catch(exception) {
             response.status(500).json({error: exception.message})

@@ -3,7 +3,7 @@ const reactionRouter = express.Router();
 const ReactionController = require('../controllers/ReactionController.js');
 
 
-reactionRouter.get('/', ReactionController.getAllReactions);
+reactionRouter.get('/all', ReactionController.getAllReactions);
 
 
 module.exports = reactionRouter;

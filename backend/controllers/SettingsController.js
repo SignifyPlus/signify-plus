@@ -2,10 +2,16 @@ const Settings = require("../models/Settings")
 const SettingsService = require("../services/SettingsService")
 class SettingsController {
     
+    constructor(){
+        this.settingsService = new SettingsService(Settings);
+        this.getAllSettings = this.getAllSettings.bind(this);
+        this.getSettingsById = this.getSettingsById.bind(this);
+    }
+
     //Get all Settingss
-    static async getAllSettings(request, response) {
+    async getAllSettings(request, response) {
         try {
-            const settings = await SettingsService.getDocument();
+            const settings = await this.settingsService.getDocument();
             response.json(settings);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +19,10 @@ class SettingsController {
     }
 
     //Get single Settings
-    static async getSettingsById(request, response) {
+    async getSettingsById(request, response) {
         try {
             const settingsId = request.params.id;
-            const settings = await SettingsService.getDocument(settingsId);
+            const settings = await this.settingsService.getDocument(settingsId);
             response.json(settings);
         }catch(exception) {
             response.status(500).json({error: exception.message})

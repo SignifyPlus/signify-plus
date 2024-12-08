@@ -12,8 +12,8 @@ const mainServer = http.createServer(signifyPlusApp);
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
 
-signifyPlusApp.get('/users', userRoutes);
-signifyPlusApp.get('/', homeRoutes);
+signifyPlusApp.use('/users', userRoutes);
+signifyPlusApp.use('/', homeRoutes);
 
 //use these for reading connecting string from firebase
 mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
