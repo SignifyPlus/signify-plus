@@ -26,4 +26,4 @@ class ForumPermissionsController {
 
 }
 
-modeule.exports = ForumPermissionsController;
+module.exports = ForumPermissionsController;

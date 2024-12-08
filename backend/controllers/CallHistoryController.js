@@ -24,4 +24,4 @@ class CallHistoryController {
 
 }
 
-modeule.exports = CallHistoryController;
+module.exports = CallHistoryController;

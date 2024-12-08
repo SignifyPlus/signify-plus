@@ -25,5 +25,4 @@ class ReactionController {
 
 
 }
-
-modeule.exports = ReactionController;
+module.exports = ReactionController;

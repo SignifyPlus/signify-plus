@@ -26,4 +26,4 @@ class ForumThreadController {
 
 }
 
-modeule.exports = ForumThreadController;
+module.exports = ForumThreadController;

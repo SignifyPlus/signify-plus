@@ -26,4 +26,4 @@ class UserActivityController {
 
 }
 
-modeule.exports = UserActivityController;
+module.exports = UserActivityController;

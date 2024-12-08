@@ -26,4 +26,4 @@ class MediaController {
 
 }
 
-modeule.exports = MediaController;
+module.exports = MediaController;

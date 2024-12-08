@@ -26,4 +26,4 @@ class ThreadCommentController {
 
 }
 
-modeule.exports = ThreadCommentController;
+module.exports = ThreadCommentController;

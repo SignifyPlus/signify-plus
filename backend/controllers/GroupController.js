@@ -25,5 +25,4 @@ class GroupController {
 
 
 }
-
-modeule.exports = GroupController;
+module.exports = GroupController;

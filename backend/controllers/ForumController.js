@@ -26,4 +26,4 @@ class ForumController {
 
 }
 
-modeule.exports = ForumController;
+module.exports = ForumController;

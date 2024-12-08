@@ -1,11 +1,20 @@
 const User = require("../models/User")
-const UserService = require("../services/UserService")
+const UserService = require("../services/UserService.js")
 class UserController {
+
+    constructor(){
+        this.userService = new UserService(User);
+        this.getAllUsers = this.getAllUsers.bind(this);
+        this.getUserById = this.getUserById.bind(this);
+        this.createUser = this.createUser.bind(this);
+        this.deleteUser = this.deleteUser.bind(this);
+    }
     
     //Get all Users
-    static async getAllUsers(request, response) {
+    async getAllUsers(request, response) {
         try {
-            const users = await UserService.getDocument();
+            response.send("Inside Call");
+            const users = await this.userService.getDocument();
             response.json(users);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -13,10 +22,10 @@ class UserController {
     }
 
     //Get single user
-    static async getUserById(request, response) {
+    async getUserById(request, response) {
         try {
             const userId = request.params.id;
-            const user = await UserService.getDocument(userId);
+            const user = await this.userService.getDocument(userId);
             response.json(user);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -24,10 +33,10 @@ class UserController {
     }
 
     //Creates a user
-    static async createUser(request, response) {
+    async createUser(request, response) {
         try {
             const user = request.body;
-            const userObject = await UserService.saveDocument(User, user);
+            const userObject = await this.userService.saveDocument(User, user);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -35,10 +44,10 @@ class UserController {
     }
 
     //Deletes a user
-    static async deleteUser(request, response) {
+    async deleteUser(request, response) {
         try {
             const user = request.body;
-            const userObject = await UserService.deleteDocument(User, user);
+            const userObject = await this.userService.deleteDocument(User, user);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -47,4 +56,4 @@ class UserController {
 
 }
 
-modeule.exports = UserController;
+module.exports = UserController;

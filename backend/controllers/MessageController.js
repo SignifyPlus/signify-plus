@@ -25,5 +25,4 @@ class MessageController {
 
 
 }
-
-modeule.exports = MessageController;
+module.exports = MessageController;

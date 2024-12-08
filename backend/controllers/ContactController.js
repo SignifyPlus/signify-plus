@@ -26,4 +26,4 @@ class ContactController {
 
 }
 
-modeule.exports = ContactController;
+module.exports = ContactController;

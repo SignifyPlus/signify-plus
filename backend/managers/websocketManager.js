@@ -6,7 +6,7 @@ class WebSocketManager {
         this.signifyPlusSocketIo = socketIo(server, {
             cors: {origin: "*"}
         });
-        this.machineLearningTranslationManager = MachineLearningTranslationManager(this.signifyPlusSocketIo)
+        this.machineLearningTranslationManager = new MachineLearningTranslationManager(this.signifyPlusSocketIo)
         this.setupSocketEvents();
     }
 

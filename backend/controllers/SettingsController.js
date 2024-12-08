@@ -26,4 +26,4 @@ class SettingsController {
 
 }
 
-modeule.exports = SettingsController;
+module.exports = SettingsController;

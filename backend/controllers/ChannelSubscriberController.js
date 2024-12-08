@@ -26,4 +26,4 @@ class ChannelSubscriberController {
 
 }
 
-modeule.exports = ChannelSubscriberController;
+module.exports = ChannelSubscriberController;

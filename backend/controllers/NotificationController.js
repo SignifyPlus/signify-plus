@@ -26,4 +26,4 @@ class NotificationController {
 
 }
 
-modeule.exports = NotificationController;
+module.exports = NotificationController;

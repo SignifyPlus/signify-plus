@@ -26,4 +26,4 @@ class ChannelController {
 
 }
 
-modeule.exports = ChannelController;
+module.exports = ChannelController;

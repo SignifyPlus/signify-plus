@@ -26,4 +26,4 @@ class ReportController {
 
 }
 
-modeule.exports = ReportController;
+module.exports = ReportController;

@@ -26,4 +26,4 @@ class GroupMemberController {
 
 }
 
-modeule.exports = GroupMemberController;
+module.exports = GroupMemberController;
