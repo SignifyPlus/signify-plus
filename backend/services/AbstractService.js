@@ -33,7 +33,7 @@ class AbstractService {
     async saveDocument(data) {
         try{
             const entity = await this.schemaModel.create(data);
-            console.log(entity);
+            return entity;
         }catch(exception){
             throw new Error(`Error Saving the Document: ${exception.message}`);
         }

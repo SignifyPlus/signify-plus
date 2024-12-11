@@ -37,8 +37,7 @@ class UserController {
     async createUser(request, response) {
         try {
             const user = request.body;
-            console.log(user);
-            const userObject = await this.userService.saveDocument(User, user);
+            const userObject = await this.userService.saveDocument(user);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -49,7 +48,7 @@ class UserController {
     async deleteUser(request, response) {
         try {
             const user = request.body;
-            const userObject = await this.userService.deleteDocument(User, user);
+            const userObject = await this.userService.deleteDocument(user);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
