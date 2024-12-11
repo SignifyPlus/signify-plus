@@ -11,16 +11,16 @@ class ContactService extends AbstractService {
         return super.getDocumentById(objectId)
     }
 
-    async updateDocument(schemaModel, filterConditions, updateFields) {
-        return super.updateDocument(schemaModel, filterConditions, updateFields);
+    async updateDocument(filterConditions, updateFields) {
+        return super.updateDocument(filterConditions, updateFields);
     }
 
-    async saveDocument(schemaModel,data) {
-        return super.saveDocument(schemaModel, data);
+    async saveDocument(data) {
+        return super.saveDocument(data);
     }
 
-    async deleteDocument(schemaModel, filterConditions) {
-        return super.deleteDocument(schemaModel, filterConditions);
+    async deleteDocument(filterConditions) {
+        return super.deleteDocument(filterConditions);
     }
 }
 

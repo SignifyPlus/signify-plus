@@ -4,23 +4,23 @@ class UserService extends AbstractService {
         super(schemaModel);
     }
     async getDocument() {
-        return super.getDocument();
+        return await super.getDocument();
     }
 
     async getDocumentById(objectId) {
-        return super.getDocumentById(objectId)
+        return await super.getDocumentById(objectId)
     }
 
-    async updateDocument(schemaModel, filterConditions, updateFields) {
-        return super.updateDocument(schemaModel, filterConditions, updateFields);
+    async updateDocument(filterConditions, updateFields) {
+        return await super.updateDocument(filterConditions, updateFields);
     }
 
-    async saveDocument(schemaModel,data) {
-        return super.saveDocument(schemaModel, data);
+    async saveDocument(data) {
+        return await super.saveDocument(data);
     }
 
-    async deleteDocument(schemaModel, filterConditions) {
-        return super.deleteDocument(schemaModel, filterConditions);
+    async deleteDocument(filterConditions) {
+        return await super.deleteDocument(filterConditions);
     }
 }
 

@@ -6,5 +6,4 @@ const userActivityController = new UserActivityController();
 
 userActivityRouter.get('/all', userActivityController.getAllUserActivities);
 
-
 module.exports = userActivityRouter;

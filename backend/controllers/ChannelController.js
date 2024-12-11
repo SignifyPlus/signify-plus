@@ -8,7 +8,7 @@ class ChannelController {
         this.getChannelById = this.getChannelById.bind(this);
     }
     //Get all channels
-    static async getAllChannels(request, response) {
+    async getAllChannels(request, response) {
         try {
             const channels = await this.channelService.getDocument();
             response.json(channels);
@@ -18,7 +18,7 @@ class ChannelController {
     }
 
     //Get single channel
-    static async getChannelById(request, response) {
+    async getChannelById(request, response) {
         try {
             const channelId = request.params.id;
             const channel = await this.channelService.getDocument(channelId);

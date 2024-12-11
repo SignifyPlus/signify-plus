@@ -37,6 +37,7 @@ class UserController {
     async createUser(request, response) {
         try {
             const user = request.body;
+            console.log(user);
             const userObject = await this.userService.saveDocument(User, user);
             response.json(userObject);
         }catch(exception) {
