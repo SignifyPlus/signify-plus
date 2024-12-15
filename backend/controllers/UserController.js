@@ -47,14 +47,25 @@ class UserController {
     //Deletes a user
     async deleteUser(request, response) {
         try {
-            const user = request.body;
-            const userObject = await this.userService.deleteDocument(user);
+            const userId = request.params.id;
+            const userObject = await this.userService.deleteDocument(userId);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
 
+    //Deletes a user
+    async deleteUserById(request, response) {
+        try {
+            const userId = request.params.id;
+            console.log(userId)
+            const userObject = await this.userService.deleteDocumentById(userId);
+            response.json(userObject);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
+    }
 }
 
 module.exports = UserController;

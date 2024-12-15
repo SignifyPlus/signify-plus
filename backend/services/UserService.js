@@ -16,11 +16,15 @@ class UserService extends AbstractService {
     }
 
     async saveDocument(data) {
-        return await super.saveDocument(data);;
+        return await super.saveDocument(data);
     }
 
     async deleteDocument(filterConditions) {
         return await super.deleteDocument(filterConditions);
+    }
+
+    async deleteDocumentById(objectId) {
+        return await super.deleteDocumentById(objectId);
     }
 }
 

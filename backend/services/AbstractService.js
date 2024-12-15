@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 
 class AbstractService {
     constructor(schemaModel) {
@@ -25,6 +24,7 @@ class AbstractService {
     async updateDocument(filterConditions, updateFields) {
         try{
             const entity = await this.schemaModel.findOneAndUpdate(filterConditions, updateFields, {new : true});
+            return entity;
         }catch(exception){
             throw new Error(`Error Updating the Document: ${exception.message}`);
         }
@@ -42,9 +42,20 @@ class AbstractService {
     async deleteDocument(filterConditions) {
         try{
             const entity = await this.schemaModel.findOneAndDelete(filterConditions, {new : true})
+            return entity;
+        }catch(exception) {
+            throw new Error(`Error Deleting the Document: ${exception.message}`);
+        }
+    }
+
+    async deleteDocumentById(objectId) {
+        try{
+            const entity = await this.schemaModel.findOneAndDelete({_id: objectId}) {new : true})
+            return entity;
         }catch(exception) {
             throw new Error(`Error Deleting the Document: ${exception.message}`);
         }
     }
 }
+
 module.exports = AbstractService;

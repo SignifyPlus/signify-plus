@@ -6,10 +6,14 @@ const userController = new UserController();
 
 userRouter.get('/all', userController.getAllUsers);
 
-userRouter.get('/create', userController.createUser);
+userRouter.post('/create', userController.createUser);
 
-userRouter.get('/delete', userController.deleteUser);
+userRouter.delete('/delete/filter/', userController.deleteUser);
+
+userRouter.delete('/delete/:id', userController.deleteUserById);
 
 userRouter.get('/:id', userController.getUserById);
 
 module.exports = userRouter;
+
+//test with axios - other endpoints!

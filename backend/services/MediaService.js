@@ -4,23 +4,27 @@ class MediaService extends AbstractService {
         super(schemaModel);
     }
     async getDocument() {
-        return super.getDocument();
+        return await super.getDocument();
     }
 
     async getDocumentById(objectId) {
-        return super.getDocumentById(objectId)
+        return await super.getDocumentById(objectId)
     }
 
     async updateDocument(filterConditions, updateFields) {
-        return super.updateDocument(filterConditions, updateFields);
+        return await super.updateDocument(filterConditions, updateFields);
     }
 
     async saveDocument(data) {
-        return super.saveDocument(data);
+        return await super.saveDocument(data);
     }
 
     async deleteDocument(filterConditions) {
-        return super.deleteDocument(filterConditions);
+        return await super.deleteDocument(filterConditions);
+    }
+
+    async deleteDocumentById(objectId) {
+        return await super.deleteDocumentById(objectId);
     }
 }
 
