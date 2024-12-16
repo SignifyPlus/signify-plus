@@ -50,7 +50,7 @@ class AbstractService {
 
     async deleteDocumentById(objectId) {
         try{
-            const entity = await this.schemaModel.findOneAndDelete({_id: objectId}) {new : true})
+            const entity = await this.schemaModel.findOneAndDelete({_id: objectId}, {new : true})
             return entity;
         }catch(exception) {
             throw new Error(`Error Deleting the Document: ${exception.message}`);
