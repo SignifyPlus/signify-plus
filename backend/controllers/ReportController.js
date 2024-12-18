@@ -4,12 +4,10 @@ class ReportController {
     
     constructor(){
         this.reportService = new ReportService(Report);
-        this.getAllReports = this.getAllReports.bind(this);
-        this.getReportById = this.getReportById.bind(this);
     }
 
     //Get all Reports
-    async getAllReports(request, response) {
+    getAllReports = async(request, response) =>{
         try {
             const reports = await this.reportService.getDocument();
             response.json(reports);
@@ -19,7 +17,7 @@ class ReportController {
     }
 
     //Get single Report
-    async getReportById(request, response) {
+    getReportById = async(request, response) =>{
         try {
             const reportId = request.params.id;
             const report = await this.reportService.getDocument(reportId);

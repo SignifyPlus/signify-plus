@@ -4,11 +4,9 @@ class MessageController {
     
     constructor(){
         this.messageService = new MessageService(Message);
-        this.getAllMessages = this.getAllMessages.bind(this);
-        this.getMessageById = this.getMessageById.bind(this);
     }
     //Get all Messages - fetching this is dumb tho
-    async getAllMessages(request, response) {
+    getAllMessages = async(request, response) =>{
         try {
             const messages = await this.messageService.getDocument();
             response.json(messages);
@@ -18,7 +16,7 @@ class MessageController {
     }
 
     //Get single Message
-    async getMessageById(request, response) {
+    getMessageById = async(request, response) => {
         try {
             const messageId = request.params.id;
             const message = await this.messageService.getDocument(messageId);

@@ -4,11 +4,9 @@ class CallHistoryController {
 
     constructor(){
         this.callHistoryService = new CallHistoryService(CallHistory);
-        this.getCallHistory = this.getCallHistory.bind(this);
-        this.getCallHistoryByUserId = this.getCallHistoryByUserId.bind(this);
     }
 
-    async getCallHistory(request, response) {
+    getCallHistory = async(request, response) => {
         try {
             const callHistories = await this.callHistoryService.getDocument();
             response.json(callHistories);
@@ -17,7 +15,7 @@ class CallHistoryController {
         }
     }
 
-    async getCallHistoryByUserId(request, response) {
+    getCallHistoryByUserId = async(request, response) => {
         try {
             const callHistoryByUserId= request.params.id;
             const callHistory = await this.callHistoryService.getDocument(callHistoryByUserId);

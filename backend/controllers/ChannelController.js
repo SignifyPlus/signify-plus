@@ -4,11 +4,9 @@ class ChannelController {
     
     constructor(){
         this.channelService = new ChannelService(Chanel);
-        this.getAllChannels = this.getAllChannels.bind(this);
-        this.getChannelById = this.getChannelById.bind(this);
     }
     //Get all channels
-    async getAllChannels(request, response) {
+    getAllChannels = async(request, response) =>{
         try {
             const channels = await this.channelService.getDocument();
             response.json(channels);
@@ -18,7 +16,7 @@ class ChannelController {
     }
 
     //Get single channel
-    async getChannelById(request, response) {
+    getChannelById = async(request, response) => {
         try {
             const channelId = request.params.id;
             const channel = await this.channelService.getDocument(channelId);

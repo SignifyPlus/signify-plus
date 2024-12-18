@@ -4,11 +4,9 @@ class ReactionController {
 
     constructor(){
         this.reactionService = new ReactionService(Reaction);
-        this.getAllReactions = this.getAllReactions.bind(this);
-        this.getReactionById = this.getReactionById.bind(this);
     }
     //Get all Reactions
-    async getAllReactions(request, response) {
+    getAllReactions = async(request, response) => {
         try {
             const reactions = await this.reactionService.getDocument();
             response.json(reactions);
@@ -18,7 +16,7 @@ class ReactionController {
     }
 
     //Get single Reaction
-    async getReactionById(request, response) {
+    getReactionById = async(request, response) =>{
         try {
             const reactionId = request.params.id;
             const reaction = await this.reactionService.getDocument(reactionId);

@@ -4,11 +4,9 @@ class ForumPermissionsController {
     
     constructor(){
         this.forumPermissionsService = new ForumPermissionsService(ForumPermissions);
-        this.getAllForumPermissionss = this.getAllForumPermissionss.bind(this);
-        this.getForumPermissionsById = this.getForumPermissionsById.bind(this);
     }
     //Get all ForumPermissionss
-    async getAllForumPermissionss(request, response) {
+    getAllForumPermissionss = async(request, response) =>{
         try {
             const forumPermissionss = await this.forumPermissionsService.getDocument();
             response.json(forumPermissionss);
@@ -18,7 +16,7 @@ class ForumPermissionsController {
     }
 
     //Get single ForumPermissions
-    async getForumPermissionsById(request, response) {
+    getForumPermissionsById = async(request, response) => {
         try {
             const forumPermissionsId = request.params.id;
             const forumPermissions = await this.forumPermissionsService.getDocument(forumPermissionsId);

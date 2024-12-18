@@ -4,11 +4,9 @@ class MediaController {
     
     constructor(){
         this.mediaService = new MediaService(Media);
-        this.getAllMedia = this.getAllMedia.bind(this);
-        this.getMediaById = this.getMediaById.bind(this);
     }
     //Get all Medias
-    async getAllMedia(request, response) {
+    getAllMedia = async(request, response) => {
         try {
             const media = await this.mediaService.getDocument();
             response.json(media);
@@ -18,7 +16,7 @@ class MediaController {
     }
 
     //Get single Media
-    async getMediaById(request, response) {
+    getMediaById = async(request, response) => {
         try {
             const mediaId = request.params.id;
             const media = await this.mediaService.getDocument(mediaId);

@@ -4,11 +4,9 @@ class ForumThreadController {
     
     constructor(){
         this.forumThreadService = new ForumThreadService(ForumThread);
-        this.getAllForumThreads = this.getAllForumThreads.bind(this);
-        this.getForumThreadById = this.getForumThreadById.bind(this);
     }
     //Get all ForumThreads
-    async getAllForumThreads(request, response) {
+    getAllForumThreads = async(request, response) => {
         try {
             const forumThreads = await this.forumThreadService.getDocument();
             response.json(forumThreads);
@@ -18,7 +16,7 @@ class ForumThreadController {
     }
 
     //Get single ForumThread
-    async getForumThreadById(request, response) {
+    getForumThreadById = async(request, response) => {
         try {
             const forumThreadId = request.params.id;
             const forumThread = await this.forumThreadService.getDocument(forumThreadId);

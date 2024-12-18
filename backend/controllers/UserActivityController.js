@@ -4,12 +4,10 @@ class UserActivityController {
     
     constructor(){
         this.userActivityService = new UserActivityService(UserActivity);
-        this.getAllUserActivities = this.getAllUserActivities.bind(this);
-        this.getUserActivityById = this.getUserActivityById.bind(this);
     }
     
     //Get all UserActivitys
-    async getAllUserActivities(request, response) {
+    getAllUserActivities = async(request, response) => {
         try {
             const userActivities = await this.userActivityService.getDocument();
             response.json(userActivities);
@@ -19,7 +17,7 @@ class UserActivityController {
     }
 
     //Get single UserActivity
-    async getUserActivityById(request, response) {
+    getUserActivityById = async(request, response) => {
         try {
             const userActivityId = request.params.id;
             const userActivity = await this.userActivityService.getDocument(userActivityId);

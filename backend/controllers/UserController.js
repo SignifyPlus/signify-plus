@@ -4,14 +4,10 @@ class UserController {
 
     constructor(){
         this.userService = new UserService(User);
-        this.getAllUsers = this.getAllUsers.bind(this);
-        this.getUserById = this.getUserById.bind(this);
-        this.createUser = this.createUser.bind(this);
-        this.deleteUser = this.deleteUser.bind(this);
     }
     
     //Get all Users
-    async getAllUsers(request, response) {
+    getAllUsers = async(request, response) => {
         try {
             console.log("Fetching all users from getAllUsers...");
             const users = await this.userService.getDocument();
@@ -22,7 +18,7 @@ class UserController {
     }
 
     //Get single user
-    async getUserById(request, response) {
+    getUserById = async(request, response) =>  {
         try {
             console.log("Fetching all users from getUserById...");
             const userId = request.params.id;
@@ -34,9 +30,11 @@ class UserController {
     }
 
     //Creates a user
-    async createUser(request, response) {
+    createUser = async(request, response) => {
         try {
+            console.log("Creating User...");
             const user = request.body;
+            console.log(user)
             const userObject = await this.userService.saveDocument(user);
             response.json(userObject);
         }catch(exception) {
@@ -45,10 +43,12 @@ class UserController {
     }
 
     //Deletes a user
-    async deleteUser(request, response) {
+    deleteUser = async(request, response) =>  {
         try {
-            const userId = request.params.id;
-            const userObject = await this.userService.deleteDocument(userId);
+            const filters = request.query;
+            console.log("Filters: ", filters);
+            console.log("Keys", Object.keys(filters));
+            const userObject = await this.userService.deleteDocument(filters);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -56,7 +56,7 @@ class UserController {
     }
 
     //Deletes a user
-    async deleteUserById(request, response) {
+    deleteUserById = async(request, response) =>  {
         try {
             const userId = request.params.id;
             console.log(userId)

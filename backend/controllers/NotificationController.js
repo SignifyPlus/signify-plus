@@ -4,11 +4,9 @@ class NotificationController {
     
     constructor(){
         this.notificationService = new NotificationService(Notification);
-        this.getAllNotifications = this.getAllNotifications.bind(this);
-        this.getNotificationById = this.getNotificationById.bind(this);
     }
     //Get all Notifications
-    async getAllNotifications(request, response) {
+    getAllNotifications = async(request, response) =>{
         try {
             const notifications = await this.notificationService.getDocument();
             response.json(notifications);
@@ -18,7 +16,7 @@ class NotificationController {
     }
 
     //Get single Notification
-    async getNotificationById(request, response) {
+    getNotificationById = async(request, response) => {
         try {
             const notificationId = request.params.id;
             const notification = await this.notificationService.getDocument(notificationId);

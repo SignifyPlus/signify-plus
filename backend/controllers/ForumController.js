@@ -4,11 +4,9 @@ class ForumController {
     
     constructor(){
         this.forumService = new ForumService(Forum);
-        this.getAllForums = this.getAllForums.bind(this);
-        this.getForumById = this.getForumById.bind(this);
     }
     //Get all Forums
-    async getAllForums(request, response) {
+    getAllForums = async(request, response) => {
         try {
             const forums = await this.forumService.getDocument();
             response.json(forums);
@@ -18,7 +16,7 @@ class ForumController {
     }
 
     //Get single Forum
-    async getForumById(request, response) {
+    getForumById = async(request, response) => {
         try {
             const forumId = request.params.id;
             const forum = await this.forumService.getDocument(forumId);

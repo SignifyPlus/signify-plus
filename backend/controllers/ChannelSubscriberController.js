@@ -4,11 +4,9 @@ class ChannelSubscriberController {
     
     constructor(){
         this.channelSubscriberService = new ChannelSubscriberService(ChannelSubscriber);
-        this.getAllChannelSubscribers = this.getAllChannelSubscribers.bind(this);
-        this.getChannelSubscriberById = this.getChannelSubscriberById.bind(this);
     }
     //Get all ChannelSubscribers
-    async getAllChannelSubscribers(request, response) {
+    getAllChannelSubscribers = async(request, response) => {
         try {
             const channelSubscribers = await this.channelSubscriberService.getDocument();
             response.json(channelSubscribers);
@@ -18,7 +16,7 @@ class ChannelSubscriberController {
     }
 
     //Get single ChannelSubscriber
-    async getChannelSubscriberById(request, response) {
+    getChannelSubscriberById = async(request, response) => {
         try {
             const channelSubscriberId = request.params.id;
             const ChannelSubscriber = await this.channelSubscriberService.getDocument(channelSubscriberId);

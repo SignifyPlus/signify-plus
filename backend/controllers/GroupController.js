@@ -4,11 +4,9 @@ class GroupController {
     
     constructor(){
         this.groupService = new GroupService(Group);
-        this.getAllGroups = this.getAllGroups.bind(this);
-        this.getGroupById = this.getGroupById.bind(this);
     }
     //Get all Groups
-    async getAllGroups(request, response) {
+    getAllGroups = async(request, response) => {
         try {
             const groups = await this.groupService.getDocument();
             response.json(groups);
@@ -18,7 +16,7 @@ class GroupController {
     }
 
     //Get single Group
-    async getGroupById(request, response) {
+    getGroupById = async(request, response) => {
         try {
             const groupId = request.params.id;
             const group = await this.groupService.getDocument(groupId);

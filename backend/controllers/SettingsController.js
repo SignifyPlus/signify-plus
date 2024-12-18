@@ -4,12 +4,10 @@ class SettingsController {
     
     constructor(){
         this.settingsService = new SettingsService(Settings);
-        this.getAllSettings = this.getAllSettings.bind(this);
-        this.getSettingsById = this.getSettingsById.bind(this);
     }
 
     //Get all Settingss
-    async getAllSettings(request, response) {
+    getAllSettings = async(request, response) =>{
         try {
             const settings = await this.settingsService.getDocument();
             response.json(settings);
@@ -19,7 +17,7 @@ class SettingsController {
     }
 
     //Get single Settings
-    async getSettingsById(request, response) {
+    getSettingsById = async(request, response) =>{
         try {
             const settingsId = request.params.id;
             const settings = await this.settingsService.getDocument(settingsId);
