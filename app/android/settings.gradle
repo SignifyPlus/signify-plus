@@ -44,7 +44,7 @@ if (getRNMinorVersion() >= 75) {
   }
 }
 
-rootProject.name = 'SignifyPlus'
+rootProject.name = 'videosdk-expo-app'
 
 dependencyResolutionManagement {
   versionCatalogs {

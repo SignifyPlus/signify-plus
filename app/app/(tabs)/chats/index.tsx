@@ -1,14 +1,25 @@
-import { PageView } from "@/components/page-view/page-view";
-import { ChatList } from "@/components/chat-list/chat-list";
-import { chats } from "@/mocks/mock-chats-list";
-import { View } from "react-native";
-import { useAppStore } from "@/store/store";
-import { VideoCallModal } from "@/components/video-call-modal/video-call-modal";
+import { ScrollView, View } from "react-native";
+import chats from "@/assets/data/chats.json";
+import { ChatRow } from "@/components/ChatRow";
+import { defaultStyles } from "@/constants/Styles";
+import { Fragment } from "react";
 
-export default function Chats() {
+const Page = () => {
   return (
-    <PageView>
-      <ChatList chats={chats} />
-    </PageView>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{
+        backgroundColor: "#fff",
+      }}
+    >
+      {chats.map((chat) => (
+        <Fragment key={chat.id}>
+          <ChatRow {...chat} />
+          <View style={[defaultStyles.separator, { marginLeft: 90 }]} />
+        </Fragment>
+      ))}
+    </ScrollView>
   );
-}
+};
+
+export default Page;

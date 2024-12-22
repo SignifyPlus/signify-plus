@@ -1,54 +1,48 @@
 {
   "expo": {
-    "name": "SignifyPlus",
-    "slug": "SignifyPlus",
+    "name": "videosdk-expo-app",
+    "slug": "videosdk-expo-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icon.png",
     "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "SignifyPlus needs access to your Camera.",
-        "NSMicrophoneUsageDescription": "SignifyPlus needs access to your Microphone."
-      },
-      "bundleIdentifier": "com.anonymous.SignifyPlus"
+      "bitcode": false,
+      "bundleIdentifier": "com.anonymous.videosdkexpoapp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.INTERNET",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH"
       ],
-      "package": "com.anonymous.SignifyPlus"
+      "package": "com.anonymous.videosdkexpoapp"
     },
     "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "react-native-vision-camera",
-        {
-          "cameraPermissionText": "SignifyPlus needs access to your Camera.",
-          "enableMicrophonePermission": true,
-          "microphonePermissionText": "SignifyPlus needs access to your Microphone."
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+      "@config-plugins/react-native-webrtc",
+      "@videosdk.live/expo-config-plugin",
+      "expo-router"
+    ]
   }
 }

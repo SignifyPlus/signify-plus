@@ -1,29 +1,28 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import "react-native-reanimated";
+import { View } from "react-native";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
+export {
+  // Catch any errors thrown by the Layout component.
+  ErrorBoundary,
+} from "expo-router";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  // Ensure any route can link back to `/`
-  initialRouteName: "login",
-};
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
+const InitialLayout = () => {
+  const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    ...FontAwesome.font,
   });
+
+  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+  useEffect(() => {
+    if (error) throw error;
+  }, [error]);
 
   useEffect(() => {
     if (loaded) {
@@ -31,18 +30,44 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  // const router = useRouter();
+  // useEffect(() => {
+  //   // authorize user and replace
+  //   setTimeout(() => {
+  //     router.replace("/(tabs)/chats");
+  //     // router.replace("/video-call");
+  //   }, 1000);
+  // }, [router]);
+
   if (!loaded) {
-    return null;
+    return <View />;
   }
 
   return (
-    <ThemeProvider value={DefaultTheme}>
-      <Stack initialRouteName="login">
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="otp"
+        options={{
+          headerTitle: "Enter Your Phone Number",
+          headerBackVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="verify/[phone]"
+        options={{
+          title: "Verify Your Phone Number",
+          headerShown: true,
+          headerBackTitle: "Edit number",
+        }}
+      />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
-}
+};
+
+const RootLayoutNav = () => {
+  return <InitialLayout />;
+};
+
+export default RootLayoutNav;
