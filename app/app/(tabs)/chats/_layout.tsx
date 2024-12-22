@@ -1,83 +1,114 @@
-import React from "react";
-import { Stack, useRouter } from "expo-router";
-import { Image, Text, TouchableOpacity, View } from "react-native";
-import { chats } from "@/mocks/mock-chats-list";
+import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { useAppStore } from "@/store/store";
+import { Link, Stack, useRouter } from "expo-router";
+import { Image, Platform, Text, TouchableOpacity, View } from "react-native";
 
-const HeaderTitle = (props: { children: string }) => {
-  const phoneNumber = props.children;
-
+const Layout = () => {
   const router = useRouter();
-  const chat = chats.find((chat) => chat.phoneNumber === phoneNumber);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        width: "100%",
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-          width: "70%",
-        }}
-      >
-        <Image
-          source={{ uri: chat?.avatar }}
-          style={{ width: 32, height: 32, borderRadius: 20 }}
-        />
-        <Text>{props.children}</Text>
-      </View>
-      <TouchableOpacity
-        disabled={!chat}
-        onPress={() => {
-          if (chat?.phoneNumber) {
-            router.push(`/chats/video-call/${chat.phoneNumber}`);
-          }
-        }}
-      >
-        <View
-          style={{
-            width: 30,
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            borderRadius: 16,
-          }}
-        >
-          <Ionicons size={24} name="videocam-outline" color="#1D3D47" />
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-export default function ChatsStackLayout() {
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack>
       <Stack.Screen
         name="index"
         options={{
           title: "Chats",
-          headerShown: true,
+          // headerLargeTitle: isIos,
+          // headerTransparent: isIos,
+          // headerBlurEffect: "regular",
+          headerLeft: () => (
+            <TouchableOpacity>
+              <Ionicons
+                name="ellipsis-horizontal-circle-outline"
+                color={Colors.primary}
+                size={30}
+              />
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View style={{ flexDirection: "row", gap: 30 }}>
+              <TouchableOpacity>
+                <Ionicons
+                  name="camera-outline"
+                  color={Colors.primary}
+                  size={30}
+                />
+              </TouchableOpacity>
+              <Link href="/(modals)/new-chat" asChild>
+                <TouchableOpacity>
+                  <Ionicons
+                    name="add-circle"
+                    color={Colors.primary}
+                    size={30}
+                  />
+                </TouchableOpacity>
+              </Link>
+            </View>
+          ),
+          headerStyle: {
+            backgroundColor: "#fff",
+          },
+          headerSearchBarOptions: {
+            placeholder: "Search",
+          },
         }}
       />
+
       <Stack.Screen
-        name="[chatId]"
+        name="[id]"
         options={{
-          headerShown: true,
+          title: "",
           headerBackTitleVisible: false,
-          headerTitle: HeaderTitle,
-          headerTintColor: "#1D3D47",
+          headerTitle: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                width: 220,
+                alignItems: "center",
+                gap: 10,
+                paddingBottom: 4,
+                justifyContent: "flex-start",
+                marginLeft: Platform.OS === "ios" ? -100 : 0,
+              }}
+            >
+              <Image
+                source={{
+                  uri: "https://avatars.githubusercontent.com/u/97961673?v=4",
+                }}
+                style={{ width: 32, height: 32, borderRadius: 50 }}
+              />
+              <Text style={{ fontSize: 16, fontWeight: "500" }}>
+                Iman Zahid
+              </Text>
+            </View>
+          ),
+          headerRight: () => (
+            <View style={{ flexDirection: "row", gap: 30 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  router.push("/video-call");
+                }}
+              >
+                <Ionicons
+                  name="videocam-outline"
+                  color={Colors.primary}
+                  size={22}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Ionicons
+                  name="call-outline"
+                  color={Colors.primary}
+                  size={22}
+                />
+              </TouchableOpacity>
+            </View>
+          ),
+          headerStyle: {
+            backgroundColor: Colors.background,
+          },
         }}
       />
     </Stack>
   );
-}
+};
+export default Layout;
