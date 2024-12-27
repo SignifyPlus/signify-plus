@@ -18,6 +18,16 @@ class WebSocketManager {
                 console.log(message);
                 this.signifyPlusSocketIo.emit('message', `${socket.id.substr(0,2)} said ${message}}`)
             })
+            
+            socket.on('meeting-id', (data) => {
+                console.log(`Meeting ID from ${socket.id} to ${data.target}`);
+                data.targets.forEach(targetSocketId => {
+                    socket.to(targetSocketId).emit('meeting-id-offer', {
+                        sender: socket.id,
+                        meetingId: data.meetingId
+                    });
+                });
+            });
 
             socket.on('offer', (data) => {
                 console.log(`Offer from ${socket.id} to ${data.target}`);
