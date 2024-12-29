@@ -1,0 +1,31 @@
+{
+  "name": "signify-plus",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "axios": "^1.7.8",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "bson": "^6.9.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "firebase": "^11.0.1",
+    "firebase-admin": "^13.0.0",
+    "js-yaml": "^4.1.0",
+    "mongodb": "6.10",
+    "mongoose": "^8.8.0",
+    "mysql": "^2.18.1",
+    "signify-plus": "file:",
+    "socket.io": "^4.8.1",
+    "web-push": "^3.6.7",
+    "ws": "^8.18.0"
+  }
+}
