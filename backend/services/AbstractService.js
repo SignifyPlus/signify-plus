@@ -2,7 +2,6 @@
 class AbstractService {
     constructor(schemaModel) {
         this.schemaModel = schemaModel;
-        console.log(this.schemaModel)
     }
 
     async getDocument() {
