@@ -19,16 +19,17 @@ class WebSocketManager {
                 this.signifyPlusSocketIo.emit('message', `${socket.id} said ${message}}`)
             })
 
-            socket.on('socket-registration', (userId) => {
+            socket.on('socket-registration', (data) => {
                 //add userID and the socket id to the map
-                this.userSocketMap[userId] = socket.id;
-                console.log(`User ${userId} registered with socket ID: ${socket.id}`);
+                this.userSocketMap[data.userId] = socket.id;
+                console.log(`User ${data.userId} registered with socket ID: ${socket.id}`);
             })
             
             socket.on('meeting-id', (data) => {
-                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} targets: ${data.targets}`);
+                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} targets: ${data.targetUserIds}`);
                 data.targetUserIds.forEach(userId => {
                     const targetSocketId = this.userSocketMap[userId];
+                    console.log(`Iterating ${targetSocketId}`)
                     if (targetSocketId) {
                         socket.to(targetSocketId).emit('meeting-id-offer', {
                             sender: socket.id,
