@@ -27,7 +27,7 @@ class WebSocketManager {
             
             socket.on('meeting-id', (data) => {
                 const sendersSocketId = this.userSocketMap[data.callerUserId];
-                if (!sendersSocketId) {
+                if (!sendersSocketId) { //if sender is undefined, exit
                     return;
                 }
                 console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} sendersSocketId: ${sendersSocketId} targets: ${data.targetUserIds}`);
@@ -42,7 +42,7 @@ class WebSocketManager {
                         });
                     }else{
                         console.log("Undefined, hence here!");
-                        socket.emit('meeting-id-failed', {
+                        socket.emit('meeting-id-failed', { //we dont need to use .to here because we dont emit the event to the same sender by to, we can just use emit
                             sender: socket.id,
                             message: 'Failed! - no user found!'
                         });
