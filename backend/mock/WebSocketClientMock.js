@@ -7,10 +7,14 @@ mockSocket.on('connect', () => {
 
     mockSocket.emit('message', 'Hello from mock Client!');
 
+    //we should not be broadcasting this to everyone
+    //so we'll use senderId,
+    //targets, the sender which wants to make a call to
+    // and the meeting id
     mockSocket.emit('meeting-id', {
-        target: 'targetSocketId',
-        meetingId: 12345,
-        targets: ['targetSocketId']
+        callerUserId: 789067567,
+        meetingId: 412532646,
+        targets: ['12345_user1', '124125_user2']
     });
 })
 

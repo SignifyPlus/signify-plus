@@ -11,7 +11,6 @@ class WebSocketManager {
     }
 
     setupSocketEvents() {
-        //debug when UI has setup for sending messages
         this.signifyPlusSocketIo.on('connection', (socket) => {
             console.log('Connected');
             socket.on('message', (message) => {
@@ -20,8 +19,7 @@ class WebSocketManager {
             })
             
             socket.on('meeting-id', (data) => {
-                console.log(`Meeting ID from ${socket.id} to ${data.target}`);
-                console.log(`Meeting ID: ${data.meetingId}`);
+                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} targets: ${data.targets}`);
                 data.targets.forEach(targetSocketId => {
                     socket.to(targetSocketId).emit('meeting-id-offer', {
                         sender: socket.id,
