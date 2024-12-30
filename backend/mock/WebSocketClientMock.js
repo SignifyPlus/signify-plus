@@ -12,13 +12,13 @@ mockSocket.on('connect', () => {
     //targets, the sender which wants to make a call to
     // and the meeting id
     mockSocket.emit('socket-registration', {
-        userId : 789067567
+        userId : '789067567'
     });
 
     mockSocket.emit('meeting-id', {
-        callerUserId: 789067567,
-        meetingId: 412532646,
-        targetUserIds: [789067567, 241516663]
+        callerUserId: '789067567',
+        meetingId: '412532646',
+        targetUserIds: ['789067567', '241516663']
     });
 })
 
