@@ -33,14 +33,16 @@ class WebSocketManager {
                 console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} sendersSocketId: ${sendersSocketId} targets: ${data.targetUserIds}`);
                 data.targetUserIds.forEach(userId => {
                     const targetSocketId = this.userSocketMap[userId];
-                    console.log(`Iterating ${targetSocketId}`)
+                    console.log(`Iterating ${targetSocketId}`);
                     if (targetSocketId) {
+                        console.log(`Emitting meeting-id-offer`);
                         socket.to(targetSocketId).emit('meeting-id-offer', {
                             sender: socket.id,
                             meetingId: data.meetingId
                         });
                     }else{
-                        socket.to(sendersSocketId).emit('meeting-id-failed', {
+                        console.log("Undefined, hence here!");
+                        socket.emit('meeting-id-failed', {
                             sender: socket.id,
                             message: 'Failed! - no user found!'
                         });
