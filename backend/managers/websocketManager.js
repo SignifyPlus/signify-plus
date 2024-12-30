@@ -26,7 +26,11 @@ class WebSocketManager {
             })
             
             socket.on('meeting-id', (data) => {
-                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} targets: ${data.targetUserIds}`);
+                const sendersSocketId = this.userSocketMap[data.callerUserId];
+                if (!sendersSocketId) {
+                    return;
+                }
+                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} sendersSocketId: ${sendersSocketId} targets: ${data.targetUserIds}`);
                 data.targetUserIds.forEach(userId => {
                     const targetSocketId = this.userSocketMap[userId];
                     console.log(`Iterating ${targetSocketId}`)
@@ -36,7 +40,7 @@ class WebSocketManager {
                             meetingId: data.meetingId
                         });
                     }else{
-                        socket.to(data.callerUserId).emit('meeting-id-failed', {
+                        socket.to(sendersSocketId).emit('meeting-id-failed', {
                             sender: socket.id,
                             message: 'Failed! - no user found!'
                         });
