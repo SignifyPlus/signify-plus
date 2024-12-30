@@ -6,6 +6,7 @@ class WebSocketManager {
         this.signifyPlusSocketIo = socketIo(server, {
             cors: {origin: "*"}
         });
+        this.userSocketMap = {};
         this.machineLearningTranslationManager = new MachineLearningTranslationManager(this.signifyPlusSocketIo)
         this.setupSocketEvents();
     }
@@ -15,16 +16,30 @@ class WebSocketManager {
             console.log('Connected');
             socket.on('message', (message) => {
                 console.log(message);
-                this.signifyPlusSocketIo.emit('message', `${socket.id.substr(0,2)} said ${message}}`)
+                this.signifyPlusSocketIo.emit('message', `${socket.id} said ${message}}`)
+            })
+
+            socket.on('socket-registration', (userId) => {
+                //add userID and the socket id to the map
+                this.userSocketMap[userId] = socket.id;
+                console.log(`User ${userId} registered with socket ID: ${socket.id}`);
             })
             
             socket.on('meeting-id', (data) => {
                 console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} targets: ${data.targets}`);
-                data.targets.forEach(targetSocketId => {
-                    socket.to(targetSocketId).emit('meeting-id-offer', {
-                        sender: socket.id,
-                        meetingId: data.meetingId
-                    });
+                data.targetUserIds.forEach(userId => {
+                    const targetSocketId = this.userSocketMap[userId];
+                    if (targetSocketId) {
+                        socket.to(targetSocketId).emit('meeting-id-offer', {
+                            sender: socket.id,
+                            meetingId: data.meetingId
+                        });
+                    }else{
+                        socket.to(data.callerUserId).emit('meeting-id-failed', {
+                            sender: socket.id,
+                            message: 'Failed! - no user found!'
+                        });
+                    }
                 });
             });
 
