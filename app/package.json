@@ -3,17 +3,19 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --dev-client",
     "android": "expo run:android --device",
     "ios": "expo run:ios --device"
   },
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^9.0.0",
+    "@react-native-community/cli": "^15.1.3",
     "@videosdk.live/expo-config-plugin": "^0.0.2",
     "@videosdk.live/react-native-foreground-service": "^0.0.3",
     "@videosdk.live/react-native-incallmanager": "^0.1.3",
     "@videosdk.live/react-native-sdk": "^0.1.11",
     "@videosdk.live/react-native-webrtc": "^0.0.11",
+    "axios": "^1.7.9",
     "date-fns": "^4.1.0",
     "expo": "~51.0.2",
     "expo-constants": "~16.0.2",
@@ -21,14 +23,22 @@
     "expo-router": "~3.5.24",
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
-    "react-native": "0.74.1",
+    "react-native": "0.74.5",
     "react-native-confirmation-code-field": "^7.4.0",
     "react-native-gesture-handler": "^2.21.2",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-mask-input": "^1.2.3",
+    "react-native-quick-base64": "^2.1.2",
     "react-native-reanimated": "3.16.6",
     "react-native-safe-area-context": "4.10.5",
-    "react-native-screens": "3.31.1"
+    "react-native-screens": "3.31.1",
+<<<<<<< Updated upstream
+    "react-native-view-shot": "^4.0.3",
+    "react-native-vision-camera": "^4.6.3",
+    "react-native-worklets-core": "^1.5.0",
+=======
+>>>>>>> Stashed changes
+    "videosdk-expo-app": "file:"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

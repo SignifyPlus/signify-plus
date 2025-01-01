@@ -42,6 +42,7 @@
     "plugins": [
       "@config-plugins/react-native-webrtc",
       "@videosdk.live/expo-config-plugin",
+      "react-native-vision-camera",
       "expo-router"
     ]
   }

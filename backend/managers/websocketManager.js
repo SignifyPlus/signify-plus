@@ -6,47 +6,26 @@ class WebSocketManager {
         this.signifyPlusSocketIo = socketIo(server, {
             cors: {origin: "*"}
         });
-        this.userSocketMap = {};
         this.machineLearningTranslationManager = new MachineLearningTranslationManager(this.signifyPlusSocketIo)
         this.setupSocketEvents();
     }
 
     setupSocketEvents() {
+        //debug when UI has setup for sending messages
         this.signifyPlusSocketIo.on('connection', (socket) => {
             console.log('Connected');
             socket.on('message', (message) => {
                 console.log(message);
-                this.signifyPlusSocketIo.emit('message', `${socket.id} said ${message}}`)
-            })
-
-            socket.on('socket-registration', (data) => {
-                //add userID and the socket id to the map
-                this.userSocketMap[data.userId] = socket.id;
-                console.log(`User ${data.userId} registered with socket ID: ${socket.id}`);
+                this.signifyPlusSocketIo.emit('message', `${socket.id.substr(0,2)} said ${message}}`)
             })
             
             socket.on('meeting-id', (data) => {
-                const sendersSocketId = this.userSocketMap[data.callerUserId];
-                if (!sendersSocketId) { //if sender is undefined, exit
-                    return;
-                }
-                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} sendersSocketId: ${sendersSocketId} targets: ${data.targetUserIds}`);
-                data.targetUserIds.forEach(userId => {
-                    const targetSocketId = this.userSocketMap[userId];
-                    console.log(`Iterating ${targetSocketId}`);
-                    if (targetSocketId) {
-                        console.log(`Emitting meeting-id-offer`);
-                        socket.to(targetSocketId).emit('meeting-id-offer', {
-                            sender: socket.id,
-                            meetingId: data.meetingId
-                        });
-                    }else{
-                        console.log("Undefined, hence here!");
-                        socket.emit('meeting-id-failed', { //we dont need to use .to here because we dont emit the event to the same sender by to, we can just use emit
-                            sender: socket.id,
-                            message: 'Failed! - no user found!'
-                        });
-                    }
+                console.log(`Meeting ID from ${socket.id} to ${data.target}`);
+                data.targets.forEach(targetSocketId => {
+                    socket.to(targetSocketId).emit('meeting-id-offer', {
+                        sender: socket.id,
+                        meetingId: data.meetingId
+                    });
                 });
             });
 

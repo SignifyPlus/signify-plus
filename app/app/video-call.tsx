@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   TouchableOpacity,
@@ -17,6 +17,10 @@ import {
   register,
 } from "@videosdk.live/react-native-sdk";
 import { createMeeting, token } from "@/api";
+import { useCameraDevice, useFrameProcessor, runAtTargetFps, Camera} from 'react-native-vision-camera';
+import { runOnJS, useSharedValue  } from 'react-native-reanimated';
+import axios from 'axios';
+import { fromByteArray } from 'react-native-quick-base64'
 
 register();
 
@@ -84,15 +88,116 @@ interface ParticipantViewProps {
   participantId: string;
 }
 
+const MODEL_ID = "signify-plus/4";
+const API_KEY = "FS1wnp4iGIM5AwUbq8ga";
+
+
 const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
   const { webcamStream, webcamOn } = useParticipant(participantId);
+  const device = useCameraDevice("front");
+  
+  interface Detection {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    class: string;
+    confidence: number;
+  }
 
+  const detections = useSharedValue<Detection[]>([]);
+
+  const sendToAPI = async (imageData: string) => {
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `https://detect.roboflow.com/${MODEL_ID}`,
+        params: {
+          api_key: API_KEY
+        },
+        data: imageData,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      });
+      
+      if (response.data?.predictions) {
+        detections.value = response.data.predictions;
+        console.log('Roboflow Detections:', response.data.predictions);
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+    }
+  };
+
+  const processFrameInJS = (uint8Arr: Uint8Array) => {
+    const base64 = fromByteArray(uint8Arr);
+    sendToAPI(base64);
+  };
+
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet'
+    runAtTargetFps(1, () => {
+      try {
+
+        const byteArr = frame.toArrayBuffer();
+        const uint8Arr = new Uint8Array (byteArr);
+        runOnJS(processFrameInJS)(uint8Arr);
+      }  catch (error: unknown) {
+        // Proper error typing
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        
+        // Better error logging with type safety
+        console.error("Frame processing error:", {
+          message: errorMessage,
+          frameWidth: frame.width,
+          frameHeight: frame.height,
+          frameFormat: frame.pixelFormat,
+        });
+      }
+    });
+  }, []);
+
+  if (!device) {
+    return (
+      <View style={styles.noMediaView}>
+        <Text style={styles.noMediaText}>Camera device not available</Text>
+      </View>
+    );
+  }
+
+ 
   return webcamOn && webcamStream ? (
+    <View style={styles.mediaView}>
     <RTCView
       streamURL={new MediaStream([webcamStream.track]).toURL()}
       objectFit="cover"
       style={styles.mediaView}
     />
+     <Camera
+          style={StyleSheet.absoluteFill}
+          frameProcessor={frameProcessor}
+          device={device}
+          pixelFormat="rgb"
+          isActive={true}
+        />
+       {detections.value.map((detection, index) => (
+        <View
+          key={index}
+          style={[styles.detectionBox, {
+            left: detection.x - (detection.width / 2),
+            top: detection.y - (detection.height / 2),
+            width: detection.width,
+            height: detection.height,
+          }]}
+        >
+          <Text style={styles.detectionText}>
+            {`${detection.class} ${Math.round(detection.confidence * 100)}%`}
+          </Text>
+        </View>
+      ))}
+    </View>
+
   ) : (
     <View style={styles.noMediaView}>
       <Text style={styles.noMediaText}>NO MEDIA</Text>
@@ -176,6 +281,8 @@ const MeetingScreen: React.FC<MeetingScreenProps> = (props) => {
     </SafeAreaView>
   );
 };
+
+
 
 const App: React.FC = () => {
   const [meetingId, setMeetingId] = useState<string | null>(null);
@@ -285,6 +392,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F6F6FF",
   },
+  detectionBox: {
+    position: 'absolute',
+    borderWidth: 2,
+    borderColor: '#00ff00',
+  },
+  detectionText: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    color: '#00ff00',
+    fontSize: 12,
+    padding: 2,
+  }
 });
 
 export default App;

@@ -23,8 +23,8 @@
     "mongodb": "6.10",
     "mongoose": "^8.8.0",
     "mysql": "^2.18.1",
+    "signify-plus": "file:",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
     "web-push": "^3.6.7",
     "ws": "^8.18.0"
   }
