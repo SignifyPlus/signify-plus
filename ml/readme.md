@@ -10,11 +10,13 @@
 ### 1. Create Virtual Environments
 ```bash
 # Create VideoSDK environment
+cd ml
 python -m venv videosdkvenv
 videosdkvenv/Scripts/activate
 
 
 # Create Inference environment
+cd ml
 python -m venv inferencevenv
 inferencevenv/Scripts/activate
 ```
@@ -66,15 +68,19 @@ Open three separate terminal windows:
 
 Terminal 1 (Inference Server):
 ```bash
+cd
 inferencevenv/Scripts/activate
 python testtestONNX.py
 ```
 
 Terminal 2 (VideoSDK):
 ```bash
+cd
 videosdkvenv/Scripts/activate
 python videosdk_sender.py
 ```
+
+Terminal 3 (The App: npx expo start)
 
 ## Ports
 - 8765: Inference Server
