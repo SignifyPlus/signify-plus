@@ -11,15 +11,12 @@
 ```bash
 # Create VideoSDK environment
 python -m venv videosdkvenv
-cd videosdkvenv/Scripts
-activate
-cd ../..
+videosdkvenv/Scripts/activate
+
 
 # Create Inference environment
 python -m venv inferencevenv
-cd inferencevenv/Scripts
-activate
-cd ../..
+inferencevenv/Scripts/activate
 ```
 
 ### 2. Install Dependencies
@@ -50,6 +47,13 @@ const ws = new WebSocket('ws://YOUR_LOCAL_IP:8766');
 ```
 
 ### 5. Configure VideoSDK
+```bash
+cd app
+npx expo start
+s
+a
+```
+get meeting_id
 
 In `videosdk_sender.py`, update:
 ```python

@@ -8,193 +8,169 @@ from av import VideoFrame
 import numpy as np
 from collections import deque
 from time import time
+from typing import Set, Optional
+from contextlib import suppress
 
 VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIyN2ZhZDRjMy0xM2ZiLTQ1ZGQtYjBkOS1mODEzYWUxNmU2ZjIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTczNDY0ODU1OSwiZXhwIjoxODkyNDM2NTU5fQ.Y3bEl5_ffScQJroMT_ihsKs0W0U45bS0w9481rWwl4c"
-MEETING_ID = "3ffv-bulx-e80r"
-WEBSOCKET_URL = "ws://localhost:8765"  # Adjust if inference server is on different machine
+MEETING_ID = "eo3s-alzl-pvmc"
+WEBSOCKET_URL = "ws://localhost:8765"  
 
 meeting: Meeting = None
 
 class OptimizedWebSocketProcessor:
     def __init__(self) -> None:
-        self.ml_websocket = None
-        self.react_clients = set()  # Store connected React clients
+        self.ml_websocket: Optional[websockets.WebSocketClientProtocol] = None
+        self.react_clients: Set[websockets.WebSocketServerProtocol] = set()
         self.last_process_time = 0
-        self.frame_interval = 1/15
-        self.processing_queue = asyncio.Queue(maxsize=1)
+        self.frame_interval = 1/2
         self.last_predictions = []
         self.is_processing = False
-        # Start WebSocket server for React clients
-        self.start_react_server()
+        self.server_task = None
+        self.processing_task = None
+        self.current_frame = None
+        self.frame_ready = asyncio.Event()
     
-    def start_react_server(self):
+    async def start(self):
+        """Initialize and start all async tasks"""
+        self.is_processing = True
+        # Connect to ML server first
+        await self.ensure_ml_connection()
+        # Start WebSocket server for React clients
+        self.server_task = asyncio.create_task(self.start_react_server())
+        # Start frame processing loop
+        self.processing_task = asyncio.create_task(self.process_frames())
+    
+    
+    async def cleanup(self):
+        """Clean up all resources and connections"""
+        self.is_processing = False
+        if self.ml_websocket:
+            await self.ml_websocket.close()
+        for ws in self.react_clients:
+            await ws.close()
+        self.react_clients.clear()
+        
+        for task in [self.server_task, self.processing_task]:
+            if task:
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+
+    async def start_react_server(self):
         """Start WebSocket server for React clients"""
-        async def react_server():
-            async with websockets.serve(self.handle_react_client, "0.0.0.0", 8766):
-                print(f"React WebSocket server running on port 8766")
-                await asyncio.Future()  # run forever
+        async with websockets.serve(self.handle_react_client, "0.0.0.0", 8766):
+            print("React WebSocket server running on port 8766")
+            await asyncio.Future()
 
-        asyncio.create_task(react_server())
-
-    async def handle_react_client(self, websocket):
+    async def handle_react_client(self, websocket: websockets.WebSocketServerProtocol):
         """Handle connections from React clients"""
         print(f"React client connected from {websocket.remote_address}")
         self.react_clients.add(websocket)
         try:
-            # Send a test message upon connection
-            test_message = json.dumps({
-                "status": "success",
-                "predictions": [{"gesture": "test", "confidence": 1.0}]
-            })
-            await websocket.send(test_message)
-            print("Sent test message to new client")
-            
-            # Keep connection alive and wait for closure
             await websocket.wait_closed()
-        except Exception as e:
-            print(f"Error in React client handler: {e}")
         finally:
             self.react_clients.remove(websocket)
-            print(f"React client disconnected from {websocket.remote_address}")
 
     async def broadcast_to_react_clients(self, predictions):
         """Send predictions to all connected React clients"""
-        if self.react_clients:
-            message = json.dumps({
-                "status": "success",
-                "predictions": predictions
-            })
-            print(f"Broadcasting to {len(self.react_clients)} React clients")
-            print(f"Message content: {message}")
+        if not self.react_clients:
+            return
             
-            websockets_to_remove = set()
-            
-            for websocket in self.react_clients:
-                try:
-                    print(f"Attempting to send to client...")
-                    await websocket.send(message)
-                    print("Successfully sent message to client")
-                except websockets.exceptions.ConnectionClosed:
-                    print("Client connection was closed")
-                    websockets_to_remove.add(websocket)
-                except Exception as e:
-                    print(f"Error sending to React client: {e}")
-                    websockets_to_remove.add(websocket)
-            
-            # Remove any disconnected clients
-            if websockets_to_remove:
-                print(f"Removing {len(websockets_to_remove)} disconnected clients")
-                self.react_clients -= websockets_to_remove
-        else:
-            print("No React clients connected to broadcast to")
+        message = json.dumps({
+            "status": "success",
+            "predictions": predictions
+        })
+        
+        send_tasks = []
+        for websocket in list(self.react_clients):
+            try:
+                task = asyncio.create_task(websocket.send(message))
+                send_tasks.append(task)
+            except Exception:
+                self.react_clients.remove(websocket)
+        
+        if send_tasks:
+            await asyncio.gather(*send_tasks, return_exceptions=True)
 
-
-
-    async def ensure_connection(self):
-        """Ensure WebSocket connection to ML server"""
-        if self.ml_websocket is None or self.ml_websocket.closed:
+    async def ensure_ml_connection(self):
+        """Ensure WebSocket connection to ML server exists"""
+        while self.is_processing and (self.ml_websocket is None or self.ml_websocket.closed):
             try:
                 self.ml_websocket = await websockets.connect(WEBSOCKET_URL)
                 print(f"Connected to ML server at {WEBSOCKET_URL}")
+                return True
             except Exception as e:
                 print(f"ML server connection failed: {e}")
-                self.ml_websocket = None
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.5)
+        return False
         
-    async def start_processing_loop(self):
-        """Separate processing loop to handle frames asynchronously"""
-        self.is_processing = True
+    async def process_frames(self):
+        """Continuous frame processing loop"""
         while self.is_processing:
-            try:
-                frame = await self.processing_queue.get()
-                if frame is not None:
-                    await self.process_single_frame(frame)
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                print(f"Error in processing loop: {e}")
-                await asyncio.sleep(0.1)  # Prevent tight loop on errors
-
-    async def process(self, frame: VideoFrame) -> VideoFrame:
-        current_time = time()
-        
-        # Only process if enough time has passed since last processing
-        if current_time - self.last_process_time >= self.frame_interval:
-            try:
-                # Convert frame to image
-                img = frame.to_ndarray(format="bgr24")
-                
-                # Try to put frame in queue, drop if queue is full
-                try:
-                    self.processing_queue.put_nowait(img)
-                    self.last_process_time = current_time
-                except asyncio.QueueFull:
-                    pass  # Drop frame if queue is full
-                    
-            except Exception as e:
-                print(f"Error queuing frame: {e}")
-        
-        return frame
-
-    async def process_single_frame(self, img):
-        """Process a single frame with the inference server"""
-        if not self.ml_websocket:
-            await self.ensure_connection()
+            await self.frame_ready.wait()
+            self.frame_ready.clear()
             
-        if self.ml_websocket:
+            if self.current_frame is None:
+                continue
+
+            if not self.ml_websocket:
+                if not await self.ensure_ml_connection():
+                    continue
+
             try:
-                # Convert to jpg for efficient transfer
-                _, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 105])
+                # Convert to jpg with optimal settings for real-time
+                _, buffer = cv2.imencode('.jpg', self.current_frame, 
+                                      [cv2.IMWRITE_JPEG_QUALITY, 80,
+                                       cv2.IMWRITE_JPEG_PROGRESSIVE, 0,
+                                       cv2.IMWRITE_JPEG_OPTIMIZE, 1])
+                
                 frame_data = b64encode(buffer).decode('utf-8')
                 
-                # Send frame
-                message = {"type": "frame", "data": frame_data}
-                await self.ml_websocket.send(json.dumps(message))
+                await self.ml_websocket.send(json.dumps({
+                    "type": "frame",
+                    "data": frame_data
+                }))
                 
-                # Get results
                 response = await self.ml_websocket.recv()
                 results = json.loads(response)
                 
                 if results.get("status") == "success":
                     predictions = results.get("predictions", [])
-                    print("Received predictions from ML server:", predictions)
-                    self.last_predictions = predictions
-                    # Broadcast predictions to React clients
-                    print("Attempting to broadcast predictions to React clients...")
-                    await self.broadcast_to_react_clients(predictions)
-                    print("Finished broadcasting predictions")
+                    if predictions != self.last_predictions:
+                        self.last_predictions = predictions
+                        await self.broadcast_to_react_clients(predictions)
+                
             except Exception as e:
                 print(f"Error in frame processing: {e}")
                 self.ml_websocket = None
+                await asyncio.sleep(0.1)
+    
+    async def process(self, frame: VideoFrame) -> VideoFrame:
+        """Process incoming video frames"""
+        current_time = time()
+        if current_time - self.last_process_time >= self.frame_interval:
+            try:
+                self.current_frame = frame.to_ndarray(format="bgr24")
+                self.frame_ready.set()
+                self.last_process_time = current_time
+            except Exception as e:
+                print(f"Error processing frame: {e}")
+        return frame
 
 class ProcessedVideoTrack(CustomVideoTrack):
-    """
-    A video stream track that transforms frames from another track.
-    """
-    # kind = "video"
-
-    # def __init__(self, track):
-    #     super().__init__()  # don't forget this!
-    #     self.track = track
-    #     self.processor = WebSocketProcessor()
-
-    # async def recv(self):
-    #     frame = await self.track.recv()
-    #     new_frame = await self.processor.process(frame)
-    #     return new_frame
     def __init__(self, track):
         super().__init__()
         self.track = track
         self.processor = OptimizedWebSocketProcessor()
-        # Start processing loop
-        asyncio.create_task(self.processor.start_processing_loop())
+        # Start processor
+        asyncio.create_task(self.processor.start())
 
     async def recv(self):
         frame = await self.track.recv()
         return await self.processor.process(frame)
 
-    def stop(self):
-        self.processor.is_processing = False
+    async def stop(self):
+        await self.processor.cleanup()
 
 def process_video(track: CustomVideoTrack):
     global meeting
@@ -230,24 +206,63 @@ class MyParticipantEventHandler(ParticipantEventHandler):
     def on_stream_disabled(self, stream: Stream):
         print("on_stream_disabled")
 
-def main():
+async def main():
     global meeting
-    # Example usage:
-    meeting_config = MeetingConfig(
-        meeting_id=MEETING_ID,
-        name='AI_MODEL',
-        mic_enabled=False,
-        webcam_enabled=False,
-        token=VIDEOSDK_TOKEN,
-    )
-    meeting = VideoSDK.init_meeting(**meeting_config)
+    try:
+        # Initialize meeting
+        meeting_config = MeetingConfig(
+            meeting_id=MEETING_ID,
+            name='AI_MODEL',
+            mic_enabled=False,
+            webcam_enabled=False,
+            token=VIDEOSDK_TOKEN,
+        )
+        meeting = VideoSDK.init_meeting(**meeting_config)
 
-    print("adding event listener...")
-    meeting.add_event_listener(MyMeetingEventHandler())
+        print("adding event listener...")
+        meeting.add_event_listener(MyMeetingEventHandler())
 
-    print("joining into meeting...")
-    meeting.join()
+        print("joining into meeting...")
+        meeting.join()
+
+        # Keep the meeting running until interrupted
+        try:
+            # Wait indefinitely while handling the meeting
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            print("Received shutdown signal")
+            raise
+        
+    except Exception as e:
+        print(f"Error in meeting: {e}")
+        raise
+    
+    finally:
+        print("Cleaning up...")
+        # Clean up video tracks
+        if meeting:
+            try:
+                # Clean up any active video tracks
+                for participant in meeting.participants.values():
+                    for stream in participant.streams.values():
+                        if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
+                            await stream.track.stop()
+                
+                meeting.leave()
+                print("Successfully left meeting")
+            except Exception as e:
+                print(f"Error during cleanup: {e}")
 
 if __name__ == "__main__":
-    main()
-    asyncio.get_event_loop().run_forever()
+    try:
+        # Handle keyboard interrupt gracefully
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nReceived keyboard interrupt, shutting down...")
+    except Exception as e:
+        print(f"Fatal error: {e}")
+    finally:
+        # Ensure all tasks are cleaned up
+        pending = asyncio.all_tasks()
+        for task in pending:
+            task.cancel()

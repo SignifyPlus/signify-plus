@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   TouchableOpacity,
@@ -17,6 +17,7 @@ import {
   register,
 } from "@videosdk.live/react-native-sdk";
 import { createMeeting, token } from "@/api";
+import GestureOverlay from "@/components/GestureOverlay";
 
 register();
 
@@ -86,13 +87,59 @@ interface ParticipantViewProps {
 
 const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
   const { webcamStream, webcamOn } = useParticipant(participantId);
+  const [predictions, setPredictions] = useState([]);
+  
+  // Monitor predictions changes
+  useEffect(() => {
+    console.log('Predictions updated:', predictions);
+  }, [predictions]);
+
+  // Set up WebSocket connection for predictions
+  useEffect(() => {
+    console.log('Setting up WebSocket connection...');
+    const ws = new WebSocket('ws://139.179.149.199:8766');
+    
+    ws.onopen = () => {
+      console.log('WebSocket Connected!');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('Received message:', event.data);
+      try {
+        const response = JSON.parse(event.data);
+        console.log('Parsed response:', response);
+        if (response.status === 'success') {
+          console.log('Setting predictions:', response.predictions);
+          setPredictions(response.predictions);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = (event) => {
+      console.log('WebSocket closed:', event.code, event.reason);
+    };
+
+    return () => {
+      console.log('Cleaning up WebSocket connection...');
+      ws.close();
+    };
+  }, []);
 
   return webcamOn && webcamStream ? (
-    <RTCView
-      streamURL={new MediaStream([webcamStream.track]).toURL()}
-      objectFit="cover"
-      style={styles.mediaView}
-    />
+    <View style={styles.mediaContainer}>
+      <RTCView
+        streamURL={new MediaStream([webcamStream.track]).toURL()}
+        objectFit="cover"
+        style={styles.mediaView}
+      />
+      <GestureOverlay predictions={predictions} />
+    </View>
   ) : (
     <View style={styles.noMediaView}>
       <Text style={styles.noMediaText}>NO MEDIA</Text>
@@ -284,6 +331,12 @@ const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
     backgroundColor: "#F6F6FF",
+  },
+  mediaContainer: {
+    position: 'relative',
+    height: 300,
+    marginVertical: 8,
+    marginHorizontal: 8,
   },
 });
 
