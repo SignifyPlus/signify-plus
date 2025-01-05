@@ -21,7 +21,7 @@ class WebSocketManager {
             
             socket.on('meeting-id', (data) => {
                 console.log(`Meeting ID from ${socket.id} to ${data.target}`);
-                data.targets.forEach(targetSocketId => {
+                data.targetUserIds.forEach(targetSocketId => {
                     socket.to(targetSocketId).emit('meeting-id-offer', {
                         sender: socket.id,
                         meetingId: data.meetingId
