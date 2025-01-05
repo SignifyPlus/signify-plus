@@ -30,7 +30,7 @@ class WebSocketManager {
                 if (!sendersSocketId) { //if sender is undefined, exit
                     return;
                 }
-                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
+                console.log(`Meeting ID: ${data.meetingId} callerPhoneNumber: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
                 data.targetUserIds.forEach(phoneNumber => {
                     const targetSocketId = this.userSocketMap[phoneNumber];
                     console.log(`Iterating ${targetSocketId}`);
