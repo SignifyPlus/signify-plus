@@ -1,4 +1,3 @@
-@ -1,68 +1,89 @@
 const socketIo = require('socket.io');
 const MachineLearningTranslationManager = require('./machineLearningTranslationManager');
 
