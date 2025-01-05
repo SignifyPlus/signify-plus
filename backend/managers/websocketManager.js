@@ -21,29 +21,31 @@ class WebSocketManager {
 
             socket.on('socket-registration', (data) => {
                 //add userID and the socket id to the map
-                this.userSocketMap[data.userId] = socket.id;
-                console.log(`User ${data.userId} registered with socket ID: ${socket.id}`);
+                this.userSocketMap[data.userPhoneNumber] = socket.id;
+                console.log(`User ${data.userPhoneNumber} registered with socket ID: ${socket.id}`);
             })
             
             socket.on('meeting-id', (data) => {
-                const sendersSocketId = this.userSocketMap[data.callerUserId];
+                const sendersSocketId = this.userSocketMap[data.userPhoneNumber];
                 if (!sendersSocketId) { //if sender is undefined, exit
                     return;
                 }
-                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.callerUserId} sendersSocketId: ${sendersSocketId} targets: ${data.targetUserIds}`);
-                data.targetUserIds.forEach(userId => {
-                    const targetSocketId = this.userSocketMap[userId];
+                console.log(`Meeting ID: ${data.meetingId} callerUserId: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
+                data.targetUserIds.forEach(phoneNumber => {
+                    const targetSocketId = this.userSocketMap[phoneNumber];
                     console.log(`Iterating ${targetSocketId}`);
                     if (targetSocketId) {
                         console.log(`Emitting meeting-id-offer`);
                         socket.to(targetSocketId).emit('meeting-id-offer', {
-                            sender: socket.id,
+                            senderSocketId: socket.id,
+                            sendPhoneNumber: data.userPhoneNumber,
                             meetingId: data.meetingId
                         });
                     }else{
                         console.log("Undefined, hence here!");
                         socket.emit('meeting-id-failed', { //we dont need to use .to here because we dont emit the event to the same sender by to, we can just use emit
                             sender: socket.id,
+                            senderPhoneNumber: data.userPhoneNumber,
                             message: 'Failed! - no user found!'
                         });
                     }

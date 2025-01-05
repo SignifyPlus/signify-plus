@@ -9,9 +9,9 @@ function emitMeetingIdIfReady() {
     if (connectedUsers === 3) {
         console.log('All users are connected. Emitting meeting-id...');
         mockSocketUser1.emit('meeting-id', {
-            callerUserId: '789067567',
+            userPhoneNumber: '789067567',
             meetingId: '412532646',
-            targetUserIds: ['213125466', '12523643765']
+            targetPhoneNumbers: ['213125466', '12523643765']
         });
     }
 }
@@ -28,7 +28,7 @@ mockSocketUser1.on('connect', () => {
     //targets, the sender which wants to make a call to
     // and the meeting id
     mockSocketUser1.emit('socket-registration', {
-        userId : '789067567' //user 1 registration from front end on connection
+        userPhoneNumber : '789067567' //user 1 registration from front end on connection
     });
     connectedUsers++;
     emitMeetingIdIfReady()
@@ -43,8 +43,7 @@ mockSocketUser1.on('disconnect', () => {
 });
 
 mockSocketUser1.on('meeting-id-offer', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender}`);
-    console.log(`Meeting ID: ${data.meetingId}`);
+    console.log(`Meeting ID Offer received from server ${data.sender} ${data.senderPhoneNumber} ${data.meetingId}`);
 })
 
 mockSocketUser1.on('meeting-id-failed', (data) => {
@@ -60,7 +59,7 @@ mockSocketUser2.on('connect', () => {
     mockSocketUser2.emit('message', 'Hello from mock Client User2!');
 
     mockSocketUser2.emit('socket-registration', {
-        userId : '213125466' //user 2 registration from front end on connection
+        userPhoneNumber : '213125466' //user 2 registration from front end on connection
     });
     connectedUsers++;
     emitMeetingIdIfReady()
@@ -75,8 +74,8 @@ mockSocketUser2.on('disconnect', () => {
 });
 
 mockSocketUser2.on('meeting-id-offer', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender}`);
-    console.log(`Meeting ID: ${data.meetingId}`);
+    console.log(`Meeting ID Offer received from server ${data.sender} ${data.senderPhoneNumber} ${data.meetingId}`);
+
 })
 
 mockSocketUser2.on('meeting-id-failed', (data) => {
@@ -91,7 +90,7 @@ mockSocketUser3.on('connect', () => {
     mockSocketUser3.emit('message', 'Hello from mock Client User3!');
 
     mockSocketUser3.emit('socket-registration', {
-        userId : '12523643765' //user 3 registration from front end on connection
+        userPhoneNumber : '12523643765' //user 3 registration from front end on connection
     });
     connectedUsers++;
     emitMeetingIdIfReady()
@@ -106,8 +105,7 @@ mockSocketUser3.on('disconnect', () => {
 });
 
 mockSocketUser3.on('meeting-id-offer', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender}`);
-    console.log(`Meeting ID: ${data.meetingId}`);
+    console.log(`Meeting ID Offer received from server ${data.sender} ${data.senderPhoneNumber} ${data.meetingId}`);
 })
 
 mockSocketUser3.on('meeting-id-failed', (data) => {
