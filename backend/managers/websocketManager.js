@@ -31,7 +31,7 @@ class WebSocketManager {
                     return;
                 }
                 console.log(`Meeting ID: ${data.meetingId} callerPhoneNumber: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
-                data.targetUserIds.forEach(phoneNumber => {
+                data.targetPhoneNumbers.forEach(phoneNumber => {
                     const targetSocketId = this.userSocketMap[phoneNumber];
                     console.log(`Iterating ${targetSocketId}`);
                     if (targetSocketId) {
