@@ -1,7 +1,7 @@
-import Colors from "@/constants/Colors";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Tabs, useSegments } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Colors from '@/constants/Colors';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Tabs, useSegments } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const Layout = () => {
   const segments = useSegments();
@@ -32,7 +32,7 @@ const Layout = () => {
         <Tabs.Screen
           name="calls"
           options={{
-            title: "Calls",
+            title: 'Calls',
             tabBarIcon: ({ size, color }) => (
               <MaterialCommunityIcons
                 name="phone-outline"
@@ -55,22 +55,21 @@ const Layout = () => {
         <Tabs.Screen
           name="chats"
           options={{
-            title: "Chats",
+            title: 'Chats',
             tabBarIcon: ({ size, color }) => (
               <Ionicons name="chatbubbles" size={size} color={color} />
             ),
             headerShown: false,
             tabBarStyle: {
               backgroundColor: Colors.background,
-              display: segments[2] === "[id]" ? "none" : "flex",
+              display: segments[2] === '[id]' ? 'none' : 'flex',
             },
           }}
         />
-
         <Tabs.Screen
           name="settings"
           options={{
-            title: "Settings",
+            title: 'Settings',
             tabBarIcon: ({ size, color }) => (
               <Ionicons name="cog" size={size} color={color} />
             ),

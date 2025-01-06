@@ -1,7 +1,7 @@
-import Colors from "@/constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import Colors from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,80 +12,80 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import MaskInput from "react-native-mask-input";
+} from 'react-native';
+import MaskInput from 'react-native-mask-input';
 import {
   createSignInSession,
   prepareFirstFactorVerification,
   preparePhoneVerification,
   signUpWithPhoneNumber,
-} from "@/api";
+} from '@/api';
 
 const TUR_PHONE = [
   `+`,
-  "9",
-  "0",
-  " ",
+  '9',
+  '0',
+  ' ',
   /\d/,
   /\d/,
   /\d/,
-  " ",
+  ' ',
   /\d/,
   /\d/,
-  " ",
+  ' ',
   /\d/,
   /\d/,
 ];
 
 const Page = () => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const openLink = () => {
-    Linking.openURL("https://google.com");
+    Linking.openURL('https://google.com');
   };
 
   const sendOTP = async () => {
-    console.log("sendOTP", phoneNumber);
+    // console.log("sendOTP", phoneNumber);
     setLoading(true);
 
     try {
       await signUpWithPhoneNumber(phoneNumber);
-      console.log("After create");
+      // console.log("After create");
 
       await preparePhoneVerification();
 
-      console.log("After prepare");
+      // console.log("After prepare");
       router.push(`/verify/${phoneNumber}`);
     } catch (error) {
       const err = error as Error;
-      console.log("error", JSON.stringify(err, null, 2));
+      // console.log("error", JSON.stringify(err, null, 2));
 
       // Check if the error is a "user already signed up" case
-      if (err.message.includes("form_identifier_exists")) {
-        console.log("User signed up before, trying sign-in.");
+      if (err.message.includes('form_identifier_exists')) {
+        // console.log("User signed up before, trying sign-in.");
         await trySignIn();
       } else {
         setLoading(false);
-        Alert.alert("Error", "An error occurred during sign-up.");
+        Alert.alert('Error', 'An error occurred during sign-up.');
       }
     }
   };
 
   const trySignIn = async () => {
-    console.log("trySignIn", phoneNumber);
+    // console.log("trySignIn", phoneNumber);
 
     const { supportedFirstFactors } = await createSignInSession(phoneNumber);
 
     const firstPhoneFactor: any = supportedFirstFactors.find((factor: any) => {
-      return factor.strategy === "phone_code";
+      return factor.strategy === 'phone_code';
     });
 
     const { phoneNumberId } = firstPhoneFactor;
 
     await prepareFirstFactorVerification({
-      strategy: "phone_code",
+      strategy: 'phone_code',
       phoneNumberId,
     });
 
@@ -95,7 +95,7 @@ const Page = () => {
 
   return (
     <KeyboardAvoidingView
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : undefined}
       style={{ flex: 1 }}
       behavior="padding"
     >
@@ -132,11 +132,11 @@ const Page = () => {
           </View>
 
           <Text style={styles.legal}>
-            You must be{" "}
+            You must be{' '}
             <Text style={styles.link} onPress={openLink}>
               at least 16 years old
-            </Text>{" "}
-            to register. Learn how WhatsApp works with the{" "}
+            </Text>{' '}
+            to register. Learn how WhatsApp works with the{' '}
             <Text style={styles.link} onPress={openLink}>
               Meta Companies
             </Text>
@@ -148,7 +148,7 @@ const Page = () => {
           <TouchableOpacity
             style={[
               styles.button,
-              phoneNumber !== "" ? styles.enabled : null,
+              phoneNumber !== '' ? styles.enabled : null,
               { marginBottom: 20 },
             ]}
             onPress={sendOTP}
@@ -156,7 +156,7 @@ const Page = () => {
             <Text
               style={[
                 styles.buttonText,
-                phoneNumber !== "" ? styles.enabled : null,
+                phoneNumber !== '' ? styles.enabled : null,
               ]}
             >
               Next
@@ -171,7 +171,7 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     padding: 20,
     backgroundColor: Colors.background,
     gap: 20,
@@ -182,38 +182,38 @@ const styles = StyleSheet.create({
   },
   legal: {
     fontSize: 12,
-    textAlign: "center",
-    color: "#000",
+    textAlign: 'center',
+    color: '#000',
   },
   link: {
     color: Colors.primary,
   },
   button: {
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     backgroundColor: Colors.lightGray,
     padding: 10,
     borderRadius: 10,
   },
   enabled: {
     backgroundColor: Colors.primary,
-    color: "#fff",
+    color: '#fff',
   },
   buttonText: {
     color: Colors.gray,
     fontSize: 22,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   list: {
-    backgroundColor: "#fff",
-    width: "100%",
+    backgroundColor: '#fff',
+    width: '100%',
     borderRadius: 10,
     padding: 10,
   },
   listItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 6,
     marginBottom: 10,
   },
@@ -222,14 +222,14 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   separator: {
-    width: "100%",
+    width: '100%',
     height: 1,
     backgroundColor: Colors.gray,
     opacity: 0.2,
   },
   input: {
-    backgroundColor: "#fff",
-    width: "100%",
+    backgroundColor: '#fff',
+    width: '100%',
     fontSize: 16,
     padding: 6,
     marginTop: 10,
@@ -237,9 +237,9 @@ const styles = StyleSheet.create({
 
   loading: {
     zIndex: 10,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

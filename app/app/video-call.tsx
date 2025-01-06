@@ -1,22 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
+  FlatList,
   SafeAreaView,
-  TouchableOpacity,
+  StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
-  FlatList,
-  StyleSheet,
-} from "react-native";
+} from 'react-native';
 import {
+  MediaStream,
   MeetingProvider,
+  register,
+  RTCView,
   useMeeting,
   useParticipant,
-  MediaStream,
-  RTCView,
-  register,
-} from "@videosdk.live/react-native-sdk";
-import { createMeeting, token } from "@/api";
+} from '@videosdk.live/react-native-sdk';
+import { createMeeting, token } from '@/api';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import GestureOverlay from '@/components/GestureOverlay';
 
 register();
 
@@ -29,7 +31,7 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
   getMeetingId,
   setMeetingId,
 }) => {
-  const [meetingVal, setMeetingVal] = useState<string>("");
+  const [meetingVal, setMeetingVal] = useState<string>('');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -42,14 +44,14 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
       <TextInput
         value={meetingVal}
         onChangeText={setMeetingVal}
-        placeholder={"XXXX-XXXX-XXXX"}
+        placeholder={'XXXX-XXXX-XXXX'}
         style={styles.textInput}
       />
 
       <TouchableOpacity
         style={styles.joinButton}
         onPress={() => {
-          console.log("User Input: ", meetingVal);
+          // console.log("User Input: ", meetingVal);
           setMeetingId(meetingVal);
         }}
       >
@@ -86,13 +88,54 @@ interface ParticipantViewProps {
 
 const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
   const { webcamStream, webcamOn } = useParticipant(participantId);
+  const [predictions, setPredictions] = useState([]);
+
+  // Monitor predictions changes
+  useEffect(() => {
+    console.log('Predictions updated:', predictions);
+  }, [predictions]);
+  // Set up WebSocket connection for predictions
+  useEffect(() => {
+    console.log('Setting up WebSocket connection...');
+    const ws = new WebSocket('ws://139.179.149.199:8766');
+
+    ws.onopen = () => {
+      console.log('WebSocket Connected!');
+    };
+    ws.onmessage = (event) => {
+      console.log('Received message:', event.data);
+      try {
+        const response = JSON.parse(event.data);
+        console.log('Parsed response:', response);
+        if (response.status === 'success') {
+          console.log('Setting predictions:', response.predictions);
+          setPredictions(response.predictions);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    ws.onclose = (event) => {
+      console.log('WebSocket closed:', event.code, event.reason);
+    };
+    return () => {
+      console.log('Cleaning up WebSocket connection...');
+      ws.close();
+    };
+  }, []);
 
   return webcamOn && webcamStream ? (
-    <RTCView
-      streamURL={new MediaStream([webcamStream.track]).toURL()}
-      objectFit="cover"
-      style={styles.mediaView}
-    />
+    <View style={styles.mediaContainer}>
+      <RTCView
+        streamURL={new MediaStream([webcamStream.track]).toURL()}
+        objectFit="cover"
+        style={styles.mediaView}
+      />
+      <GestureOverlay predictions={predictions} />
+    </View>
   ) : (
     <View style={styles.noMediaView}>
       <Text style={styles.noMediaText}>NO MEDIA</Text>
@@ -121,6 +164,8 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
 const ControlsContainer: React.FC = () => {
   const { join, leave, toggleWebcam, toggleMic } = useMeeting();
 
+  const router = useRouter();
+
   return (
     <View style={styles.controlsContainer}>
       <Button onPress={join} buttonText="Join" backgroundColor="#1178F8" />
@@ -134,14 +179,36 @@ const ControlsContainer: React.FC = () => {
         buttonText="Toggle Mic"
         backgroundColor="#1178F8"
       />
-      <Button onPress={leave} buttonText="Leave" backgroundColor="#FF0000" />
+      <Button
+        onPress={() => {
+          leave();
+          router.replace('/(tabs)/chats');
+        }}
+        buttonText="Leave"
+        backgroundColor="#FF0000"
+      />
     </View>
   );
 };
 
 const MeetingView: React.FC = () => {
-  const { participants, meetingId } = useMeeting();
+  const { participants, meetingId, localParticipant, join } = useMeeting();
   const participantsArrId = Array.from(participants.keys());
+  const joinedRef = React.useRef(false);
+
+  useEffect(() => {
+    if (joinedRef.current) {
+      return;
+    }
+
+    console.log('Joining meeting...', localParticipant?.id);
+    if (!localParticipant?.id) {
+      joinedRef.current = true;
+      setTimeout(() => {
+        join();
+      }, 200);
+    }
+  }, [join, localParticipant?.id, participantsArrId]);
 
   return (
     <View style={styles.meetingContainer}>
@@ -167,7 +234,7 @@ const MeetingScreen: React.FC<MeetingScreenProps> = (props) => {
           meetingId,
           micEnabled: true,
           webcamEnabled: true,
-          name: "Expo User",
+          name: 'Expo User',
         }}
         token={token}
       >
@@ -178,15 +245,26 @@ const MeetingScreen: React.FC<MeetingScreenProps> = (props) => {
 };
 
 const App: React.FC = () => {
-  const [meetingId, setMeetingId] = useState<string | null>(null);
+  const { meetingId: meetingIdQueryParam } = useLocalSearchParams<{
+    meetingId: string;
+  }>();
+  const [meetingId, setMeetingId] = useState<string | null>(
+    meetingIdQueryParam ?? null
+  );
 
   const getMeetingId = async (id?: string) => {
     if (!token) {
-      console.log("PLEASE PROVIDE TOKEN IN api.js FROM app.videosdk.live");
+      // console.log("PLEASE PROVIDE TOKEN IN api.js FROM app.videosdk.live");
     }
-    const newMeetingId = id == null ? await createMeeting({ token }) : id;
+    const newMeetingId = id == null ? await createMeeting() : id;
     setMeetingId(newMeetingId);
   };
+
+  console.log('meetingId isssss', meetingId);
+
+  useEffect(() => {
+    setMeetingId(meetingIdQueryParam);
+  }, [meetingIdQueryParam]);
 
   return meetingId ? (
     <MeetingScreen meetingId={meetingId} />
@@ -201,47 +279,47 @@ const App: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F6F6FF",
-    justifyContent: "center",
+    backgroundColor: '#F6F6FF',
+    justifyContent: 'center',
     paddingHorizontal: 60,
   },
   createButton: {
-    backgroundColor: "#1178F8",
+    backgroundColor: '#1178F8',
     padding: 12,
     borderRadius: 6,
   },
   buttonText: {
-    color: "white",
-    alignSelf: "center",
+    color: 'white',
+    alignSelf: 'center',
     fontSize: 18,
   },
   orText: {
-    alignSelf: "center",
+    alignSelf: 'center',
     fontSize: 22,
     marginVertical: 16,
-    fontStyle: "italic",
-    color: "grey",
+    fontStyle: 'italic',
+    color: 'grey',
   },
   textInput: {
     padding: 12,
     borderWidth: 1,
     borderRadius: 6,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   joinButton: {
-    backgroundColor: "#1178F8",
+    backgroundColor: '#1178F8',
     padding: 12,
     marginTop: 14,
     borderRadius: 6,
   },
   button: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 12,
     borderRadius: 4,
   },
   smallButtonText: {
-    color: "white",
+    color: 'white',
     fontSize: 12,
   },
   mediaView: {
@@ -250,10 +328,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   noMediaView: {
-    backgroundColor: "grey",
+    backgroundColor: 'grey',
     height: 300,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginVertical: 8,
     marginHorizontal: 8,
   },
@@ -262,17 +340,17 @@ const styles = StyleSheet.create({
   },
   emptyView: {
     flex: 1,
-    backgroundColor: "#F6F6FF",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#F6F6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyText: {
     fontSize: 20,
   },
   controlsContainer: {
     padding: 24,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   meetingContainer: {
     flex: 1,
@@ -283,7 +361,13 @@ const styles = StyleSheet.create({
   },
   appContainer: {
     flex: 1,
-    backgroundColor: "#F6F6FF",
+    backgroundColor: '#F6F6FF',
+  },
+  mediaContainer: {
+    position: 'relative',
+    height: 300,
+    marginVertical: 8,
+    marginHorizontal: 8,
   },
 });
 
