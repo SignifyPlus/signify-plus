@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 interface GesturePrediction {
   gesture: string;
@@ -14,11 +14,11 @@ const GestureOverlay: React.FC<GestureOverlayProps> = ({ predictions }) => {
   return (
     <View style={styles.overlay}>
       {predictions.slice(0, 3).map((prediction, index) => (
-        <View 
-          key={index} 
+        <View
+          key={index}
           style={[
             styles.predictionContainer,
-            { backgroundColor: `rgba(17, 120, 248, ${0.9 - index * 0.2})` }
+            { backgroundColor: `rgba(17, 120, 248, ${0.9 - index * 0.2})` },
           ]}
         >
           <Text style={styles.gestureText}>

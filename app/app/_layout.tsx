@@ -1,21 +1,18 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import { View } from "react-native";
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import { AppProvider } from '@/context/app-context';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from 'expo-router';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const InitialLayout = () => {
   const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
 
@@ -44,25 +41,33 @@ const InitialLayout = () => {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="otp"
-        options={{
-          headerTitle: "Enter Your Phone Number",
-          headerBackVisible: false,
-        }}
-      />
-      <Stack.Screen
-        name="verify/[phone]"
-        options={{
-          title: "Verify Your Phone Number",
-          headerShown: true,
-          headerBackTitle: "Edit number",
-        }}
-      />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <AppProvider>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="otp"
+          options={{
+            headerTitle: 'Enter Your Phone Number',
+            headerBackVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="verify/[phone]"
+          options={{
+            title: 'Verify Your Phone Number',
+            headerShown: true,
+            headerBackTitle: 'Edit number',
+          }}
+        />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="incoming-call"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+    </AppProvider>
   );
 };
 
