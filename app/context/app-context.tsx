@@ -115,12 +115,16 @@ export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
     if (!phoneNumber) return;
 
     const sanitizedPhone = sanitizePhoneNumber(phoneNumber);
-    const socket = io(API_URL, {
-      transports: ['websocket'],
-      reconnectionAttempts: 3,
-    });
+    const socket = io(API_URL);
+    console.log('connect callled');
     socket.connect();
     socketRef.current = socket;
+
+    console.log(
+      'Connecting to WebSocket server',
+      sanitizedPhone,
+      socket.connected
+    );
 
     socket.on('connect', () => {
       console.log('Connected to WebSocket server', sanitizedPhone);

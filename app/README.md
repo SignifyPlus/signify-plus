@@ -54,7 +54,7 @@ Bingo, it's time to push the launch button.
 ```js
 npx expo run:android // run for android
 
-npx expo run:ios // run for ios
+npx expo run:ios // run for android
 ```
 
 <br/>
