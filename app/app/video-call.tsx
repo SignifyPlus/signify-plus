@@ -369,6 +369,12 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 8,
   },
+  mediaContainer: {
+    position: 'relative',
+    height: 300,
+    marginVertical: 8,
+    marginHorizontal: 8,
+  },
 });
 
 export default App;
