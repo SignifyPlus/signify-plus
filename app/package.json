@@ -5,8 +5,7 @@
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android --device",
-    "ios": "expo run:ios --device",
-    "postinstall": "cd ios && pod install"
+    "ios": "expo run:ios --device"
   },
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^9.0.0",
