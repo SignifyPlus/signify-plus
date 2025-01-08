@@ -74,12 +74,12 @@ mockSocketUser2.on('disconnect', () => {
 });
 
 mockSocketUser2.on('meeting-id-offer', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender} ${data.senderPhoneNumber} ${data.meetingId}`);
+    console.log(`Meeting ID Offer received from server ${data.senderSocketId} ${data.senderPhoneNumber} ${data.meetingId}`);
 
 })
 
 mockSocketUser2.on('meeting-id-failed', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender}`);
+    console.log(`Meeting ID Offer received from server ${data.senderSocketId}`);
     console.log(`Meeting ID: ${data.message}`);
 })
 
@@ -105,10 +105,10 @@ mockSocketUser3.on('disconnect', () => {
 });
 
 mockSocketUser3.on('meeting-id-offer', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender} ${data.senderPhoneNumber} ${data.meetingId}`);
+    console.log(`Meeting ID Offer received from server ${data.senderSocketId} ${data.senderPhoneNumber} ${data.meetingId}`);
 })
 
 mockSocketUser3.on('meeting-id-failed', (data) => {
-    console.log(`Meeting ID Offer received from server ${data.sender}`);
+    console.log(`Meeting ID Offer received from server ${data.senderSocketId}`);
     console.log(`Meeting ID: ${data.message}`);
 })

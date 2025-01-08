@@ -54,11 +54,11 @@ class WebSocketManager {
                 const payloadBody = targetSocketId? 
                 {
                     senderSocketId: socket.id,
-                    sendPhoneNumber: data.userPhoneNumber,
+                    senderPhoneNumber: data.userPhoneNumber,
                     meetingId: data.meetingId
                 } :
                 {
-                    sender: socket.id,
+                    senderSocketId: socket.id,
                     senderPhoneNumber: data.userPhoneNumber,
                     message: 'Failed! - no user found!'
                 };

@@ -142,7 +142,7 @@ export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
       // Handle incoming meeting ID offer
       setIncomingCall({
         meetingId: data.meetingId,
-        incomingCallNumber: data.sendPhoneNumber,
+        incomingCallNumber: data.senderPhoneNumber,
       });
     });
 
