@@ -5,17 +5,21 @@ const mockSocketUser2 = io(process.env.RENDER_URL);
 const mockSocketUser3 = io(process.env.RENDER_URL);
 
 let connectedUsers = 0
-function emitMeetingIdIfReady() {
-    if (connectedUsers === 3) {
+async function emitMeetingIdIfReady() {
+    if (connectedUsers === 2) {
         console.log('All users are connected. Emitting meeting-id...');
+        await sleep(3000); //backend is slow because its hosted so sleeping for a while (3 seconds)!
         mockSocketUser1.emit('meeting-id', {
             userPhoneNumber: '789067567',
             meetingId: '412532646',
-            targetPhoneNumbers: ['213125466', '12523643765']
+            targetPhoneNumbers: ['213125466']
         });
     }
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 //Mock User 1
 mockSocketUser1.on('connect', () => {
@@ -51,6 +55,10 @@ mockSocketUser1.on('meeting-id-failed', (data) => {
     console.log(`Meeting ID: ${data.message}`);
 })
 
+mockSocketUser1.on('call-declined', (data) => {
+    console.log(`Sorry call declined ${data.declinedUsersPhoneNumber} ${data.message}`);
+})
+
 
 //Mock User 2
 mockSocketUser2.on('connect', () => {
@@ -75,12 +83,21 @@ mockSocketUser2.on('disconnect', () => {
 
 mockSocketUser2.on('meeting-id-offer', (data) => {
     console.log(`Meeting ID Offer received from server ${data.senderSocketId} ${data.senderPhoneNumber} ${data.meetingId}`);
-
+    mockSocketUser2.emit('meeting-id-decline', {
+        userPhoneNumber: '213125466',
+        meetingId: data.meetingId,
+        targetPhoneNumber: data.senderPhoneNumber
+    })
 })
 
 mockSocketUser2.on('meeting-id-failed', (data) => {
     console.log(`Meeting ID Offer received from server ${data.senderSocketId}`);
     console.log(`Meeting ID: ${data.message}`);
+})
+
+
+mockSocketUser2.on('meeting-id-decline-failed', (data) => {
+    console.log(`No target user found to forward the decline ${data.senderPhoneNumber} ${data.message}`);
 })
 
 //Mock User 3
@@ -111,4 +128,3 @@ mockSocketUser3.on('meeting-id-offer', (data) => {
 mockSocketUser3.on('meeting-id-failed', (data) => {
     console.log(`Meeting ID Offer received from server ${data.senderSocketId}`);
     console.log(`Meeting ID: ${data.message}`);
-})
