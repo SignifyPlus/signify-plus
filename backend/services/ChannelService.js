@@ -7,6 +7,10 @@ class ChannelService extends AbstractService {
         return await super.getDocument();
     }
 
+    async getDocumentByCustomFilters(filterConditions) {
+        return await super.getDocumentByCustomFilters(filterConditions);
+    }
+
     async getDocumentById(objectId) {
         return await super.getDocumentById(objectId)
     }

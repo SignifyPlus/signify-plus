@@ -14,4 +14,6 @@ userRouter.delete('/delete/:id', userController.deleteUserById);
 
 userRouter.get('/:id', userController.getUserById);
 
+userRouter.get('/:phoneNumber', userController.getUserByPhoneNumber);
+
 module.exports = userRouter;

@@ -22,12 +22,25 @@ class UserController {
         try {
             console.log("Fetching all users from getUserById...");
             const userId = request.params.id;
-            const user = await this.userService.getDocument(userId);
+            const user = await this.userService.getDocumentById(userId);
             response.json(user);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
+
+    //Get a single User by PhoneNumber
+    getUserByPhoneNumber = async(request, response) => {
+        try {
+            console.log("Fetching user with Phone Number...");
+            const phoneNumber = request.params.phoneNumber;
+            const user = await this.userService.getDocumentByCustomFilters({phoneNumber: phoneNumber});
+            response.json(user);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
+    }
+    
 
     //Creates a user
     createUser = async(request, response) => {
