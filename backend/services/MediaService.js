@@ -10,6 +10,10 @@ class MediaService extends AbstractService {
     async getDocumentById(objectId) {
         return await super.getDocumentById(objectId)
     }
+    
+    async getDocumentByCustomFilters(filterConditions) {
+        return await super.getDocumentByCustomFilters(filterConditions);
+    }
 
     async updateDocument(filterConditions, updateFields) {
         return await super.updateDocument(filterConditions, updateFields);

@@ -21,6 +21,15 @@ class AbstractService {
         }
     }
 
+    async getDocumentByCustomFilters(filterConditions) {
+        try{
+            const entity = await this.schemaModel.findOne(filterConditions);
+            return entity;
+        }catch(exception){
+            throw new Error(`Error Retrieving the Documet: ${exception.message}`);
+        }
+    }
+
     async updateDocument(filterConditions, updateFields) {
         try{
             const entity = await this.schemaModel.findOneAndUpdate(filterConditions, updateFields, {new : true});
