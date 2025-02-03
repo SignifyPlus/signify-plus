@@ -3,8 +3,9 @@ class ChannelService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
     }
-    async getDocument() {
-        return await super.getDocument();
+    
+    async getDocuments() {
+        return await super.getDocuments();
     }
 
     async getDocumentByCustomFilters(filterConditions) {

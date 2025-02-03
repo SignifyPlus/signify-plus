@@ -3,12 +3,17 @@ class ContactService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
     }
-    async getDocument() {
-        return await super.getDocument();
+
+    async getDocuments() {
+        return await super.getDocuments();
+    }
+    
+    async getDocumentById(objectId) {
+        return await super.getDocumentById(objectId);
     }
 
-    async getDocumentById(objectId) {
-        return await super.getDocumentById(objectId)
+    async getDocumentsByCustomFilters(filterConditions) {
+        return await super.getDocumentsByCustomFilters(filterConditions);
     }
 
     async getDocumentByCustomFilters(filterConditions) {
