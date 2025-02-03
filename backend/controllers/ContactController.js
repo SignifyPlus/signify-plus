@@ -15,6 +15,27 @@ class ContactController {
         }
     }
 
+    //get all Contacts by Id
+    getAllContactsById = async(request, response) => {
+        try {
+            const userId = request.params.id;
+
+            //test this join operation tomorrow!
+            const contacts = await this.contactService.getDocumentsByCustomFilters({userId}).populate({
+                path: 'contactUserId',
+                select: 'name phoneNumber'
+            });
+            response.json(contacts);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
+    }
+
+    //to do
+    updateAllContactsById = async(request, response) => {
+
+    }
+
     //Get single Contact
     getContactById = async(request, response) =>{
         try {

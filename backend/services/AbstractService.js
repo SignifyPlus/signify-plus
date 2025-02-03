@@ -5,9 +5,17 @@ class AbstractService {
         console.log(this.schemaModel)
     }
 
-    async getDocument() {
+    async getDocuments() {
         try{
             return await this.schemaModel.find();
+        }catch(exception){
+            throw new Error(`Error Fetching the Documents: ${exception.message}`);
+        }
+    }
+
+    async getDocumentsByCustomFilters(filterConditions) {
+        try{
+            return await this.schemaModel.find(filterConditions);
         }catch(exception){
             throw new Error(`Error Fetching the Documents: ${exception.message}`);
         }

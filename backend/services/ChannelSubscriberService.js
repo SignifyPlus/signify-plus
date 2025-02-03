@@ -3,10 +3,11 @@ class ChannelSubscriberService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
     }
-    async getDocument() {
-        return await super.getDocument();
-    }
 
+    async getDocuments() {
+        return await super.getDocuments();
+    }
+    
     async getDocumentById(objectId) {
         return await super.getDocumentById(objectId)
     }
