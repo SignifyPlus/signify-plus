@@ -8,7 +8,7 @@ class GroupMemberController {
     //Get all GroupMembers
     getAllGroupMembers = async(request, response) => {
         try {
-            const groupMembers = await this.groupMemberService.getDocument();
+            const groupMembers = await this.groupMemberService.getDocuments();
             response.json(groupMembers);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +19,7 @@ class GroupMemberController {
     getGroupMemberById = async(request, response) => {
         try {
             const groupMemberId = request.params.id;
-            const groupMember = await this.groupMemberService.getDocument(groupMemberId);
+            const groupMember = await this.groupMemberService.getDocumentById(groupMemberId);
             response.json(groupMember);
         }catch(exception) {
             response.status(500).json({error: exception.message})

@@ -8,7 +8,7 @@ class CallHistoryController {
 
     getCallHistory = async(request, response) => {
         try {
-            const callHistories = await this.callHistoryService.getDocument();
+            const callHistories = await this.callHistoryService.getDocuments();
             response.json(callHistories);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -18,7 +18,7 @@ class CallHistoryController {
     getCallHistoryByUserId = async(request, response) => {
         try {
             const callHistoryByUserId= request.params.id;
-            const callHistory = await this.callHistoryService.getDocument(callHistoryByUserId);
+            const callHistory = await this.callHistoryService.getDocumentById(callHistoryByUserId);
             response.json(callHistory);
         }catch(exception) {
             response.status(500).json({error: exception.message})

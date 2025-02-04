@@ -8,7 +8,7 @@ class MessageController {
     //Get all Messages - fetching this is dumb tho
     getAllMessages = async(request, response) =>{
         try {
-            const messages = await this.messageService.getDocument();
+            const messages = await this.messageService.getDocuments();
             response.json(messages);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +19,7 @@ class MessageController {
     getMessageById = async(request, response) => {
         try {
             const messageId = request.params.id;
-            const message = await this.messageService.getDocument(messageId);
+            const message = await this.messageService.getDocumentById(messageId);
             response.json(message);
         }catch(exception) {
             response.status(500).json({error: exception.message})

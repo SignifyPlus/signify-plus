@@ -9,7 +9,7 @@ class ReportController {
     //Get all Reports
     getAllReports = async(request, response) =>{
         try {
-            const reports = await this.reportService.getDocument();
+            const reports = await this.reportService.getDocuments();
             response.json(reports);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -20,7 +20,7 @@ class ReportController {
     getReportById = async(request, response) =>{
         try {
             const reportId = request.params.id;
-            const report = await this.reportService.getDocument(reportId);
+            const report = await this.reportService.getDocumentById(reportId);
             response.json(report);
         }catch(exception) {
             response.status(500).json({error: exception.message})

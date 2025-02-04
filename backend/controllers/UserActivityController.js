@@ -9,7 +9,7 @@ class UserActivityController {
     //Get all UserActivitys
     getAllUserActivities = async(request, response) => {
         try {
-            const userActivities = await this.userActivityService.getDocument();
+            const userActivities = await this.userActivityService.getDocuments();
             response.json(userActivities);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -20,7 +20,7 @@ class UserActivityController {
     getUserActivityById = async(request, response) => {
         try {
             const userActivityId = request.params.id;
-            const userActivity = await this.userActivityService.getDocument(userActivityId);
+            const userActivity = await this.userActivityService.getDocumentById(userActivityId);
             response.json(userActivity);
         }catch(exception) {
             response.status(500).json({error: exception.message})

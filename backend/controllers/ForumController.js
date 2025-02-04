@@ -8,7 +8,7 @@ class ForumController {
     //Get all Forums
     getAllForums = async(request, response) => {
         try {
-            const forums = await this.forumService.getDocument();
+            const forums = await this.forumService.getDocumentsByCustomFilters();
             response.json(forums);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +19,7 @@ class ForumController {
     getForumById = async(request, response) => {
         try {
             const forumId = request.params.id;
-            const forum = await this.forumService.getDocument(forumId);
+            const forum = await this.forumService.getDocumentById(forumId);
             response.json(forum);
         }catch(exception) {
             response.status(500).json({error: exception.message})

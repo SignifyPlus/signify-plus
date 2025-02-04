@@ -8,7 +8,7 @@ class MediaController {
     //Get all Medias
     getAllMedia = async(request, response) => {
         try {
-            const media = await this.mediaService.getDocument();
+            const media = await this.mediaService.getDocuments();
             response.json(media);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +19,7 @@ class MediaController {
     getMediaById = async(request, response) => {
         try {
             const mediaId = request.params.id;
-            const media = await this.mediaService.getDocument(mediaId);
+            const media = await this.mediaService.getDocumentById(mediaId);
             response.json(media);
         }catch(exception) {
             response.status(500).json({error: exception.message})

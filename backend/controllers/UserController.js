@@ -10,7 +10,7 @@ class UserController {
     getAllUsers = async(request, response) => {
         try {
             console.log("Fetching all users from getAllUsers...");
-            const users = await this.userService.getDocument();
+            const users = await this.userService.getDocuments();
             response.json(users);
         }catch(exception) {
             response.status(500).json({error: exception.message})
