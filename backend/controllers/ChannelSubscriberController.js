@@ -8,7 +8,7 @@ class ChannelSubscriberController {
     //Get all ChannelSubscribers
     getAllChannelSubscribers = async(request, response) => {
         try {
-            const channelSubscribers = await this.channelSubscriberService.getDocument();
+            const channelSubscribers = await this.channelSubscriberService.getDocuments();
             response.json(channelSubscribers);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +19,7 @@ class ChannelSubscriberController {
     getChannelSubscriberById = async(request, response) => {
         try {
             const channelSubscriberId = request.params.id;
-            const ChannelSubscriber = await this.channelSubscriberService.getDocument(channelSubscriberId);
+            const ChannelSubscriber = await this.channelSubscriberService.getDocumentById(channelSubscriberId);
             response.json(ChannelSubscriber);
         }catch(exception) {
             response.status(500).json({error: exception.message})

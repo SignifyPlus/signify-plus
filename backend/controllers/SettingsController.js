@@ -9,7 +9,7 @@ class SettingsController {
     //Get all Settingss
     getAllSettings = async(request, response) =>{
         try {
-            const settings = await this.settingsService.getDocument();
+            const settings = await this.settingsService.getDocuments();
             response.json(settings);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -20,7 +20,7 @@ class SettingsController {
     getSettingsById = async(request, response) =>{
         try {
             const settingsId = request.params.id;
-            const settings = await this.settingsService.getDocument(settingsId);
+            const settings = await this.settingsService.getDocumentById(settingsId);
             response.json(settings);
         }catch(exception) {
             response.status(500).json({error: exception.message})

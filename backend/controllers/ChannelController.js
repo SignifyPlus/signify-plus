@@ -8,7 +8,7 @@ class ChannelController {
     //Get all channels
     getAllChannels = async(request, response) =>{
         try {
-            const channels = await this.channelService.getDocument();
+            const channels = await this.channelService.getDocuments();
             response.json(channels);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +19,7 @@ class ChannelController {
     getChannelById = async(request, response) => {
         try {
             const channelId = request.params.id;
-            const channel = await this.channelService.getDocument(channelId);
+            const channel = await this.channelService.getDocumentById(channelId);
             response.json(channel);
         }catch(exception) {
             response.status(500).json({error: exception.message})

@@ -8,6 +8,10 @@ contactRouter.get('/all', contactController.getAllContacts);
 
 contactRouter.get('/:id', contactController.getAllContactsById);
 
-contactRouter.put('/update/:id', contactController.updateAllContactsById)
+contactRouter.put('/update/', contactController.updateContactByCustomFilter);
+
+contactRouter.put('/update/all/:id', contactController.updateAllContactsById);
+
+contactRouter.post('/create', contactController.createContact);
 
 module.exports = contactRouter;
