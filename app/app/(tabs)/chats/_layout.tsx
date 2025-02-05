@@ -1,9 +1,9 @@
-import Colors from '@/constants/Colors';
+import Colors from '../../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, Stack, usePathname } from 'expo-router';
 import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '@/context/app-context';
-import chats from '@/assets/data/chats.json';
+import { useAppContext } from '../../../context/app-context';
+import chats from '../../../assets/data/chats.json';
 
 const Layout = () => {
   const path = usePathname();
