@@ -47,27 +47,49 @@ class ContactController {
         }
     }
 
+    //testing is left
     updateAllContactsById = async(request, response) => {
         try {
-            const fieldsToUpdate = request.body.fieldsToUpdate;
+            const fieldsToUpdateArray = request.body.fieldsToUpdate;
             const id = request.params.id;
 
-            if (fieldsToUpdate == null || id == null) {
+            if (fieldsToUpdateArray == null || id == null) {
                 const signifyException = new SignifyException(400, "Id and FieldsToUpdate fields are required");
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
-            //fix this tomorrow + test
-            await Promise.all(fieldsToUpdate.map(async (element) => {
-                await this.contactService.updateDocument({id}, fieldsToUpdate);
+            const updatedContacts = await Promise.all(fieldsToUpdateArray.map(async (fields) => {
+                return await this.contactService.updateDocument({id}, fields);
             }));
-            response.json(contact);
+
+            response.json(updatedContacts);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
 
     createContact = async(request, response) => {
+        try {
+            const contact = request.body;
+            const contactObject = await this.contactService.saveDocument(contact);
+            response.json(contactObject);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
+    }
+    deleteContactByIds = async(request, response) => {
+        try {
+            const userId = request.body.userId;
+            const targetUserId = request.body.targetUserId;
 
+            if (targetUserId == null || userId == null) {
+                const signifyException = new SignifyException(400, "targetUserId and userId fields are required");
+                return response.status(signifyException.status).json(signifyException.loadResult());
+            }
+            const deletedContact = await this.contactService.deleteDocument({userId: userId, contactUserId: targetUserId});
+            response.json(deletedContact);
+        }catch(exception) {
+            response.status(500).json({error: exception.message})
+        }
     }
 
     //Get single Contact
