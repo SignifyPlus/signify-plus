@@ -3,7 +3,8 @@ class ContactService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
     }
-
+    
+    //result methods
     async getDocuments() {
         return await super.getDocuments();
     }
@@ -35,6 +36,12 @@ class ContactService extends AbstractService {
     async deleteDocumentById(objectId) {
         return await super.deleteDocumentById(objectId);
     }
+
+    //query methods
+    getDocumentsByCustomFiltersQuery(filterConditions) {
+        return super.getDocumentsByCustomFiltersQuery(filterConditions);
+    }
+
 }
 
 module.exports = ContactService;

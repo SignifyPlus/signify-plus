@@ -29,6 +29,14 @@ class AbstractService {
         }
     }
 
+    getDocumentsByCustomFiltersQuery(filterConditions) {
+        try{
+            return this.schemaModel.find(filterConditions);
+        }catch(exception){
+            throw new Error(`Error Fetching the Document: ${filterConditions}, ${exception.message}`);
+        }
+    }
+
     async getDocumentByCustomFilters(filterConditions) {
         try{
             const entity = await this.schemaModel.findOne(filterConditions);
