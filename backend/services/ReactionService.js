@@ -3,13 +3,17 @@ class ReactionService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
     }
-
+    //result methods
     async getDocuments() {
         return await super.getDocuments();
     }
     
     async getDocumentById(objectId) {
-        return await super.getDocumentById(objectId)
+        return await super.getDocumentById(objectId);
+    }
+
+    async getDocumentsByCustomFilters(filterConditions) {
+        return await super.getDocumentsByCustomFilters(filterConditions);
     }
 
     async getDocumentByCustomFilters(filterConditions) {
@@ -30,6 +34,11 @@ class ReactionService extends AbstractService {
 
     async deleteDocumentById(objectId) {
         return await super.deleteDocumentById(objectId);
+    }
+
+    //query methods
+    getDocumentsByCustomFiltersQuery(filterConditions) {
+        return super.getDocumentsByCustomFiltersQuery(filterConditions);
     }
 }
 

@@ -20,12 +20,12 @@ class ContactController {
     getAllContactsById = async(request, response) => {
         try {
             const userId = request.params.id;
-            //test this join operation tomorrow!
-            const contacts = await this.contactService.getDocumentsByCustomFilters({userId}).populate({
+            const contactsQuery =  this.contactService.getDocumentsByCustomFiltersQuery({ userId });
+            const populatedContacts = await contactsQuery.populate({
                 path: 'contactUserId',
                 select: 'name phoneNumber'
-            });
-            response.json(contacts);
+            }).exec();
+            response.json(populatedContacts);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
@@ -76,6 +76,7 @@ class ContactController {
             response.status(500).json({error: exception.message})
         }
     }
+
     deleteContactByIds = async(request, response) => {
         try {
             const userId = request.body.userId;
@@ -102,8 +103,6 @@ class ContactController {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = ContactController;
