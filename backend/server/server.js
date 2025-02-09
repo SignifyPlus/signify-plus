@@ -6,7 +6,7 @@ const WebSocketManager = require("../managers/websocketManager.js");
 const userRoutes = require("../routes/UserRoutes.js")
 const homeRoutes = require("../routes/HomeRoute.js")
 const contactRoutes = require("../routes/ContactRoutes.js")
-const Encrypt = require("../utilities/encrypt.js")
+const Encrypt = require("../utilities/encrypt.js");
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -18,10 +18,6 @@ const port = process.env.PORT;
 signifyPlusApp.use('/users', userRoutes);
 signifyPlusApp.use('/', homeRoutes);
 signifyPlusApp.use('/contacts', contactRoutes);
-
-//turn services into singletons!
-//they dont retain states, and are just used for database operations - a better approach!
-
 
 //use these for reading connecting string from firebase
 mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
