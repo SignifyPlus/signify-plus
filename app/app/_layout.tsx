@@ -1,10 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { AppProvider } from '@/context/app-context';
+import Colors from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -60,6 +62,35 @@ const InitialLayout = () => {
           }}
         />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(modals)/new-chat"
+          options={{
+            presentation: 'modal',
+            title: 'New Chat',
+            headerTransparent: true,
+            headerBlurEffect: 'regular',
+            headerStyle: {
+              backgroundColor: Colors.background,
+            },
+            headerRight: () => (
+              <Link href={'/(tabs)/chats'} asChild>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: Colors.lightGray,
+                    borderRadius: 20,
+                    padding: 4,
+                  }}
+                >
+                  <Ionicons name="close" color={Colors.gray} size={30} />
+                </TouchableOpacity>
+              </Link>
+            ),
+            headerSearchBarOptions: {
+              placeholder: 'Search name or number',
+              hideWhenScrolling: false,
+            },
+          }}
+        />
         <Stack.Screen
           name="incoming-call"
           options={{
