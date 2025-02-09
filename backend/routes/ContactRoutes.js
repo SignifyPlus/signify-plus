@@ -7,7 +7,7 @@ const contactController = new ContactController();
 //test these
 contactRouter.get('/all', contactController.getAllContacts);
 
-contactRouter.get('/:id', contactController.getAllContactsById);
+contactRouter.get('/:phoneNumber', contactController.getAllContactsByPhoneNumber);
 
 contactRouter.put('/update/', contactController.updateContactByCustomFilter);
 

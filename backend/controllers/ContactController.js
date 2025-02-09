@@ -1,10 +1,14 @@
 const SignifyException = require("../exception/SignifyException");
 const Contact = require("../models/Contact")
+const User = require("../models/User")
 const ContactService = require("../services/ContactService")
+const UserService = require("../services/UserService")
 class ContactController {
     
     constructor(){
+        //also maybe create singletons/statics out of these? 
         this.contactService = new ContactService(Contact);
+        this.userService = new UserService(User);
     }
     //Get all Contacts
     getAllContacts = async(request, response) => {
@@ -17,13 +21,26 @@ class ContactController {
     }
 
     //get all Contacts by Id
-    getAllContactsById = async(request, response) => {
+    getAllContactsByPhoneNumber = async(request, response) => {
         try {
-            const userId = request.params.id;
-            const contactsQuery =  this.contactService.getDocumentsByCustomFiltersQuery({ userId });
+            //first fetch the main userId by querying user database, then send the contact information back to frontend
+            if (request.params.phoneNumber == null) {
+                const signifyException = new SignifyException(400, "phoneNumber Parameter is required");
+                return response.status(signifyException.status).json(signifyException.loadResult())
+            }
+
+            const userPhoneNumber = request.params.phoneNumber;
+            const user = await this.userService.getDocumentByCustomFilters({phoneNumber: userPhoneNumber});
+
+            if (user == null) {
+                const signifyException = new SignifyException(400, "User Doesn't Exist!");
+                return response.status(signifyException.status).json(signifyException.loadResult());
+            }
+            //in future use aggregates, better and powerful!
+            const contactsQuery =  this.contactService.getDocumentsByCustomFiltersQuery({ "userId": user._id });
             const populatedContacts = await contactsQuery.populate({
                 path: 'contactUserId',
-                select: 'name phoneNumber'
+                select: 'name phoneNumber profilePicture'
             }).exec();
             response.json(populatedContacts);
         }catch(exception) {
