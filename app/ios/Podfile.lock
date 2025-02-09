@@ -995,6 +995,8 @@ PODS:
   - React-Mapbuffer (0.74.1):
     - glog
     - React-debug
+  - react-native-contacts (8.0.4):
+    - React-Core
   - react-native-safe-area-context (4.10.5):
     - React-Core
   - react-native-webrtc (0.0.16):
@@ -1406,6 +1408,7 @@ DEPENDENCIES:
   - React-jsitracing (from `../node_modules/react-native/ReactCommon/hermes/executor/`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-contacts (from `../node_modules/react-native-contacts`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-webrtc (from `../node_modules/@videosdk.live/react-native-webrtc`)"
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
@@ -1522,6 +1525,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-contacts:
+    :path: "../node_modules/react-native-contacts"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-webrtc:
@@ -1624,6 +1629,7 @@ SPEC CHECKSUMS:
   React-jsitracing: 233d1a798fe0ff33b8e630b8f00f62c4a8115fbc
   React-logger: 7e7403a2b14c97f847d90763af76b84b152b6fce
   React-Mapbuffer: 11029dcd47c5c9e057a4092ab9c2a8d10a496a33
+  react-native-contacts: cdeb7709dcc626e5fd7ee3d3e3685357e877cbd5
   react-native-safe-area-context: a240ad4b683349e48b1d51fed1611138d1bdad97
   react-native-webrtc: f0c9d2353a70b413911b77088a98666dc413c5c8
   React-nativeconfig: b0073a590774e8b35192fead188a36d1dca23dec
@@ -1656,6 +1662,6 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: 348f8b538c3ed4423eb58a8e5730feec50bce372
 
-PODFILE CHECKSUM: 403c0327cfffa978e33e8bd036895faca4a10e44
+PODFILE CHECKSUM: df59bef6961da0aa04fcd1641d2758ca23eed456
 
 COCOAPODS: 1.15.2
