@@ -12,7 +12,9 @@ import {
 import io, { Socket } from 'socket.io-client';
 import { API_URL } from '@/constants/Config';
 import { useRouter } from 'expo-router';
-import { createMeeting } from '@/api';
+import { createMeeting, queryClient } from '@/api';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { useUpdateContacts } from '@/context/use-update-contacts';
 
 type IncomingCallType = {
   meetingId: string;
@@ -43,7 +45,7 @@ export const useAppContext = () => {
   return context;
 };
 
-export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
+export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -116,7 +118,6 @@ export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     const sanitizedPhone = sanitizePhoneNumber(phoneNumber);
     const socket = io(API_URL);
-    console.log('connect callled');
     socket.connect();
     socketRef.current = socket;
 
@@ -187,7 +188,17 @@ export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
     ]
   );
 
+  useUpdateContacts({ phoneNumber });
+
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
+  );
+};
+
+export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppProviderInner>{children}</AppProviderInner>
+    </QueryClientProvider>
   );
 };
