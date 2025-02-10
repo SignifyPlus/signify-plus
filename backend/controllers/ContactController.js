@@ -1,19 +1,13 @@
 const SignifyException = require("../exception/SignifyException");
-const Contact = require("../models/Contact")
-const User = require("../models/User")
-const ContactService = require("../services/ContactService")
-const UserService = require("../services/UserService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class ContactController {
-    
     constructor(){
-        //also maybe create singletons/statics out of these? 
-        this.contactService = new ContactService(Contact);
-        this.userService = new UserService(User);
     }
+
     //Get all Contacts
     getAllContacts = async(request, response) => {
         try {
-            const contacts = await this.contactService.getDocuments();
+            const contacts = await ServiceFactory.getContactService.getDocuments();
             response.json(contacts);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -30,14 +24,14 @@ class ContactController {
             }
 
             const userPhoneNumber = request.params.phoneNumber;
-            const user = await this.userService.getDocumentByCustomFilters({phoneNumber: userPhoneNumber});
+            const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: userPhoneNumber});
 
             if (user == null) {
                 const signifyException = new SignifyException(400, "User Doesn't Exist!");
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
             //in future use aggregates, better and powerful!
-            const contactsQuery =  this.contactService.getDocumentsByCustomFiltersQuery({ "userId": user._id });
+            const contactsQuery =  ServiceFactory.getContactService.getDocumentsByCustomFiltersQuery({ "userId": user._id });
             const populatedContacts = await contactsQuery.populate({
                 path: 'contactUserId',
                 select: 'name phoneNumber profilePicture'
@@ -57,7 +51,7 @@ class ContactController {
                 const signifyException = new SignifyException(400, "Filters and FieldsToUpdate fields are required");
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
-            const contact = await this.contactService.updateDocument(filters, fieldsToUpdate);
+            const contact = await ServiceFactory.getContactService.updateDocument(filters, fieldsToUpdate);
             response.json(contact);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -75,7 +69,7 @@ class ContactController {
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
             const updatedContacts = await Promise.all(fieldsToUpdateArray.map(async (fields) => {
-                return await this.contactService.updateDocument({id}, fields);
+                return await ServiceFactory.getContactService.updateDocument({id}, fields);
             }));
 
             response.json(updatedContacts);
@@ -87,7 +81,7 @@ class ContactController {
     createContact = async(request, response) => {
         try {
             const contact = request.body;
-            const contactObject = await this.contactService.saveDocument(contact);
+            const contactObject = await ServiceFactory.getContactService.saveDocument(contact);
             response.json(contactObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -103,7 +97,7 @@ class ContactController {
                 const signifyException = new SignifyException(400, "targetUserId and userId fields are required");
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
-            const deletedContact = await this.contactService.deleteDocument({userId: userId, contactUserId: targetUserId});
+            const deletedContact = await ServiceFactory.getContactService.deleteDocument({userId: userId, contactUserId: targetUserId});
             response.json(deletedContact);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -114,7 +108,7 @@ class ContactController {
     getContactById = async(request, response) =>{
         try {
             const contactId = request.params.id;
-            const contact = await this.contactService.getDocument(contactId);
+            const contact = await ServiceFactory.getContactService.getDocument(contactId);
             response.json(contact);
         }catch(exception) {
             response.status(500).json({error: exception.message})

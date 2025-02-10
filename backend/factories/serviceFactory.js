@@ -28,7 +28,6 @@ const UserService = require("../services/UserService.js");
 
 
 //models
-const ChannelSubscriber = require("../models/ChannelSubscriber.js");
 const CallHistory = require("../models/CallHistory.js");
 const Channel = require("../models/Channel.js");
 const ChannelSubscriber = require("../models/ChannelSubscriber.js");

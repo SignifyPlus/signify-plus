@@ -1,16 +1,14 @@
-const User = require("../models/User")
-const UserService = require("../services/UserService.js")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class UserController {
 
     constructor(){
-        this.userService = new UserService(User);
     }
     
     //Get all Users
     getAllUsers = async(request, response) => {
         try {
             console.log("Fetching all users from getAllUsers...");
-            const users = await this.userService.getDocuments();
+            const users = await ServiceFactory.getUserService.getDocuments();
             response.json(users);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -22,7 +20,7 @@ class UserController {
         try {
             console.log("Fetching all users from getUserById...");
             const userId = request.params.id;
-            const user = await this.userService.getDocumentById(userId);
+            const user = await ServiceFactory.getUserService.getDocumentById(userId);
             response.json(user);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -34,7 +32,7 @@ class UserController {
         try {
             console.log("Fetching user with Phone Number...");
             const phoneNumber = request.params.phoneNumber;
-            const user = await this.userService.getDocumentByCustomFilters({phoneNumber: phoneNumber});
+            const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: phoneNumber});
             response.json(user);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -48,7 +46,7 @@ class UserController {
             console.log("Creating User...");
             const user = request.body;
             console.log(user)
-            const userObject = await this.userService.saveDocument(user);
+            const userObject = await ServiceFactory.getUserService.saveDocument(user);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -61,7 +59,7 @@ class UserController {
             const filters = request.query;
             console.log("Filters: ", filters);
             console.log("Keys", Object.keys(filters));
-            const userObject = await this.userService.deleteDocument(filters);
+            const userObject = await ServiceFactory.getUserService.deleteDocument(filters);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -73,7 +71,7 @@ class UserController {
         try {
             const userId = request.params.id;
             console.log(userId)
-            const userObject = await this.userService.deleteDocumentById(userId);
+            const userObject = await ServiceFactory.getUserService.deleteDocumentById(userId);
             response.json(userObject);
         }catch(exception) {
             response.status(500).json({error: exception.message})

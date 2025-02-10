@@ -1,15 +1,13 @@
-const Settings = require("../models/Settings")
-const SettingsService = require("../services/SettingsService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class SettingsController {
     
     constructor(){
-        this.settingsService = new SettingsService(Settings);
     }
 
     //Get all Settingss
     getAllSettings = async(request, response) =>{
         try {
-            const settings = await this.settingsService.getDocuments();
+            const settings = await ServiceFactory.getSettingsService.getDocuments();
             response.json(settings);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -20,14 +18,12 @@ class SettingsController {
     getSettingsById = async(request, response) =>{
         try {
             const settingsId = request.params.id;
-            const settings = await this.settingsService.getDocumentById(settingsId);
+            const settings = await ServiceFactory.getSettingsService.getDocumentById(settingsId);
             response.json(settings);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = SettingsController;
