@@ -1,14 +1,11 @@
-const Chanel = require("../models/Channel")
-const ChannelService = require("../services/ChannelService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class ChannelController {
-    
     constructor(){
-        this.channelService = new ChannelService(Chanel);
     }
     //Get all channels
     getAllChannels = async(request, response) =>{
         try {
-            const channels = await this.channelService.getDocuments();
+            const channels = await ServiceFactory.getChannelService.getDocuments();
             response.json(channels);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,14 +16,12 @@ class ChannelController {
     getChannelById = async(request, response) => {
         try {
             const channelId = request.params.id;
-            const channel = await this.channelService.getDocumentById(channelId);
+            const channel = await ServiceFactory.getChannelService.getDocumentById(channelId);
             response.json(channel);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = ChannelController;

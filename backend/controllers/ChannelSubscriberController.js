@@ -1,14 +1,12 @@
-const ChannelSubscriber = require("../models/ChannelSubscriber")
-const ChannelSubscriberService = require("../services/ChannelSubscriberService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class ChannelSubscriberController {
     
     constructor(){
-        this.channelSubscriberService = new ChannelSubscriberService(ChannelSubscriber);
     }
     //Get all ChannelSubscribers
     getAllChannelSubscribers = async(request, response) => {
         try {
-            const channelSubscribers = await this.channelSubscriberService.getDocuments();
+            const channelSubscribers = await ServiceFactory.getChannelSubscriberService.getDocuments();
             response.json(channelSubscribers);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,7 +17,7 @@ class ChannelSubscriberController {
     getChannelSubscriberById = async(request, response) => {
         try {
             const channelSubscriberId = request.params.id;
-            const ChannelSubscriber = await this.channelSubscriberService.getDocumentById(channelSubscriberId);
+            const ChannelSubscriber = await ServiceFactory.getChannelSubscriberService.getDocumentById(channelSubscriberId);
             response.json(ChannelSubscriber);
         }catch(exception) {
             response.status(500).json({error: exception.message})

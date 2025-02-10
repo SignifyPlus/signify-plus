@@ -1,14 +1,12 @@
-const Group = require("../models/Group")
-const GroupService = require("../services/GroupService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class GroupController {
     
     constructor(){
-        this.groupService = new GroupService(Group);
     }
     //Get all Groups
     getAllGroups = async(request, response) => {
         try {
-            const groups = await this.groupService.getDocuments();
+            const groups = await ServiceFactory.getGroupService.getDocuments();
             response.json(groups);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,13 +17,11 @@ class GroupController {
     getGroupById = async(request, response) => {
         try {
             const groupId = request.params.id;
-            const group = await this.groupService.getDocumentById(groupId);
+            const group = await ServiceFactory.getGroupService.getDocumentById(groupId);
             response.json(group);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 module.exports = GroupController;

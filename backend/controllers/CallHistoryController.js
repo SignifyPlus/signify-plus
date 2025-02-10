@@ -22,8 +22,6 @@ class CallHistoryController {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = CallHistoryController;

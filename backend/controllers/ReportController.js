@@ -1,15 +1,13 @@
-const Report = require("../models/Report")
-const ReportService = require("../services/ReportService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class ReportController {
     
     constructor(){
-        this.reportService = new ReportService(Report);
     }
 
     //Get all Reports
     getAllReports = async(request, response) =>{
         try {
-            const reports = await this.reportService.getDocuments();
+            const reports = await ServiceFactory.getReportService.getDocuments();
             response.json(reports);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -20,14 +18,12 @@ class ReportController {
     getReportById = async(request, response) =>{
         try {
             const reportId = request.params.id;
-            const report = await this.reportService.getDocumentById(reportId);
+            const report = await  ServiceFactory.getReportService.getDocumentById(reportId);
             response.json(report);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = ReportController;

@@ -1,14 +1,12 @@
-const ForumPermissions = require("../models/ForumPermissions")
-const ForumPermissionsService = require("../services/ForumPermissionsService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class ForumPermissionsController {
     
     constructor(){
-        this.forumPermissionsService = new ForumPermissionsService(ForumPermissions);
     }
     //Get all ForumPermissionss
     getAllForumPermissionss = async(request, response) =>{
         try {
-            const forumPermissionss = await this.forumPermissionsService.getDocuments();
+            const forumPermissionss = await ServiceFactory.getForumPermissionsService.getDocuments();
             response.json(forumPermissionss);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,14 +17,12 @@ class ForumPermissionsController {
     getForumPermissionsById = async(request, response) => {
         try {
             const forumPermissionsId = request.params.id;
-            const forumPermissions = await this.forumPermissionsService.getDocumentById(forumPermissionsId);
+            const forumPermissions = await ServiceFactory.getForumPermissionsService.getDocumentById(forumPermissionsId);
             response.json(forumPermissions);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = ForumPermissionsController;

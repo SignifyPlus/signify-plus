@@ -1,14 +1,12 @@
-const Forum = require("../models/Forum")
-const ForumService = require("../services/ForumService")
+const ServiceFactory = require("../factories/serviceFactory.js");
 class ForumController {
     
     constructor(){
-        this.forumService = new ForumService(Forum);
     }
     //Get all Forums
     getAllForums = async(request, response) => {
         try {
-            const forums = await this.forumService.getDocumentsByCustomFilters();
+            const forums = await ServiceFactory.getForumService.getDocumentsByCustomFilters();
             response.json(forums);
         }catch(exception) {
             response.status(500).json({error: exception.message})
@@ -19,14 +17,12 @@ class ForumController {
     getForumById = async(request, response) => {
         try {
             const forumId = request.params.id;
-            const forum = await this.forumService.getDocumentById(forumId);
+            const forum = await ServiceFactory.getForumService.getDocumentById(forumId);
             response.json(forum);
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }
     }
-
-
 }
 
 module.exports = ForumController;
