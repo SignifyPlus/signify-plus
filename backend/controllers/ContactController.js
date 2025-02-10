@@ -78,9 +78,37 @@ class ContactController {
         }
     }
 
+    //A list will be send with the contacts and userPhone Number - to check automatically which are missing from the list, and delete them automatically
+    //Otherwise add if there's an extra entry in the array
     createContact = async(request, response) => {
         try {
-            const contact = request.body;
+            const userPhoneNumber = request.body.userPhoneNumber;
+            const contacts = request.body.contacts;
+
+            if (userPhoneNumber == null || contacts == null || contacts.length == 0) {
+                const signifyException = new SignifyException(400, "userPhoneNumber and contacts are required. Either the array is null or empty or the userPhoneNumber is not provided. Please check!");
+                return response.status(signifyException.status).json(signifyException.loadResult());
+            }
+
+            const mainUser = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: userPhoneNumber});
+
+            if (mainUser == null) {
+                const signifyException = new SignifyException(400, `No Such user exists with the phoneNumber : ${userPhoneNumber}!`);
+                return response.status(signifyException.status).json(signifyException.loadResult());
+            }
+
+            //users in the user database - retrives the phoneNumbers - they are to be added as contacts for the main User
+            const contactUsers = await ServiceFactory.getUserService.getDocumentsByCustomFilters({ phoneNumber: { $in: contacts } });
+            const contactPhoneNumbers = contactUsers.map(user => user.phoneNumber);
+
+            console.log(contactPhoneNumbers);
+            //use aggegation if possible or just use populate!!
+            const existingContacts = await ServiceFactory.getContactService.getDocumentsByCustomFilters({userId: mainUser._id})
+            const existingContactPhoneNumbers = existingContacts.map(contact => contact.contactUserId);
+
+            contacts.array.forEach(contact => {
+                
+            });
             const contactObject = await ServiceFactory.getContactService.saveDocument(contact);
             response.json(contactObject);
         }catch(exception) {
