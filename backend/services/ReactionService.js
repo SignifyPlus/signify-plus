@@ -28,12 +28,20 @@ class ReactionService extends AbstractService {
         return await super.saveDocument(data);
     }
 
+    async saveDocuments(data) {
+        return await super.saveDocuments(data);
+    }
+
     async deleteDocument(filterConditions) {
         return await super.deleteDocument(filterConditions);
     }
 
     async deleteDocumentById(objectId) {
         return await super.deleteDocumentById(objectId);
+    }
+
+    async deleteDocuments(filterConditions) {
+        return await super.deleteDocuments(filterConditions);
     }
 
     //query methods

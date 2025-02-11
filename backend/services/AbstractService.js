@@ -63,12 +63,31 @@ class AbstractService {
         }
     }
 
+    async saveDocuments(data) {
+        try{
+            const entity = await this.schemaModel.insertMany(data);
+            return entity;
+        }catch(exception){
+            throw new Error(`Error Saving the Documents: ${exception.message}`);
+        }
+    }
+
     async deleteDocument(filterConditions) {
         try{
             const entity = await this.schemaModel.findOneAndDelete(filterConditions, {new : true})
             return entity;
         }catch(exception) {
             throw new Error(`Error Deleting the Document: ${exception.message}`);
+        }
+    }
+
+    
+    async deleteDocuments(filterConditions) {
+        try{
+            const entity = await this.schemaModel.deleteMany(filterConditions)
+            return entity;
+        }catch(exception) {
+            throw new Error(`Error Deleting the Documents: ${exception.message}`);
         }
     }
 
