@@ -97,20 +97,43 @@ class ContactController {
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
 
-            //users in the user database - retrives the phoneNumbers - they are to be added as contacts for the main User
+            //User Ids from the given contact numbers
             const contactUsers = await ServiceFactory.getUserService.getDocumentsByCustomFilters({ phoneNumber: { $in: contacts } });
-            const contactPhoneNumbers = contactUsers.map(user => user.phoneNumber);
+            const newContactUserIds = contactUsers.map(user => user._id.toString());
 
-            console.log(contactPhoneNumbers);
-            //use aggegation if possible or just use populate!!
-            const existingContacts = await ServiceFactory.getContactService.getDocumentsByCustomFilters({userId: mainUser._id})
-            const existingContactPhoneNumbers = existingContacts.map(contact => contact.contactUserId);
+            //Existing contact numbers for the main user
+            const existingContacts = ServiceFactory.getContactService.getDocumentsByCustomFiltersQuery({userId: mainUser._id});
+            const populatedContacts = await existingContacts.populate({
+                path: 'contactUserId',
+                select: 'phoneNumber'
+            }).exec();
+            const existingUserIds = populatedContacts.map(contact => contact.contactUserId._id.toString());
+        
+            //contacts to delete
+            const contactsToDelete = populatedContacts.filter(contact => !newContactUserIds.includes(contact.contactUserId._id.toString())).map(contact => contact._id);
 
-            contacts.array.forEach(contact => {
-                
+            //contacts to add - validation is left ,what if the userId doesn't even exist in the user table!
+            const contactsToAdd = newContactUserIds.filter(userId => !existingUserIds.includes(userId))
+            .map(userId => ({
+                userId: mainUser._id,
+                contactUserId: userId,
+                status: true
+            }));
+
+            if (contactsToDelete.length > 0) {
+                await ServiceFactory.getContactService.deleteDocuments({_id: {$in: contactsToDelete}});
+            }
+
+            if (contactsToAdd.length > 0) {
+                await ServiceFactory.getContactService.saveDocuments(contactsToAdd);
+            }
+
+            response.json({
+                message: "Contacts Updated successfully",
+                added: contactsToAdd.length,
+                removed: contactsToDelete.length
             });
-            const contactObject = await ServiceFactory.getContactService.saveDocument(contact);
-            response.json(contactObject);
+
         }catch(exception) {
             response.status(500).json({error: exception.message})
         }

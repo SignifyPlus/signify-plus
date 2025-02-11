@@ -29,6 +29,10 @@ class ForumMemberService extends AbstractService {
         return await super.saveDocument(data);
     }
 
+    async saveDocuments(data) {
+        return await super.saveDocuments(data);
+    }
+
     async deleteDocument(filterConditions) {
         return await super.deleteDocument(filterConditions);
     }
@@ -37,10 +41,15 @@ class ForumMemberService extends AbstractService {
         return await super.deleteDocumentById(objectId);
     }
 
+    async deleteDocuments(filterConditions) {
+        return await super.deleteDocuments(filterConditions);
+    }
+
     //query methods
     getDocumentsByCustomFiltersQuery(filterConditions) {
         return super.getDocumentsByCustomFiltersQuery(filterConditions);
     }
+
 }
 
 module.exports = ForumMemberService;
