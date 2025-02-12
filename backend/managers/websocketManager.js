@@ -24,12 +24,6 @@ class WebSocketManager {
         })
     }
 
-    messageEvent(socket) {
-        socket.on('message', (message) => {
-            console.log(message);
-            this.signifyPlusSocketIo.emit('message', `${socket.id} said ${message}}`)
-        })
-    }
 
     socketRegistrationEvent(socket) {
         socket.on('socket-registration', (data) => {
