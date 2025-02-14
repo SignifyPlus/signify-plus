@@ -1,19 +1,19 @@
 class MeetingSocket {
-    constructor(socket) {
-        this.userSocketMap = {};
-        this.meetingIdEvent(socket);
-        this.meetingIdDeclineEvent(socket);
+    constructor(socket, userSocketMap) {
+        this.meetingIdEvent(socket, userSocketMap);
+        this.meetingIdDeclineEvent(socket, userSocketMap);
     }
 
-    meetingIdEvent(socket) {
+    meetingIdEvent(socket, userSocketMap) {
         socket.on('meeting-id', (data) => {
-            const sendersSocketId = this.userSocketMap[data.userPhoneNumber];
+            console.log(data);
+            const sendersSocketId = userSocketMap[data.userPhoneNumber];
             if (!sendersSocketId) { //if sender is undefined, exit
                 return;
             }
             console.log(`Meeting ID: ${data.meetingId} callerPhoneNumber: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
             data.targetPhoneNumbers.forEach(phoneNumber => {
-                const targetSocketId = this.userSocketMap[phoneNumber];
+                const targetSocketId = userSocketMap[phoneNumber];
                 console.log(`Iterating ${targetSocketId}`);
                 const event = targetSocketId? 'meeting-id-offer': 'meeting-id-failed';
                 const socketEventType = targetSocketId? socket.to(targetSocketId) : socket;
@@ -33,12 +33,12 @@ class MeetingSocket {
         });
     }
 
-    meetingIdDeclineEvent(socket) {
+    meetingIdDeclineEvent(socket, userSocketMap) {
         socket.on('meeting-id-decline', (data) => {
             console.log(`decline offer ${data.userPhoneNumber} ${data.meetingId} ${data.targetPhoneNumber}`)
             //send the decline offer to the targetPhoneNumber
             //find the user from the map
-            const targetPhoneNumberSocketId = this.userSocketMap[data.targetPhoneNumber];
+            const targetPhoneNumberSocketId = userSocketMap[data.targetPhoneNumber];
 
             const event = targetPhoneNumberSocketId? 'call-declined' : 'meeting-id-decline-failed';
             const socketEventType = targetPhoneNumberSocketId? socket.to(targetPhoneNumberSocketId) : socket;
@@ -57,3 +57,5 @@ class MeetingSocket {
         });
     }
 }
+
+module.exports = MeetingSocket;

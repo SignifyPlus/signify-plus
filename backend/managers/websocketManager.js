@@ -8,15 +8,16 @@ class WebSocketManager {
         this.signifyPlusSocketIo = socketIo(server, {
             cors: {origin: "*"}
         });
-        this.setupSocketEvents();
+        this.userSocketMap = {};
+        this.setupSocketEvents(this.userSocketMap);
     }
 
-    setupSocketEvents() {
+    setupSocketEvents(userSocketMap) {
         this.signifyPlusSocketIo.on('connection', (socket) => {
             console.log('Connected');
-            this.socket = new Socket(socket);
-            this.messageSocket = new MessageSocket(socket);
-            this.meetingSocket = new MeetingSocket(socket);
+            this.socket = new Socket(socket, userSocketMap);
+            this.messageSocket = new MessageSocket(socket, userSocketMap);
+            this.meetingSocket = new MeetingSocket(socket, userSocketMap);
         })
     }
 }

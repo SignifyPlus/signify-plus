@@ -15,3 +15,5 @@ class MessageSocket {
         })
     }
 } 
+
+module.exports = MessageSocket;
