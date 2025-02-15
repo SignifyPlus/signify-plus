@@ -21,21 +21,21 @@ import {
   signUpWithPhoneNumber,
 } from '@/api';
 
-const TUR_PHONE = [
-  `+`,
-  '9',
-  '0',
-  ' ',
-  /\d/,
-  /\d/,
-  /\d/,
-  ' ',
-  /\d/,
-  /\d/,
-  ' ',
-  /\d/,
-  /\d/,
-];
+// const TUR_PHONE = [
+//   `+`,
+//   '9',
+//   '0',
+//   ' ',
+//   /\d/,
+//   /\d/,
+//   /\d/,
+//   ' ',
+//   /\d/,
+//   /\d/,
+//   ' ',
+//   /\d/,
+//   /\d/,
+// ];
 
 const Page = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -89,7 +89,7 @@ const Page = () => {
       phoneNumberId,
     });
 
-    router.push(`/verify/${phoneNumber}?signin=true`);
+    router.push(`/verify/${phoneNumber}`);
     setLoading(false);
   };
 
@@ -126,7 +126,7 @@ const Page = () => {
               onChangeText={(masked, _unmasked) => {
                 setPhoneNumber(masked);
               }}
-              mask={TUR_PHONE}
+              // mask={TUR_PHONE}
               style={styles.input}
             />
           </View>

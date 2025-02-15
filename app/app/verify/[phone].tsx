@@ -39,6 +39,7 @@ const Page = () => {
   const { setPhoneNumber } = useAppContext();
 
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
+
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value: code,
     setValue: setCode,
@@ -61,6 +62,7 @@ const Page = () => {
     try {
       await attemptFirstFactorVerificationForSignIn(code);
       await activateUserSessionAfterSignIn();
+      console.log('signin comeplete', code);
     } catch (err) {
       console.log('error', JSON.stringify(err, null, 2));
       Alert.alert(
@@ -76,6 +78,11 @@ const Page = () => {
         await resendSignInVerificationCode(phone);
       } else {
         await resendSignUpVerificationCode(phone);
+        // createUser({
+        //   name: 'test',
+        //   phoneNumber: phone,
+        //   password: 'test',
+        // });
       }
     } catch (err) {
       console.log('error', JSON.stringify(err, null, 2));
@@ -95,6 +102,7 @@ const Page = () => {
         handleSignInVerification();
       } else {
         handleSignUpVerification();
+        // createUser({ name: 'test', phoneNumber: phone, password: 'test' });
       }
       router.replace('/(tabs)/chats');
     }

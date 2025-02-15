@@ -20,7 +20,7 @@ export const useUpdateContacts = ({
           console.log(`Got ${contacts.length} contacts`);
           mutate(
             {
-              userPhone: phoneNumber,
+              userPhoneNumber: phoneNumber,
               contacts: contacts
                 .map((contact) => {
                   if (!contact.phoneNumbers.length) return null;

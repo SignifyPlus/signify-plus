@@ -12,6 +12,8 @@ const Page = () => {
   const { phoneNumber } = useAppContext();
   const { data: _data = [] } = useContactsQuery({ phoneNumber });
 
+  console.log(_data);
+
   const data = _data.map((contact, index) => ({
     value: contact.name,
     name: contact.name,
