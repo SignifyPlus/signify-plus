@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { createMeeting, queryClient } from '@/api';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useUpdateContacts } from '@/context/use-update-contacts';
+import { useContactsQuery } from '@/api/contacts-query';
 
 type IncomingCallType = {
   meetingId: string;
@@ -53,6 +54,8 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     null
   );
   const router = useRouter();
+  // means to fetch earlier than required so we can see the list instantly
+  useContactsQuery({ phoneNumber });
 
   const emitMessage = useCallback(
     (message: string) => {
