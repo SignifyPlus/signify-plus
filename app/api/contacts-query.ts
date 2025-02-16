@@ -8,6 +8,20 @@ export interface Contact {
   status: string;
 }
 
+export type UserContact = {
+  _id: string;
+  userId: string;
+  contactUserId: {
+    _id: string;
+    name: string;
+    phoneNumber: string;
+    profilePicture: string | null;
+  };
+  status: boolean;
+  createdAt: string;
+  __v: number;
+};
+
 export const contactsQueryKey = (params: { phoneNumber?: string }) => [
   'contacts',
   params.phoneNumber,
@@ -20,8 +34,7 @@ export const useContactsQuery = (params: { phoneNumber?: string }) => {
       if (!params.phoneNumber) return [];
       console.log('Fetching contacts', params.phoneNumber);
       const response = await fetch(`${API_URL}/contacts/${params.phoneNumber}`);
-      const data = await response.json();
-      return (data.contacts ?? []) as Contact[];
+      return (await response.json()) as UserContact[];
     },
     enabled: !!params.phoneNumber,
   });
