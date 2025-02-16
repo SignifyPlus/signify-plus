@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const MessageSchema = new mongoose.Schema({
     senderId : {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true}, //User table - foreign key
     receiverId : {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true}, //User table - foreign key
+    chatId : {type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true}, //Chat table - foreign key
     mediaId : {type: mongoose.Schema.Types.ObjectId, ref: 'Media', required: false}, //Media table - foreign key
     messageType: {type: String},
     content: {type: String, required: true},

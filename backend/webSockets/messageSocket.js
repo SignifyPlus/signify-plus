@@ -5,13 +5,13 @@ class MessageSocket {
 
     messageEvent(socket) {
         socket.on('message', (data) => {
-            console.log(`Incoming Message ${data.message} for the targetSocketId ${data.targetSocketId}`);
+            console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${data.targetPhoneNumber}`);
 
-            if (data.receiverSocketId == null){
-                socket.emit('message-failure', {error: `targetSocketId is not provided - receiver info: ${data.receiverSocketId}`});
+            if (data.targetPhoneNumber == null){
+                socket.emit('message-failure', {error: `targetSocketId is not provided - receiver info: ${data.receiverPhoneNumber}`});
                 return;
             }
-            socket.to(data.targetSocketId).emit('message', data.message);
+            socket.to(data.targetPhoneNumber).emit('message', data.message);
         })
     }
 } 

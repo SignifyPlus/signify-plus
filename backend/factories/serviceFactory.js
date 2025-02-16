@@ -18,6 +18,7 @@ const GroupMemberService = require("../services/GroupMemberService.js");
 const GroupService = require("../services/GroupService.js");
 const MediaService = require("../services/MediaService.js");
 const MessageService = require("../services/MessageService.js");
+const ChatService = require("../services/ChatService.js");
 const NotificationService = require("../services/NotificationService.js");
 const ReactionService = require("../services/ReactionService.js");
 const ReportService = require("../services/ReportService.js");
@@ -40,6 +41,7 @@ const Group = require("../models/Group.js");
 const GroupMember = require("../models/GroupMember.js");
 const Media = require("../models/Media.js");
 const Message = require("../models/Message.js");
+const Chat = require("../models//Chat.js");
 const Notification = require("../models/Notification.js");
 const Reaction = require("../models/Reaction.js");
 const Report = require("../models/Report.js");
@@ -121,6 +123,12 @@ class ServiceFactory {
       * @type {MessageService | null}
       */
      static #messageService = null;
+
+    /**
+     * @private
+     * @type {ChatService | null}
+     */
+          static #chatService = null;
  
      /**
       * @private
@@ -165,7 +173,6 @@ class ServiceFactory {
      static #userService = null;
 
     constructor() {
-        console.log("Inside Factory!");
     }
 
     static get getCallHistoryService() {
@@ -250,6 +257,13 @@ class ServiceFactory {
             this.#messageService = new MessageService(Message);
         }
         return this.#messageService;
+    }
+
+    static get getChatService() {
+        if (!this.#chatService) {
+            this.#chatService = new ChatService(Chat);
+        }
+        return this.#chatService;
     }
 
     static get getNotificationService() {
