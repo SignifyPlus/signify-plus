@@ -4,8 +4,10 @@ const ChatController = require('../controllers/ChatController.js');
 
 const chatController = new ChatController();
 
-chatController.get('/:phoneNumber', chatController.getChatByPhoneNumber);
+chatRouter.get('/:phoneNumber', chatController.getChatByPhoneNumber);
 
-chatController.get('/:chatId');
+chatRouter.post('/create', chatController.initializeEmptyChat);
+
+chatRouter.get('/:chatId');
 
 module.exports = chatRouter;
