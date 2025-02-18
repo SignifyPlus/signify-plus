@@ -4,6 +4,6 @@ const MessageController = require('../controllers/MessageController.js');
 
 const messageController = new MessageController();
 
-messageRouter.get('/all', messageController.getAllMessages);
+messageRouter.post('/create', messageController.postMessage);
 
 module.exports = messageRouter;
