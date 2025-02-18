@@ -32,6 +32,7 @@ class ChatController {
         }
     }
     
+    //to do later
     getChatByPhoneNumber = async(request, response) => {
         try {
             const phoneNumber = request.params.phoneNumber;
