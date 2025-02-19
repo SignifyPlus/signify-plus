@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
-      "bundleIdentifier": "com.anonymous.videosdkexpoapp"
+      "bundleIdentifier": "com.bora.videosdkexpoapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
         "android.permission.WAKE_LOCK",
         "android.permission.BLUETOOTH"
       ],
-      "package": "com.anonymous.videosdkexpoapp"
+      "package": "com.bora.videosdkexpoapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

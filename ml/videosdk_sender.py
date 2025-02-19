@@ -10,10 +10,77 @@ from collections import deque
 from time import time
 from typing import Set, Optional
 from contextlib import suppress
+import aiohttp
 
 VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIyN2ZhZDRjMy0xM2ZiLTQ1ZGQtYjBkOS1mODEzYWUxNmU2ZjIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTczNDY0ODU1OSwiZXhwIjoxODkyNDM2NTU5fQ.Y3bEl5_ffScQJroMT_ihsKs0W0U45bS0w9481rWwl4c"
-MEETING_ID = "eo3s-alzl-pvmc"
-WEBSOCKET_URL = "ws://localhost:8765"  
+WEBSOCKET_URL = "ws://139.179.150.117:8765"
+
+async def wait_for_meeting_id():
+    meeting_id = None
+    while meeting_id is None:
+        meeting_id = await get_meeting_id()
+        if meeting_id is None:
+            print("Meeting ID not available yet, waiting...")
+            await asyncio.sleep(5)
+    return meeting_id
+
+async def get_meeting_id():
+    url = "https://robust-hen-big.ngrok-free.app/meeting-id"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            data = await response.json()
+            MEETING_ID = data.get("meetingId")
+            if MEETING_ID:
+                print(f"Retrieved meeting ID: {MEETING_ID}")
+                return MEETING_ID
+            else:
+                print("No meeting ID available:", data)
+                return None
+
+async def monitor_meeting():
+    global meeting
+    current_meeting_id = None
+    while True:
+        new_meeting_id = await get_meeting_id()
+        if new_meeting_id:
+            if current_meeting_id is None or new_meeting_id != current_meeting_id:
+                print(f"New meeting id detected: {new_meeting_id}")
+                # If there's an active meeting, leave it
+                if meeting is not None:
+                    print("Leaving current meeting...")
+                    meeting.leave()
+                    for participant in meeting.participants.values():
+                        for stream in participant.streams.values():
+                            if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
+                                await stream.track.stop()
+                # Update the current meeting id and join the new meeting
+                current_meeting_id = new_meeting_id
+                meeting_config = MeetingConfig(
+                    meeting_id=new_meeting_id,
+                    name='AI_MODEL',
+                    mic_enabled=False,
+                    webcam_enabled=False,
+                    token=VIDEOSDK_TOKEN,
+                )
+                meeting = VideoSDK.init_meeting(**meeting_config)
+                meeting.add_event_listener(MyMeetingEventHandler())
+                print("Joining new meeting...")
+                meeting.join()
+            else:
+                print("Meeting id unchanged.")
+        else:
+            print("No meeting id available at the moment.")
+            # If there's an active meeting and the meeting id becomes null, end it.
+            if meeting is not None:
+                print("Received null meeting id, ending current meeting...")
+                meeting.leave()
+                for participant in meeting.participants.values():
+                    for stream in participant.streams.values():
+                        if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
+                            await stream.track.stop()
+                current_meeting_id = None
+                meeting = None
+        await asyncio.sleep(5)
 
 meeting: Meeting = None
 
@@ -207,47 +274,24 @@ class MyParticipantEventHandler(ParticipantEventHandler):
         print("on_stream_disabled")
 
 async def main():
-    global meeting
     try:
-        # Initialize meeting
-        meeting_config = MeetingConfig(
-            meeting_id=MEETING_ID,
-            name='AI_MODEL',
-            mic_enabled=False,
-            webcam_enabled=False,
-            token=VIDEOSDK_TOKEN,
-        )
-        meeting = VideoSDK.init_meeting(**meeting_config)
-
-        print("adding event listener...")
-        meeting.add_event_listener(MyMeetingEventHandler())
-
-        print("joining into meeting...")
-        meeting.join()
-
-        # Keep the meeting running until interrupted
-        try:
-            # Wait indefinitely while handling the meeting
-            await asyncio.Event().wait()
-        except asyncio.CancelledError:
-            print("Received shutdown signal")
-            raise
+        # Start the monitor_meeting task in the background
+        monitor_task = asyncio.create_task(monitor_meeting())
         
+        # Wait indefinitely so that monitor_meeting keeps running
+        await asyncio.Future()  # This future will never complete
     except Exception as e:
-        print(f"Error in meeting: {e}")
+        print(f"Error in main: {e}")
         raise
-    
     finally:
         print("Cleaning up...")
-        # Clean up video tracks
         if meeting:
             try:
-                # Clean up any active video tracks
+                # Stop any custom video tracks that may be active
                 for participant in meeting.participants.values():
                     for stream in participant.streams.values():
                         if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
                             await stream.track.stop()
-                
                 meeting.leave()
                 print("Successfully left meeting")
             except Exception as e:
