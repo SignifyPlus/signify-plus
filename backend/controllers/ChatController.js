@@ -1,4 +1,5 @@
 const ServiceFactory = require("../factories/serviceFactory.js");
+const ExceptionHelper = require("../exception/ExceptionHelper.js");
 const SignifyException = require("../exception/SignifyException.js");
 class ChatController {
     
@@ -7,23 +8,18 @@ class ChatController {
 
     initializeEmptyChat = async(request, response) => {
         try {
-            if (request.body.mainUserPhoneNumber === undefined || request.body.targetUserPhoneNumber === undefined) {
-                const signifyException = new SignifyException(400, ` mainUserPhoneNumber or targetUserPhoneNumber not provided!`);
-                return response.status(signifyException.status).json(signifyException.loadResult());
-            }
+            const participants = await ExceptionHelper.validate(request.body.participants, 400, `participants array not provided. Please add the participants that will be participate in a chat - participants : [+905232314, +9023132145]`, response);
+            if (participants) return participants;
+            const particpantsUserObjects = await ServiceFactory.getUserService.getDocumentsByCustomFilters({phoneNumber: { $in: request.body.participants } })
 
-            const [mainUserPhoneNumberUserObject, targetUserPhoneNumberUserObject] = await Promise.all([
-                ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.body.mainUserPhoneNumber}),
-                ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.body.targetUserPhoneNumber})]
-            );
-
-            if (mainUserPhoneNumberUserObject == null || targetUserPhoneNumberUserObject == null) {
-                const signifyException = new SignifyException(400, ` mainUserPhoneNumber or targetUserPhoneNumber Users don't exist - please register them first!`);
+            if (particpantsUserObjects.length != request.body.participants.length) {
+                const signifyException = new SignifyException(400, `Not all phoneNumbers are registered to the User table - can't create a chat`);
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
             
-            const [mainUserPhoneNumberId, targetUserPhoneNumberId] = [mainUserPhoneNumberUserObject._id.toString(), targetUserPhoneNumberUserObject._id.toString()]
-            const chat = await ServiceFactory.getChatService.saveDocument({mainUserId: mainUserPhoneNumberId, toUserId: targetUserPhoneNumberId});
+            const chat = await ServiceFactory.getChatService.saveDocument({
+                participants: particpantsUserObjects.map(participant => participant._id.toString())
+            });
             response.json(chat);
             
         }catch(exception) {
