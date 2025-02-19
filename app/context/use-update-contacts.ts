@@ -1,5 +1,6 @@
 import Contacts from 'react-native-contacts';
-import { useEffect } from 'react';
+import { type Contact } from 'react-native-contacts/type';
+import { useEffect, useState } from 'react';
 import { usePostContactsMutation } from '@/api/post-contacts-mutation';
 // eslint-disable-next-line react-native/split-platform-components
 import { Permission, PermissionsAndroid, Platform } from 'react-native';
@@ -9,6 +10,7 @@ export const useUpdateContacts = ({
 }: {
   phoneNumber?: string;
 }) => {
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const { mutate } = usePostContactsMutation();
 
   useEffect(() => {
@@ -17,10 +19,12 @@ export const useUpdateContacts = ({
       console.log('Attempting to get contacts');
       Contacts.getAll()
         .then((contacts) => {
+          setContacts(contacts);
           console.log(`Got ${contacts.length} contacts`);
+          setContacts(contacts);
           mutate(
             {
-              userPhone: phoneNumber,
+              userPhoneNumber: phoneNumber,
               contacts: contacts
                 .map((contact) => {
                   if (!contact.phoneNumbers.length) return null;
@@ -76,4 +80,8 @@ export const useUpdateContacts = ({
   // );
   //
   // return updateContacts;
+
+  return {
+    contacts,
+  } as const;
 };

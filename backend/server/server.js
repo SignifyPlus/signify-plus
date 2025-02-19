@@ -3,9 +3,11 @@ const http = require('http');
 const mongoose = require("mongoose");
 require("dotenv").config();
 const WebSocketManager = require("../managers/websocketManager.js");
-const userRoutes = require("../routes/UserRoutes.js")
-const homeRoutes = require("../routes/HomeRoute.js")
-const contactRoutes = require("../routes/ContactRoutes.js")
+const userRoutes = require("../routes/UserRoutes.js");
+const homeRoutes = require("../routes/HomeRoute.js");
+const contactRoutes = require("../routes/ContactRoutes.js");
+const chatRoutes = require("../routes/ChatRoutes.js");
+const messageRoutes = require("../routes/MessageRoutes.js");
 const Encrypt = require("../utilities/encrypt.js");
 
 const signifyPlusApp = express();
@@ -15,9 +17,12 @@ const mainServer = http.createServer(signifyPlusApp);
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
 
+//routes
 signifyPlusApp.use('/users', userRoutes);
 signifyPlusApp.use('/', homeRoutes);
 signifyPlusApp.use('/contacts', contactRoutes);
+signifyPlusApp.use('/chats', chatRoutes);
+signifyPlusApp.use('/messages', messageRoutes);
 
 //use these for reading connecting string from firebase
 mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))

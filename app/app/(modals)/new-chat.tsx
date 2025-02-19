@@ -1,24 +1,57 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '@/constants/Colors';
-import { AlphabetList } from 'react-native-section-alphabet-list';
+import { AlphabetList, IData } from 'react-native-section-alphabet-list';
 import { defaultStyles } from '@/constants/Styles';
-import { Fragment } from 'react';
+import { useMemo } from 'react';
 import { useAppContext } from '@/context/app-context';
 import { useContactsQuery } from '@/api/contacts-query';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/api';
+import { useUpdateContacts } from '@/context/use-update-contacts';
+import { Ionicons } from '@expo/vector-icons';
+
+type Item = {
+  value: string;
+  name: string;
+  img: string | null;
+  desc: string | null;
+  key: string;
+};
 
 const Page = () => {
   const { phoneNumber } = useAppContext();
+
+  const { contacts } = useUpdateContacts({ phoneNumber });
   const { data: _data = [] } = useContactsQuery({ phoneNumber });
 
-  const data = _data.map((contact, index) => ({
-    value: contact.name,
-    name: contact.name,
-    img: contact.profilePicture,
-    desc: contact.status ?? '',
-    key: `${contact.name}-${index}`,
-  }));
+  console.log(_data);
+
+  const data = useMemo(() => {
+    return _data
+      .map((contact, index) => {
+        const savedContact = contacts.find(
+          (c) => c.phoneNumbers[0]?.number === contact.contactUserId.phoneNumber
+        );
+        if (!savedContact) return null;
+
+        return {
+          value: contact.contactUserId.phoneNumber,
+          name: 'osama',
+          img: contact.contactUserId.profilePicture,
+          desc: '',
+          key: `${contact.contactUserId.name}-${index}`,
+        } satisfies Item;
+      })
+      .filter((contact) => contact) as IData[];
+  }, [_data, contacts]);
+
+  // const data = _data.map((contact, index) => ({
+  //   value: contact.name,
+  //   name: contact.name,
+  //   img: contact.profilePicture,
+  //   desc: contact.status ?? '',
+  //   key: `${contact.name}-${index}`,
+  // }));
 
   return (
     <View
@@ -36,22 +69,55 @@ const Page = () => {
           backgroundColor: Colors.background,
         }}
         renderCustomItem={(item: any) => (
-          <Fragment>
+          <TouchableOpacity
+            onPress={() => {
+              console.log(item);
+            }}
+          >
             <View style={styles.listItemContainer}>
-              <Image source={{ uri: item.img }} style={styles.listItemImage} />
-              <View>
-                <Text style={{ color: '#000', fontSize: 14 }}>
+              {item.img ? (
+                <View
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: Colors.lightGray,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Ionicons name="person-outline" />
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: item.img }}
+                  style={styles.listItemImage}
+                />
+              )}
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text
+                  style={{ color: '#000', fontSize: 16, fontWeight: '500' }}
+                >
+                  {item.name}
+                </Text>
+                <Text style={{ color: '#000', fontSize: 12 }}>
                   {item.value}
                 </Text>
-                <Text style={{ color: Colors.gray, fontSize: 12 }}>
-                  {item.desc.length > 40
-                    ? `${item.desc.substring(0, 40)}...`
-                    : item.desc}
-                </Text>
+                {/*<Text style={{ color: Colors.gray, fontSize: 12 }}>*/}
+                {/*  {item.desc.length > 40*/}
+                {/*    ? `${item.desc.substring(0, 40)}...`*/}
+                {/*    : item.desc}*/}
+                {/*</Text>*/}
               </View>
             </View>
             <View style={[defaultStyles.separator, { marginLeft: 50 }]} />
-          </Fragment>
+          </TouchableOpacity>
         )}
         renderCustomSectionHeader={(section) => (
           <View style={styles.sectionHeaderContainer}>
