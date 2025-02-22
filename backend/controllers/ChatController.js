@@ -1,6 +1,7 @@
 const ServiceFactory = require("../factories/serviceFactory.js");
 const ExceptionHelper = require("../exception/ExceptionHelper.js");
 const SignifyException = require("../exception/SignifyException.js");
+const { default: mongoose } = require("mongoose");
 class ChatController {
     
     constructor(){
@@ -56,11 +57,15 @@ class ChatController {
             const chatIdValidation = await ExceptionHelper.validate(request.params.chatId, 400, `chatId is not provided.`, response);
             if (chatIdValidation) return chatIdValidation;
 
-            //now us this chat id to query on messages table and retrieve the entire history
-            const chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({phoneNumber: phoneNumber});
-
-            
-            response.json(chat);
+            const retrievedChat =  ServiceFactory.getMessageService.getDocumentsByCustomFiltersQuery({chatId: new mongoose.Types.ObjectId(request.params.chatId)});
+            const populatedChatData = await retrievedChat.populate({
+                path: 'senderId receiverIds',
+                select: 'name phoneNumber'
+            });
+            response.json({
+                "messages": populatedChatData,
+                "totalNumberOfMessages": populatedChatData.length
+            });
         }catch(exception) {
             const signifyException = new SignifyException(500, `Exception Occured: ${exception.message}`);
             return response.status(signifyException.status).json(signifyException.loadResult());

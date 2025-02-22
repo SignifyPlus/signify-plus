@@ -6,8 +6,8 @@ const chatController = new ChatController();
 
 chatRouter.get('/:phoneNumber', chatController.getChatByPhoneNumber);
 
-chatRouter.post('/create', chatController.initializeEmptyChat);
+chatRouter.get('/custom/id/:chatId', chatController.getChatHistoryById);
 
-chatRouter.get('/:chatId');
+chatRouter.post('/create', chatController.initializeEmptyChat);
 
 module.exports = chatRouter;
