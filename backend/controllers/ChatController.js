@@ -40,12 +40,14 @@ class ChatController {
         }
     }
     
-    //to do later
     getChatByPhoneNumber = async(request, response) => {
         try {
-            const phoneNumber = request.params.phoneNumber;
-            const chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({phoneNumber: phoneNumber});
-            response.json(chat);
+            const phoneNumberValidation = await ExceptionHelper.validate(request.params.phoneNumber, 400, `phoneNumber is not provided.`, response);
+            if (phoneNumberValidation) return phoneNumberValidation;
+
+            const chats = await ServiceFactory.getChatService.getDocumentsByCustomFilters({mainUserId: await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.params.phoneNumber})
+            });
+            response.json(chats);
         }catch(exception) {
             const signifyException = new SignifyException(500, `Exception Occured: ${exception.message}`);
             return response.status(signifyException.status).json(signifyException.loadResult());
