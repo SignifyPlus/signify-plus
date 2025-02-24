@@ -30,15 +30,11 @@ class MessageController {
                 const signifyException = new SignifyException(400, `Not all phoneNumbers are registered to the User table!`);
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
-
-            //find the chat in the chat table if exist
-            // TO-DO : to think about - the other user should also have something like this once the first message is sent - that is we might already have a chat out there somewhere between those too
-            //Make lookup/search agnostic of who sent the first message first/or who initialized the chat first!!!
             
             const mappedTargetUserPhoneNumbersToId = targetUserPhoneNumberUserObjects.map(user => user._id.toString());
             const mappedMainUserId = mainUserPhoneNumberUserObject._id.toString();
 
-            const chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({
+            var chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({
                 mainUserId: mappedMainUserId,
                 participants: { $all: mappedTargetUserPhoneNumbersToId,
                                 $size: targetUserPhoneNumberUserObjects.length

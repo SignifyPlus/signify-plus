@@ -45,7 +45,12 @@ class ChatController {
             const phoneNumberValidation = await ExceptionHelper.validate(request.params.phoneNumber, 400, `phoneNumber is not provided.`, response);
             if (phoneNumberValidation) return phoneNumberValidation;
 
-            const chatsQuery = ServiceFactory.getChatService.getDocumentsByCustomFiltersQuery({mainUserId: await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.params.phoneNumber})
+            const userObject = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.params.phoneNumber});
+            const chatsQuery = ServiceFactory.getChatService.getDocumentsByCustomFiltersQuery({
+                $or: [ //checks in both mainUserId + participants!
+                    {mainUserId: userObject._id.toString()},
+                    {participants: userObject._id.toString()}
+                ]
             });
             const chats = await chatsQuery.populate({
                 path: "mainUserId participants",
@@ -85,7 +90,7 @@ class ChatController {
             const lastMessage = await ServiceFactory.getMessageService.findLatestDocument({chatId: chat._id.toString()});
             const chatObject = chat.toObject();
             //fix the null part - the chat should return the last message anyways!! - be it from other user!! so need to check this
-            chatObject.lastMessage = lastMessage == null? 'No last Message Available!' : lastMessage.content;
+            chatObject.lastMessage = lastMessage == null? 'Chat is Empty - No last Message available!' : lastMessage.content;
             chatObjects.push(chatObject);
         }
         return chatObjects;
