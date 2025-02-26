@@ -7,7 +7,7 @@ import {
 } from "react-native-gesture-handler";
 import { IMessage, Message, MessageProps } from "react-native-gifted-chat";
 import { isSameDay, isSameUser } from "react-native-gifted-chat/lib/utils";
-import Colors from "@/constants/Colors";
+import Colors from "../constants/Colors";
 
 type ChatMessageBoxProps = {
   setReplyOnSwipeOpen: (message: IMessage) => void;

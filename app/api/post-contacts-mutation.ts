@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_URL } from '@/constants/Config';
-import { contactsQueryKey } from '@/api/contacts-query';
+import { API_URL } from '../constants/Config';
+import { contactsQueryKey } from '../api/contacts-query';
 
 export interface PostContactsParams {
   userPhoneNumber: string;

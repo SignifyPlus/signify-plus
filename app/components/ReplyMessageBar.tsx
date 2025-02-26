@@ -1,4 +1,4 @@
-import Colors from "@/constants/Colors";
+import Colors from "../constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Fragment } from "react";
 import { View, TouchableOpacity, Text } from "react-native";

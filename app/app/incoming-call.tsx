@@ -8,7 +8,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
-import { useAppContext } from '@/context/app-context';
+import { useAppContext } from '../context/app-context';
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');

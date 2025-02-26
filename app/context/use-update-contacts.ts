@@ -1,7 +1,7 @@
 import Contacts from 'react-native-contacts';
 import { type Contact } from 'react-native-contacts/type';
 import { useEffect, useState } from 'react';
-import { usePostContactsMutation } from '@/api/post-contacts-mutation';
+import { usePostContactsMutation } from '../api/post-contacts-mutation';
 // eslint-disable-next-line react-native/split-platform-components
 import { Permission, PermissionsAndroid, Platform } from 'react-native';
 

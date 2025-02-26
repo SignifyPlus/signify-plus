@@ -1,13 +1,13 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Colors from '@/constants/Colors';
+import Colors from '../../constants/Colors';
 import { AlphabetList, IData } from 'react-native-section-alphabet-list';
-import { defaultStyles } from '@/constants/Styles';
+import { defaultStyles } from '../../constants/Styles';
 import { useMemo } from 'react';
-import { useAppContext } from '@/context/app-context';
-import { useContactsQuery } from '@/api/contacts-query';
+import { useAppContext } from '../../context/app-context';
+import { useContactsQuery } from '../../api/contacts-query';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/api';
-import { useUpdateContacts } from '@/context/use-update-contacts';
+import { queryClient } from '../../api';
+import { useUpdateContacts } from '../../context/use-update-contacts';
 import { Ionicons } from '@expo/vector-icons';
 
 type Item = {

@@ -1,4 +1,4 @@
-import Colors from '@/constants/Colors';
+import Colors from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -19,7 +19,7 @@ import {
   prepareFirstFactorVerification,
   preparePhoneVerification,
   signUpWithPhoneNumber,
-} from '@/api';
+} from '../api';
 
 // const TUR_PHONE = [
 //   `+`,

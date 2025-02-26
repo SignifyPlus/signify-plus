@@ -17,7 +17,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "allowUnusedLabels": false,
     "noImplicitOverride": true,
-    "noImplicitUseStrict": true,
+    //"noImplicitUseStrict": true,
     "paths": {
       "@/*": [
         "./*"

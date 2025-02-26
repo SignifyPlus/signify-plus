@@ -1,4 +1,4 @@
-import Colors from '@/constants/Colors';
+import Colors from '../../constants/Colors';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

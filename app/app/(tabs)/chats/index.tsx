@@ -1,7 +1,7 @@
 import { ScrollView, View } from "react-native";
-import chats from "@/assets/data/chats.json";
-import { ChatRow } from "@/components/ChatRow";
-import { defaultStyles } from "@/constants/Styles";
+import chats from "../../../assets/data/chats.json";
+import { ChatRow } from "../../../components/ChatRow";
+import { defaultStyles } from "../../../constants/Styles";
 import { Fragment } from "react";
 
 const Page = () => {

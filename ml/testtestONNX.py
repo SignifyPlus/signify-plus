@@ -8,7 +8,7 @@ import onnxruntime as ort
 from typing import List, Tuple
 
 class ONNXInferenceServer:
-    def __init__(self, host='localhost', port=8765, model_path=".\\models_cache\\signify-plus\\4\\weights.onnx"):
+    def __init__(self, host='localhost', port=8765, model_path="./models_cache/signify-plus/4/weights.onnx"):
         self.host = host
         self.port = port
         # Initialize ONNX Runtime
@@ -144,12 +144,12 @@ class ONNXInferenceServer:
                     
         except websockets.exceptions.ConnectionClosed:
             print("Client connection closed")
-   
+
     async def start(self):
         """Start the WebSocket server"""
         server = await websockets.serve(
             self.handle_client,
-            self.host,
+            "0.0.0.0",
             self.port
         )
         print(f"Inference server running on ws://{self.host}:{self.port}")

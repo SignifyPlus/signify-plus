@@ -1,6 +1,6 @@
-import { ChatMessageBox } from "@/components/ChatMessageBox";
-import { ReplyMessageBar } from "@/components/ReplyMessageBar";
-import Colors from "@/constants/Colors";
+import { ChatMessageBox } from "../../../components/ChatMessageBox";
+import { ReplyMessageBar } from "../../../components/ReplyMessageBar";
+import Colors from "../../../constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { ImageBackground, StyleSheet, View } from "react-native";
@@ -15,7 +15,7 @@ import {
   InputToolbarProps,
 } from "react-native-gifted-chat";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import messageData from "@/assets/data/messages.json";
+import messageData from "../../../assets/data/messages.json";
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -100,7 +100,7 @@ const Page = () => {
 
   return (
     <ImageBackground
-      source={require("@/assets/images/pattern.png")}
+      source={require("../../../assets/images/pattern.png")}
       style={{
         flex: 1,
         backgroundColor: Colors.background,

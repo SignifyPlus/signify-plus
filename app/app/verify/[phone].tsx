@@ -1,4 +1,4 @@
-import Colors from '@/constants/Colors';
+import Colors from '../../constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -23,8 +23,8 @@ import {
   attemptPhoneNumberVerificationForSignUp,
   resendSignInVerificationCode,
   resendSignUpVerificationCode,
-} from '@/api';
-import { useAppContext } from '@/context/app-context';
+} from '../../api';
+import { useAppContext } from '../../context/app-context';
 
 const CELL_COUNT = 6;
 
