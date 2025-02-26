@@ -2,24 +2,7 @@ const io = require('socket.io-client');
 require("dotenv").config();
 const mockSocketUser1 = io(process.env.RENDER_URL);
 const mockSocketUser2 = io(process.env.RENDER_URL);
-const mockSocketUser3 = io(process.env.RENDER_URL);
 
-let connectedUsers = 0
-async function emitMeetingIdIfReady() {
-    if (connectedUsers === 2) {
-        console.log('All users are connected. Emitting meeting-id...');
-        await sleep(3000); //backend is slow because its hosted so sleeping for a while (3 seconds)!
-        mockSocketUser1.emit('meeting-id', {
-            userPhoneNumber: '789067567',
-            meetingId: '412532646',
-            targetPhoneNumbers: ['213125466']
-        });
-    }
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 //Mock User 1
 mockSocketUser1.on('connect', () => {

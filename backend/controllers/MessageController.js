@@ -66,23 +66,28 @@ class MessageController {
     deleteMessage = async(request, response) =>{
         try {
             //request validations
-            const mainUserPhoneNumberValidation = await ExceptionHelper.validate(request.body.mainUserPhoneNumber, 400, `mainUserPhoneNumber is required!`, response);
-            if (mainUserPhoneNumberValidation) return mainUserPhoneNumberValidation;
+            const senderPhoneNumberValidation = await ExceptionHelper.validate(request.body.senderPhoneNumber, 400, `senderPhoneNumber is required!`, response);
+            if (senderPhoneNumberValidation) return senderPhoneNumberValidation;
 
             const messageIdValidation = await ExceptionHelper.validate(request.body.messageId, 400, `messageId is not provided!`, response);
             if (messageIdValidation) return messageIdValidation;
 
             //database validations
-            const mainUserPhoneNumberUserObject = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.body.mainUserPhoneNumber})
-            const mainUserObjectValidation = await ExceptionHelper.validate(mainUserPhoneNumberUserObject, 400, `mainUserPhoneNumber doesnt Exist in the user table!`, response);
-            if (mainUserObjectValidation) return mainUserObjectValidation;
+            const senderPhoneNumberUserObject = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.body.senderPhoneNumber})
+            const senderUserObjectValidation = await ExceptionHelper.validate(senderPhoneNumberUserObject, 400, `senderPhoneNumber doesnt Exist in the user table!`, response);
+            if (senderUserObjectValidation) return senderUserObjectValidation;
 
-            //currently we only allowe deleting messages that are in 5 minutes range from the created date.
-            //pass the createdDate here - WIP
-            const canMessageBeDeleted = TimeUtils.isTimeDifferenceGreaterThanElapsedLimit(ControllerConstants.MESSAGE_TIME_ELAPSED_LIMIT_FOR_DELETION, "");
-
-
-            return response.json(message);
+            //why are we querying on phoneNumber and messageID - we dont want another use to tap on the message and try to delete that since that message isn't own by them
+            //only the one who sent it can delete it within 5 minutes timespan
+            const messageToDelete = await ServiceFactory.getMessageService.getDocumentByCustomFilters({_id: request.body.messageId, senderId: senderPhoneNumberUserObject._id.toString()})
+            const messageToDeleteValidation = await ExceptionHelper.validate(messageToDelete, 400, `Message Doesn't Belong to the user!!`, response);
+            if (messageToDeleteValidation) return messageToDeleteValidation;
+            
+            const createdDateTimeInSeconds = TimeUtils.getTimeInSeconds(messageToDelete.createdAt.getTime());
+            const canMessageBeDeleted = TimeUtils.isTimeDifferenceLessThanElapsedLimit(ControllerConstants.MESSAGE_TIME_ELAPSED_LIMIT_FOR_DELETION, createdDateTimeInSeconds);
+            const finalResponse = canMessageBeDeleted? {message: `Message Deleted: ${messageToDelete}`} : {message: "Message Can't be deleted - it's too old"};
+            finalResponse ? await ServiceFactory.getMessageService.deleteDocument({_id: messageToDelete._id.toString()}) : null;
+            return response.json(finalResponse);
         }catch(exception) {
             return response.status(500).json({error: exception.message})
         }
