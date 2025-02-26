@@ -40,12 +40,24 @@ class ChatController {
         }
     }
     
-    //to do later
     getChatByPhoneNumber = async(request, response) => {
         try {
-            const phoneNumber = request.params.phoneNumber;
-            const chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({phoneNumber: phoneNumber});
-            response.json(chat);
+            const phoneNumberValidation = await ExceptionHelper.validate(request.params.phoneNumber, 400, `phoneNumber is not provided.`, response);
+            if (phoneNumberValidation) return phoneNumberValidation;
+
+            const userObject = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.params.phoneNumber});
+            const chatsQuery = ServiceFactory.getChatService.getDocumentsByCustomFiltersQuery({
+                $or: [ //checks in both mainUserId + participants!
+                    {mainUserId: userObject._id.toString()},
+                    {participants: userObject._id.toString()}
+                ]
+            });
+            const chats = await chatsQuery.populate({
+                path: "mainUserId participants",
+                select: "phoneNumber name"
+            });
+
+            response.json(await this.getUserChats(chats));
         }catch(exception) {
             const signifyException = new SignifyException(500, `Exception Occured: ${exception.message}`);
             return response.status(signifyException.status).json(signifyException.loadResult());
@@ -72,5 +84,16 @@ class ChatController {
         }
     }
 
+    async getUserChats(chats) {
+        const chatObjects = [];
+        for (const chat of chats) {
+            const lastMessage = await ServiceFactory.getMessageService.findLatestDocument({chatId: chat._id.toString()});
+            const chatObject = chat.toObject();
+            //fix the null part - the chat should return the last message anyways!! - be it from other user!! so need to check this
+            chatObject.lastMessage = lastMessage == null? 'Chat is Empty - No last Message available!' : lastMessage.content;
+            chatObjects.push(chatObject);
+        }
+        return chatObjects;
+    }
 }
 module.exports = ChatController;

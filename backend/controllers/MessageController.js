@@ -1,6 +1,8 @@
 const ServiceFactory = require("../factories/serviceFactory.js");
 const ExceptionHelper = require("../exception/ExceptionHelper.js");
 const SignifyException = require("../exception/SignifyException.js");
+const TimeUtils = require("../utilities/timeUtils.js");
+const ControllerConstants = require("../constants/controllerConstants.js");
 class MessageController {
     
     constructor(){
@@ -30,13 +32,11 @@ class MessageController {
                 const signifyException = new SignifyException(400, `Not all phoneNumbers are registered to the User table!`);
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
-
-            //find the chat in the chat table if exist
-
+            
             const mappedTargetUserPhoneNumbersToId = targetUserPhoneNumberUserObjects.map(user => user._id.toString());
             const mappedMainUserId = mainUserPhoneNumberUserObject._id.toString();
 
-            const chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({
+            var chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({
                 mainUserId: mappedMainUserId,
                 participants: { $all: mappedTargetUserPhoneNumbersToId,
                                 $size: targetUserPhoneNumberUserObjects.length
@@ -56,6 +56,32 @@ class MessageController {
                 chatId: chat._id.toString(),
                 content: request.body.message
             });
+            return response.json(message);
+        }catch(exception) {
+            return response.status(500).json({error: exception.message})
+        }
+    }
+
+    //feature for deleting a message (within a timespan of 1 minute)
+    deleteMessage = async(request, response) =>{
+        try {
+            //request validations
+            const mainUserPhoneNumberValidation = await ExceptionHelper.validate(request.body.mainUserPhoneNumber, 400, `mainUserPhoneNumber is required!`, response);
+            if (mainUserPhoneNumberValidation) return mainUserPhoneNumberValidation;
+
+            const messageIdValidation = await ExceptionHelper.validate(request.body.messageId, 400, `messageId is not provided!`, response);
+            if (messageIdValidation) return messageIdValidation;
+
+            //database validations
+            const mainUserPhoneNumberUserObject = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: request.body.mainUserPhoneNumber})
+            const mainUserObjectValidation = await ExceptionHelper.validate(mainUserPhoneNumberUserObject, 400, `mainUserPhoneNumber doesnt Exist in the user table!`, response);
+            if (mainUserObjectValidation) return mainUserObjectValidation;
+
+            //currently we only allowe deleting messages that are in 5 minutes range from the created date.
+            //pass the createdDate here - WIP
+            const canMessageBeDeleted = TimeUtils.isTimeDifferenceGreaterThanElapsedLimit(ControllerConstants.MESSAGE_TIME_ELAPSED_LIMIT_FOR_DELETION, "");
+
+
             return response.json(message);
         }catch(exception) {
             return response.status(500).json({error: exception.message})

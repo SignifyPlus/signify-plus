@@ -45,6 +45,10 @@ class MessageService extends AbstractService {
         return await super.deleteDocuments(filterConditions);
     }
 
+    async findLatestDocument(filterConditions) {
+        return await this.schemaModel.findOne(filterConditions).sort({createdAt: -1}).lean(); //lean for faster execution, returns plain javascript object without conversion (doesn't return mongoose document)
+    }
+
     //query methods
     getDocumentsByCustomFiltersQuery(filterConditions) {
         return super.getDocumentsByCustomFiltersQuery(filterConditions);
