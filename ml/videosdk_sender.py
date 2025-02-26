@@ -13,7 +13,7 @@ from contextlib import suppress
 import aiohttp
 
 VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIyN2ZhZDRjMy0xM2ZiLTQ1ZGQtYjBkOS1mODEzYWUxNmU2ZjIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTczNDY0ODU1OSwiZXhwIjoxODkyNDM2NTU5fQ.Y3bEl5_ffScQJroMT_ihsKs0W0U45bS0w9481rWwl4c"
-WEBSOCKET_URL = "ws://139.179.150.117:8765"
+WEBSOCKET_URL = "ws://localhost:8765"
 
 async def wait_for_meeting_id():
     meeting_id = None
@@ -125,8 +125,8 @@ class OptimizedWebSocketProcessor:
 
     async def start_react_server(self):
         """Start WebSocket server for React clients"""
-        async with websockets.serve(self.handle_react_client, "0.0.0.0", 8766):
-            print("React WebSocket server running on port 8766")
+        async with websockets.serve(self.handle_react_client, 'localhost', 8888):
+            print(f"React WebSocket server running on port 8766 with ip: {self.host}")
             await asyncio.Future()
 
     async def handle_react_client(self, websocket: websockets.WebSocketServerProtocol):

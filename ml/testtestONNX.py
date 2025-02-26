@@ -8,7 +8,7 @@ import onnxruntime as ort
 from typing import List, Tuple
 
 class ONNXInferenceServer:
-    def __init__(self, host='139.179.150.117', port=8765, model_path="./models_cache/signify-plus/4/weights.onnx"):
+    def __init__(self, host='localhost', port=8765, model_path="./models_cache/signify-plus/4/weights.onnx"):
         self.host = host
         self.port = port
         # Initialize ONNX Runtime

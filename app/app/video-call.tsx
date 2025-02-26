@@ -142,7 +142,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
       }
       console.log("Using ngrokAgentIps:", ngrokAgentIps);
       // Use the fetched ngrokAgentIps in the WebSocket URL
-      ws = new WebSocket(`ws://${ngrokAgentIps}:8766`);
+      ws = new WebSocket(`ws://${ngrokAgentIps}:8888`);
       
       ws.onopen = () => {
         console.log('WebSocket Connected!');
