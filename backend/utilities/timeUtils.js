@@ -6,6 +6,7 @@
  *  - getCurrentTimeInMilliSeconds(): Returns the current timestamp in milliseconds.
  *  - getCurrentTimeInSeconds(): Returns the current timestamp in seconds.
  *  - getTimeDifferenceInSecondsFromNow(): Returns time difference from the given time in seconds and now
+ *  - getTimeInSeconds(): converts any time in milliseconds to seconds
  * - isTimeDifferenceGreaterThanElapsedLimit(): Returns true/false depending on if the time difference is greater than elapsedLimit
  */
 class TimeUtils {
@@ -15,15 +16,19 @@ class TimeUtils {
     }
 
     static getCurrentTimeInSeconds() {
-        return Date.now() / 1000.0;
+        return Math.floor(Date.now() / 1000.0);
     }
 
     static getTimeDifferenceInSecondsFromNow(fromInSeconds) {
         return Math.abs(this.getCurrentTimeInSeconds() - fromInSeconds);
     }
 
-    static isTimeDifferenceGreaterThanElapsedLimit(elapsedLimitInSeconds, fromInSeconds) {
-        return elapsedLimitInSeconds < (this.getTimeDifferenceInSecondsFromNow(fromInSeconds));
+    static getTimeInSeconds(timeInMilliseconds) {
+        return Math.floor(timeInMilliseconds / 1000.0);
+    }
+
+    static isTimeDifferenceLessThanElapsedLimit(elapsedLimitInSeconds, fromInSeconds) {
+        return elapsedLimitInSeconds > (this.getTimeDifferenceInSecondsFromNow(fromInSeconds));
     }
 }
 
