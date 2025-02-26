@@ -14,39 +14,6 @@ import aiohttp
 
 VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIyN2ZhZDRjMy0xM2ZiLTQ1ZGQtYjBkOS1mODEzYWUxNmU2ZjIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTczNDY0ODU1OSwiZXhwIjoxODkyNDM2NTU5fQ.Y3bEl5_ffScQJroMT_ihsKs0W0U45bS0w9481rWwl4c"
 WEBSOCKET_URL = "ws://localhost:8765"
-# Add the MeetingManager class here
-class MeetingManager:
-    def __init__(self):
-        self.active_meetings = {}  # {meeting_id: MeetingInstance}
-    
-    async def join_meeting(self, meeting_id):
-        if meeting_id in self.active_meetings:
-            return
-
-        meeting_config = MeetingConfig(
-            meeting_id=meeting_id,
-            name='AI_MODEL',
-            mic_enabled=False,
-            webcam_enabled=False,
-            token=VIDEOSDK_TOKEN,
-        )
-        
-        meeting = VideoSDK.init_meeting(**meeting_config)
-        meeting.add_event_listener(MyMeetingEventHandler(meeting_id))
-        meeting.join()
-        
-        self.active_meetings[meeting_id] = {
-            "instance": meeting,
-            "processor": OptimizedWebSocketProcessor(),
-            "participants": {}
-        }
-
-    async def leave_meeting(self, meeting_id):
-        if meeting_id in self.active_meetings:
-            meeting = self.active_meetings[meeting_id]["instance"]
-            await meeting.leave()
-            await self.active_meetings[meeting_id]["processor"].cleanup()
-            del self.active_meetings[meeting_id]
 
 async def wait_for_meeting_id():
     meeting_id = None
@@ -58,7 +25,7 @@ async def wait_for_meeting_id():
     return meeting_id
 
 async def get_meeting_id():
-    url = "https://moving-cardinal-happily.ngrok-free.app/meeting-id"
+    url = "https://robust-hen-big.ngrok-free.app/meeting-id"
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             data = await response.json()
@@ -71,37 +38,49 @@ async def get_meeting_id():
                 return None
 
 async def monitor_meeting():
-    manager = MeetingManager()  # Initialize the MeetingManager
-    current_meeting_id = None  # Track the current meeting ID
-
+    global meeting
+    current_meeting_id = None
     while True:
-        new_meeting_id = await get_meeting_id()  # Fetch the latest meeting ID
-
+        new_meeting_id = await get_meeting_id()
         if new_meeting_id:
             if current_meeting_id is None or new_meeting_id != current_meeting_id:
-                print(f"New meeting ID detected: {new_meeting_id}")
-
+                print(f"New meeting id detected: {new_meeting_id}")
                 # If there's an active meeting, leave it
-                if current_meeting_id is not None:
+                if meeting is not None:
                     print("Leaving current meeting...")
-                    await manager.leave_meeting(current_meeting_id)
-
-                # Update the current meeting ID and join the new meeting
+                    meeting.leave()
+                    for participant in meeting.participants.values():
+                        for stream in participant.streams.values():
+                            if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
+                                await stream.track.stop()
+                # Update the current meeting id and join the new meeting
                 current_meeting_id = new_meeting_id
-                await manager.join_meeting(new_meeting_id)
-                print("Joined new meeting.")
+                meeting_config = MeetingConfig(
+                    meeting_id=new_meeting_id,
+                    name='AI_MODEL',
+                    mic_enabled=False,
+                    webcam_enabled=False,
+                    token=VIDEOSDK_TOKEN,
+                )
+                meeting = VideoSDK.init_meeting(**meeting_config)
+                meeting.add_event_listener(MyMeetingEventHandler())
+                print("Joining new meeting...")
+                meeting.join()
             else:
-                print("Meeting ID unchanged.")
+                print("Meeting id unchanged.")
         else:
-            print("No meeting ID available at the moment.")
-
-            # If there's an active meeting and the meeting ID becomes null, end it
-            if current_meeting_id is not None:
-                print("Received null meeting ID, ending current meeting...")
-                await manager.leave_meeting(current_meeting_id)
+            print("No meeting id available at the moment.")
+            # If there's an active meeting and the meeting id becomes null, end it.
+            if meeting is not None:
+                print("Received null meeting id, ending current meeting...")
+                meeting.leave()
+                for participant in meeting.participants.values():
+                    for stream in participant.streams.values():
+                        if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
+                            await stream.track.stop()
                 current_meeting_id = None
-
-        await asyncio.sleep(5)  # Wait before checking again
+                meeting = None
+        await asyncio.sleep(5)
 
 meeting: Meeting = None
 
@@ -146,8 +125,8 @@ class OptimizedWebSocketProcessor:
 
     async def start_react_server(self):
         """Start WebSocket server for React clients"""
-        async with websockets.serve(self.handle_react_client, "0.0.0.0", 8766):
-            print("React WebSocket server running on port 8766")
+        async with websockets.serve(self.handle_react_client, 'localhost', 8888):
+            print(f"React WebSocket server running on port 8766 with ip: {self.host}")
             await asyncio.Future()
 
     async def handle_react_client(self, websocket: websockets.WebSocketServerProtocol):

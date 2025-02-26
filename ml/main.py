@@ -3,7 +3,7 @@ import json
 import socket
 from aiohttp import web
 
-ACTIVE_MEETINGS = {}  # Format: {meeting_id: {"participants": [], "created_at": timestamp}}
+CURRENT_MEETING_ID = None  # Global variable to store the meeting ID
 
 def get_local_ip():
     try:
@@ -23,31 +23,24 @@ print(f"✅ Detected Mac Local IP: {LOCAL_IP}")
 async def get_local_ip_handler(request):
     return web.json_response({'localIP': LOCAL_IP})
 
-# Modified meeting ID handler
+# HTTP handler to receive the meeting ID (POST /meeting-id)
 async def post_meeting_id_handler(request):
+    global CURRENT_MEETING_ID 
     try:
         payload = await request.json()
         meeting_id = payload.get("meetingId")
-        action = payload.get("action", "create")  # create/end
-        
-        if action == "create":
-            ACTIVE_MEETINGS[meeting_id] = {
-                "participants": [],
-                "created_at": time.time()
-            }
-            print(f"📞 New meeting started: {meeting_id}")
-        elif action == "end":
-            ACTIVE_MEETINGS.pop(meeting_id, None)
-            print(f"📞 Meeting ended: {meeting_id}")
-            
+        CURRENT_MEETING_ID = meeting_id
+        print(f"📞 Received Meeting ID: {meeting_id}")
         return web.json_response({'status': 'success'})
     except Exception as e:
         print("Error processing meeting ID:", e)
         return web.json_response({'status': 'error'}, status=400)
 
-# Modified GET handler
 async def get_meeting_id_handler(request):
-    return web.json_response({'activeMeetings': list(ACTIVE_MEETINGS.keys())})
+    if CURRENT_MEETING_ID:
+        return web.json_response({'meetingId': CURRENT_MEETING_ID})
+    else:
+        return web.json_response({'error': 'No meeting ID available'}, status=404)
 
 async def start_http_server():
     app = web.Application()

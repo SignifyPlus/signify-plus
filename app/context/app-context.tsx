@@ -17,17 +17,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useUpdateContacts } from '../context/use-update-contacts';
 import { useContactsQuery } from '../api/contacts-query';
 
-type Prediction = {
-  gesture: string;
-  confidence: number;
-};
-
-type ActiveMeeting = {
-  meetingId: string;
-  participants: string[];
-  predictions: Prediction[];
-};
-
 type IncomingCallType = {
   meetingId: string;
   incomingCallNumber: string;
@@ -41,8 +30,6 @@ type AppContextType = {
   isConnected: boolean;
   incomingCall: IncomingCallType | null;
   declineVideoCall: () => void;
-  activeMeetings: ActiveMeeting[]; // Add active meetings
-  addPrediction: (meetingId: string, prediction: Prediction) => void; // Add method for predictions
 };
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -63,19 +50,12 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const [incomingCall, setIncomingCall] = useState<IncomingCallType | null>(null);
-  const [activeMeetings, setActiveMeetings] = useState<ActiveMeeting[]>([]); // Add state for active meetings
+  const [incomingCall, setIncomingCall] = useState<IncomingCallType | null>(
+    null
+  );
   const router = useRouter();
-   // Add a method to handle predictions
-   const addPrediction = useCallback((meetingId: string, prediction: Prediction) => {
-    setActiveMeetings((prevMeetings) =>
-      prevMeetings.map((meeting) =>
-        meeting.meetingId === meetingId
-          ? { ...meeting, predictions: [...meeting.predictions, prediction] }
-          : meeting
-      )
-    );
-  }, []);
+  // means to fetch earlier than required so we can see the list instantly
+  useContactsQuery({ phoneNumber });
 
   const emitMessage = useCallback(
     (message: string) => {
@@ -107,34 +87,23 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [phoneNumber]
   );
 
-  const sendMeetingIdToPython = useCallback(
-    async (meetingId: string, action: 'create' | 'end' = 'create') => {
-      try {
-        const response = await fetch('https://moving-cardinal-happily.ngrok-free.app/meeting-id', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ meetingId, action }),
-        });
-        const result = await response.json();
-        console.log('Meeting ID sent to Python:', result);
-  
-        // Update active meetings state
-        if (action === 'create') {
-          setActiveMeetings((prevMeetings) => [
-            ...prevMeetings,
-            { meetingId, participants: [], predictions: [] },
-          ]);
-        } else if (action === 'end') {
-          setActiveMeetings((prevMeetings) =>
-            prevMeetings.filter((meeting) => meeting.meetingId !== meetingId)
-          );
-        }
-      } catch (error) {
-        console.error('Error sending meeting ID to Python:', error);
-      }
-    },
-    []
-  );
+//Function to send meeting ID via HTTP POST
+const sendMeetingIdToPython = useCallback(
+  async (meetingId: string) => {
+    try {
+      const response = await fetch('https://robust-hen-big.ngrok-free.app/meeting-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetingId }),
+      });
+      const result = await response.json();
+      console.log('Meeting ID sent to Python:', result);
+    } catch (error) {
+      console.error('Error sending meeting ID to Python:', error);
+    }
+  },
+  []
+);
 
   const videoCallUser = useCallback(
     async (targetPhoneNumber: string) => {
@@ -148,26 +117,25 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       sendMeetingId(meetingId, sanitizedTargetPhone);
       router.push(`/video-call?meetingId=${meetingId}`);
       // Send the new meeting ID to the Python server via HTTP POST
-      await sendMeetingIdToPython(meetingId, 'create'); // Add action
+      await sendMeetingIdToPython(meetingId);
       router.push(`/video-call?meetingId=${meetingId}`);
     },
     [phoneNumber, router, sendMeetingId, sendMeetingIdToPython]
   );
-  
+
   const declineVideoCall = useCallback(() => {
     const socket = socketRef.current;
     if (socket && isConnected && incomingCall && phoneNumber) {
       socket.emit('meeting-id-decline', {
         userPhoneNumber: sanitizePhoneNumber(phoneNumber),
         meetingId: incomingCall?.meetingId,
-        targetPhoneNumber: sanitizePhoneNumber(incomingCall?.incomingCallNumber),
+        targetPhoneNumber: sanitizePhoneNumber(
+          incomingCall?.incomingCallNumber
+        ),
       });
-  
-      // End the meeting
-      sendMeetingIdToPython(incomingCall.meetingId, 'end');
     }
     setIncomingCall(null);
-  }, [incomingCall, isConnected, phoneNumber, sendMeetingIdToPython]);
+  }, [incomingCall, isConnected, phoneNumber]);
 
   useEffect(() => {
     if (!phoneNumber) return;
@@ -233,8 +201,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       isConnected,
       incomingCall,
       declineVideoCall,
-      activeMeetings, // Add active meetings
-      addPrediction, // Add method for predictions
     }),
     [
       phoneNumber,
@@ -243,8 +209,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       isConnected,
       incomingCall,
       declineVideoCall,
-      activeMeetings, // Add active meetings
-      addPrediction, // Add method for predictions
     ]
   );
 
