@@ -1,17 +1,17 @@
 class MessageSocket {
-    constructor(socket) {
-        this.messageEvent(socket);
+    constructor(socket, userSocketMap) {
+        this.messageEvent(socket, userSocketMap);
     }
 
-    messageEvent(socket) {
+    messageEvent(socket, userSocketMap) {
         socket.on('message', (data) => {
-            console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${data.targetPhoneNumber}`);
-
             if (data.targetPhoneNumber == null){
-                socket.emit('message-failure', {error: `targetSocketId is not provided - receiver info: ${data.receiverPhoneNumber}`});
+                socket.emit('message-failure', {error: `targetPhoneNumber is not provided - receiver info: Number:${data.senderPhoneNumber} SocketId:${userSocketMap[data.senderPhoneNumber]}`});
                 return;
             }
-            socket.to(data.targetPhoneNumber).emit('message', data.message);
+
+            console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${data.targetPhoneNumber}`);
+            socket.to(userSocketMap[data.targetPhoneNumber]).emit('message', data.message);
         })
     }
 } 

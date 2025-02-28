@@ -1,4 +1,4 @@
-const io = require('socket.io-client');
+import io from 'socket.io-client';
 require("dotenv").config();
 const mockSocketUser1 = io(process.env.RENDER_URL);
 const mockSocketUser2 = io(process.env.RENDER_URL);
