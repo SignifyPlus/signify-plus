@@ -87,23 +87,23 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [phoneNumber]
   );
 
-//Function to send meeting ID via HTTP POST
-const sendMeetingIdToPython = useCallback(
-  async (meetingId: string) => {
+  //Function to send meeting ID via HTTP POST
+  const sendMeetingIdToPython = useCallback(async (meetingId: string) => {
     try {
-      const response = await fetch('https://robust-hen-big.ngrok-free.app/meeting-id', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ meetingId }),
-      });
+      const response = await fetch(
+        'https://robust-hen-big.ngrok-free.app/meeting-id',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ meetingId }),
+        }
+      );
       const result = await response.json();
       console.log('Meeting ID sent to Python:', result);
     } catch (error) {
       console.error('Error sending meeting ID to Python:', error);
     }
-  },
-  []
-);
+  }, []);
 
   const videoCallUser = useCallback(
     async (targetPhoneNumber: string) => {

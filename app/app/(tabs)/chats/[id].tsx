@@ -1,59 +1,56 @@
-import { ChatMessageBox } from "@/components/ChatMessageBox";
-import { ReplyMessageBar } from "@/components/ReplyMessageBar";
-import Colors from "@/constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import { ImageBackground, StyleSheet, View } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import { ChatMessageBox } from '@/components/ChatMessageBox';
+import { ReplyMessageBar } from '@/components/ReplyMessageBar';
+import Colors from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ImageBackground, StyleSheet, View } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import {
-  GiftedChat,
   Bubble,
+  GiftedChat,
+  IMessage,
   InputToolbar,
+  InputToolbarProps,
   Send,
   SystemMessage,
-  IMessage,
-  InputToolbarProps,
-} from "react-native-gifted-chat";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import messageData from "@/assets/data/messages.json";
+} from 'react-native-gifted-chat';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useChatMessagesQuery } from '@/api/chat/chats-messages-query';
+import { useLocalSearchParams } from 'expo-router';
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const [text, setText] = useState("");
+  const [text, setText] = useState('');
   const insets = useSafeAreaInsets();
+
+  const { id } = useLocalSearchParams();
+  console.log('Chat ID', id);
+  const { data } = useChatMessagesQuery(id as string | undefined);
+
+  console.log('messages', data);
 
   const [replyMessage, setReplyMessage] = useState<IMessage | null>(null);
   const swipeableRowRef = useRef<Swipeable | null>(null);
 
   useEffect(() => {
-    setMessages([
-      ...messageData.map((message) => {
+    if (!data) return;
+    setMessages(
+      data.map((message) => {
         return {
-          _id: message.id,
-          text: message.msg,
-          createdAt: new Date(message.date),
+          _id: message._id,
+          text: message.content,
+          createdAt: new Date(message.createdAt),
           user: {
-            _id: message.from,
-            name: message.from ? "You" : "Bob",
+            _id: message.senderId._id,
           },
         };
-      }),
-      {
-        _id: 0,
-        system: true,
-        text: "All your base are belong to us",
-        createdAt: new Date(),
-        user: {
-          _id: 0,
-          name: "Bot",
-        },
-      },
-    ]);
-  }, []);
+      })
+    );
+  }, [data]);
 
   const onSend = useCallback((messages = []) => {
     setMessages((previousMessages: any[]) =>
-      GiftedChat.append(previousMessages, messages),
+      GiftedChat.append(previousMessages, messages)
     );
   }, []);
 
@@ -66,8 +63,8 @@ const Page = () => {
           <View
             style={{
               height: 44,
-              justifyContent: "center",
-              alignItems: "center",
+              justifyContent: 'center',
+              alignItems: 'center',
               left: 5,
             }}
           >
@@ -88,7 +85,7 @@ const Page = () => {
         swipeableRowRef.current = ref;
       }
     },
-    [replyMessage],
+    [replyMessage]
   );
 
   useEffect(() => {
@@ -100,7 +97,7 @@ const Page = () => {
 
   return (
     <ImageBackground
-      source={require("@/assets/images/pattern.png")}
+      source={require('@/assets/images/pattern.png')}
       style={{
         flex: 1,
         backgroundColor: Colors.background,
@@ -127,12 +124,12 @@ const Page = () => {
               {...props}
               textStyle={{
                 right: {
-                  color: "#000",
+                  color: '#000',
                 },
               }}
               wrapperStyle={{
                 left: {
-                  backgroundColor: "#fff",
+                  backgroundColor: '#fff',
                 },
                 right: {
                   backgroundColor: Colors.lightGreen,
@@ -145,14 +142,14 @@ const Page = () => {
           <View
             style={{
               height: 44,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: 14,
               paddingHorizontal: 14,
             }}
           >
-            {text === "" && (
+            {text === '' && (
               <>
                 <Ionicons
                   name="camera-outline"
@@ -162,11 +159,11 @@ const Page = () => {
                 <Ionicons name="mic-outline" color={Colors.primary} size={28} />
               </>
             )}
-            {text !== "" && (
+            {text !== '' && (
               <Send
                 {...props}
                 containerStyle={{
-                  justifyContent: "center",
+                  justifyContent: 'center',
                 }}
               >
                 <Ionicons name="send" color={Colors.primary} size={28} />
@@ -196,7 +193,7 @@ const Page = () => {
 
 const styles = StyleSheet.create({
   composer: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Colors.lightGray,
