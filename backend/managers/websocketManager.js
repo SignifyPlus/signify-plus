@@ -14,7 +14,6 @@ class WebSocketManager {
 
     setupSocketEvents(userSocketMap) {
         this.signifyPlusSocketIo.on('connection', (socket) => {
-            console.log('Connected');
             this.socket = new Socket(socket, userSocketMap);
             this.messageSocket = new MessageSocket(socket, userSocketMap);
             this.meetingSocket = new MeetingSocket(socket, userSocketMap);
