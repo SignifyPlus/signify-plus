@@ -4,7 +4,7 @@ import json
 import cv2
 import numpy as np
 from base64 import b64decode
-import onnxruntime as ort
+import tensorflow as tf
 from typing import List, Tuple
 
 class ONNXInferenceServer:
@@ -12,11 +12,7 @@ class ONNXInferenceServer:
         self.host = host
         self.port = port
         # Initialize ONNX Runtime
-        self.session = ort.InferenceSession(
-            model_path, 
-            providers=['CPUExecutionProvider']
-        )
-        self.input_name = self.session.get_inputs()[0].name
+        self.model = tf.keras.models.load_model(model_path)
         print("ONNX Runtime Inference Server initialized")
 
     async def process_frame(self, frame: np.ndarray) -> List[dict]:
@@ -26,7 +22,7 @@ class ONNXInferenceServer:
             input_tensor = self.preprocess(frame)
             
             # Run inference
-            outputs = self.session.run(None, {self.input_name: input_tensor})
+            outputs = self.model.predict(input_tensor)
             
             # Post-process results
             predictions = self.postprocess(outputs)
@@ -61,8 +57,7 @@ class ONNXInferenceServer:
         
         # Add batch dimension and transpose to NCHW
         batched = np.expand_dims(normalized, 0)
-        transposed = np.transpose(batched, (0, 3, 1, 2)) 
-        return transposed 
+        return batched
 
     def postprocess(self, outputs: List[np.ndarray]) -> List[dict]:
         """Convert model outputs to predictions"""
