@@ -3,6 +3,7 @@ const http = require('http');
 const mongoose = require("mongoose");
 require("dotenv").config();
 const WebSocketManager = require("../managers/websocketManager.js");
+const RabbitMqQueueManager = require("../managers/rabbitMqQueueManager.js");
 const userRoutes = require("../routes/UserRoutes.js");
 const homeRoutes = require("../routes/HomeRoute.js");
 const contactRoutes = require("../routes/ContactRoutes.js");
@@ -17,6 +18,9 @@ const mainServer = http.createServer(signifyPlusApp);
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
 
+//create message queue
+const rabbitMqQueueManager = new RabbitMqQueueManager(process.env.CLOUD_AMQP_RABBIT_MQ_HOST_URL);
+rabbitMqQueueManager.establishConnection();
 //routes
 signifyPlusApp.use('/users', userRoutes);
 signifyPlusApp.use('/', homeRoutes);
