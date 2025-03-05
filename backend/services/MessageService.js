@@ -49,6 +49,10 @@ class MessageService extends AbstractService {
         return await this.schemaModel.findOne(filterConditions).sort({createdAt: -1}).lean(); //lean for faster execution, returns plain javascript object without conversion (doesn't return mongoose document)
     }
 
+    async getDocumentsByCustomFiltersAndSortByCreatedAt(filterConditions) {
+        return await this.schemaModel.find(filterConditions).sort({createdAt: -1}).lean();
+    }
+
     //query methods
     getDocumentsByCustomFiltersQuery(filterConditions) {
         return super.getDocumentsByCustomFiltersQuery(filterConditions);

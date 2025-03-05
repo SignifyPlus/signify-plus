@@ -11,13 +11,13 @@ mockSocketUser1.on('connect', () => {
     });
     mockSocketUser1.emit('message', {
         senderPhoneNumber: "12523643765",
-        message: "Hi, How are you!!"
-        //targetPhoneNumber: '312451255'
+        message: "Hi, How are you!!",
+        targetPhoneNumbers: ['312451255']
     });
 })
 
 mockSocketUser1.on('message', (message) => {
-    console.log(`Incoming Message: ${message}`);
+    console.log(`Incoming Message from Mock2: ${message}`);
 });
 
 mockSocketUser1.on('disconnect', () => {
@@ -37,10 +37,11 @@ mockSocketUser2.on('connect', () => {
 })
 
 mockSocketUser2.on('message', (message) => {
-    console.log(`Incoming Message: ${message}`);
-    mockSocketUser1.emit('message', {
-        message: "Hi, How are you!!",
-        targetPhoneNumber: '312451255'
+    console.log(`Incoming Message from Mock1: ${message}`);
+    mockSocketUser2.emit('message', {
+        message: "I'm Good!, How are you!!",
+        senderPhoneNumber: "312451255",
+        targetPhoneNumbers: ['12523643765']
     });
 });
 
