@@ -55,7 +55,7 @@ class RabbitMQQueueManager {
                     if (message) {
                         //sends acknowledgement that its ready to be consumed - hence dequeues it entirely from the queue
                         this.#rabbitMqChannel.ack(message);
-                        resolve(message.content.toString());
+                        resolve(JSON.parse(message.content.toString()));
                     }
                     reject(new Error(`No Message Available`));
                 });
