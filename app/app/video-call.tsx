@@ -93,7 +93,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
     // Function to fetch the local IP from the Python server
     async function fetchLocalIPAndHeaders() {
       try {
-        const response = await fetch('https://robust-hen-big.ngrok-free.app/local-ip');
+        const response = await fetch('https://living-openly-ape.ngrok-free.app/local-ip');
         if (!response.ok) {
           throw new Error('Network response was not ok: ' + response.statusText);
         }
@@ -142,7 +142,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
       }
       console.log("Using ngrokAgentIps:", ngrokAgentIps);
       // Use the fetched ngrokAgentIps in the WebSocket URL
-      ws = new WebSocket(`ws://${ngrokAgentIps}:8888`);
+      ws = new WebSocket(`ws://${ngrokAgentIps}:8766`);
       
       ws.onopen = () => {
         console.log('WebSocket Connected!');
@@ -218,7 +218,7 @@ const ControlsContainer: React.FC = () => {
   const clearMeetingIdOnServer = async () => {
     try {
       const response = await fetch(
-        "https://robust-hen-big.ngrok-free.app/meeting-id",
+        "https://living-openly-ape.ngrok-free.app/meeting-id",
         {
           method: "POST",
           headers: {

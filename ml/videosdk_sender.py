@@ -5,8 +5,6 @@ from base64 import b64encode
 from videosdk import MeetingConfig, VideoSDK, Participant, Stream, MeetingEventHandler, ParticipantEventHandler, CustomVideoTrack, Meeting
 import cv2
 from av import VideoFrame
-import numpy as np
-from collections import deque
 from time import time
 from typing import Set, Optional
 from contextlib import suppress
@@ -25,7 +23,7 @@ async def wait_for_meeting_id():
     return meeting_id
 
 async def get_meeting_id():
-    url = "https://robust-hen-big.ngrok-free.app/meeting-id"
+    url = "https://living-openly-ape.ngrok-free.app/meeting-id"
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             data = await response.json()
@@ -125,7 +123,7 @@ class OptimizedWebSocketProcessor:
 
     async def start_react_server(self):
         """Start WebSocket server for React clients"""
-        async with websockets.serve(self.handle_react_client, 'localhost', 8888):
+        async with websockets.serve(self.handle_react_client, 'localhost', 8766):
             print(f"React WebSocket server running on port 8766 with ip: {self.host}")
             await asyncio.Future()
 

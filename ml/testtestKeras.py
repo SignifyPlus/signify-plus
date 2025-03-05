@@ -12,7 +12,7 @@ class KerasInferenceServer:
     def __init__(self, 
                 host='localhost', 
                 port=8765, 
-                model_path="/Users/borandenizduzgun/Projects/signtest/signify-plus/ml/models_cache/signify-plus/4/best_model.keras"):
+                model_path="./models_cache/best_model.keras"):
         """
         host: IP/domain to run the WebSocket server
         port: Port for the server
@@ -175,7 +175,7 @@ class KerasInferenceServer:
 def main():
     try:
         server = KerasInferenceServer(
-            model_path="/Users/borandenizduzgun/Projects/signtest/signify-plus/ml/models_cache/signify-plus/4/best_model.keras"
+            model_path="./models_cache/best_model.keras"
         )
         loop = asyncio.get_event_loop()
         loop.run_until_complete(server.start())
