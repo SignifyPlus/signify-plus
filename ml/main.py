@@ -17,7 +17,7 @@ def get_local_ip():
         return "0.0.0.0"
 
 LOCAL_IP = get_local_ip()
-print(f"✅ Detected Mac Local IP: {LOCAL_IP}")
+print(f"✅ Detected Local IP: {LOCAL_IP}")
 
 # HTTP handler to return the local IP (GET /local-ip)
 async def get_local_ip_handler(request):

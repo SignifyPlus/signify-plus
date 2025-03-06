@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 interface GesturePrediction {
-  gesture: string;
+  action: string;
   confidence: number;
 }
 
@@ -22,7 +22,7 @@ const GestureOverlay: React.FC<GestureOverlayProps> = ({ predictions }) => {
           ]}
         >
           <Text style={styles.gestureText}>
-            {prediction.gesture.toUpperCase()}
+            {prediction.action.toUpperCase()}
           </Text>
           <Text style={styles.confidenceText}>
             {(prediction.confidence * 100).toFixed(1)}%
