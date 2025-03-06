@@ -14,7 +14,7 @@ class RabbitMQQueueManager {
             this.#rabbitMqChannel = await this.#rabbitMqConnection.createChannel();
         }catch(exception){
             console.log(`Error: ${exception}`);
-            throw exception;
+            throw new Error(`${exception}`);
         }
     }
 
@@ -30,7 +30,7 @@ class RabbitMQQueueManager {
 
         }catch(exception) {
             console.log(`Error: ${exception}`);
-            throw exception;
+            throw new Error(`${exception}`);
         }
     }
 
@@ -43,27 +43,34 @@ class RabbitMQQueueManager {
             console.log(`Message has been queued!`);
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
-            throw exception;
+            throw new Error(`${exception}`);
         }
     }
 
-    async popMessage(queueName) {
+    //generator which fields the result continuosly - indefinitely runs
+    async *popMessages(queueName) {
+        var consumerTag;
         try {
             await this.#rabbitMqChannel.assertQueue(queueName, {durable: true});
-            return new Promise((resolve, reject) => {
-                this.#rabbitMqChannel.consume(queueName, (message) => {
+            consumerTag = await this.#rabbitMqChannel.consume(queueName, (message) => {
                     if (message) {
                         //sends acknowledgement that its ready to be consumed - hence dequeues it entirely from the queue
                         this.#rabbitMqChannel.ack(message);
-                        resolve(JSON.parse(message.content.toString()));
+                        yield JSON.parse(message.content.toString());
                     }
-                    reject(new Error(`No Message Available`));
                 });
-            })
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
-            throw exception;
+            await this.haltConsumer(consumerTag);
+            throw new Error(`${exception}`);
         }
+    }
+
+    async haltConsumer(consumerTag) {
+        if (consumerTag == null) {
+            throw new Error(`Tried to close a consumer tag which is null!`);
+        }
+        await this.#rabbitMqChannel.cancel(consumerTag);
     }
 
     async getRabbitMqConnection() {
