@@ -6,6 +6,9 @@ class MessageSocket {
         this.messageQueueName = 'chat-messages';
         //establish connection to rabbitMq
         this.establishConnectionWithRabbitMqQueue();
+        //TODO
+        //cache queries here
+        //on db update, then only update the map/list
     }
 
     async establishConnectionWithRabbitMqQueue() {
@@ -23,6 +26,7 @@ class MessageSocket {
                 if (this.#messageQueueName == null) {
                     throw new Error(`Queue Name not initialized - terminating the event`);
                 }
+                ///use event drive approach
                 data.targetPhoneNumbers.forEach(targetPhoneNumber => {
                     if (userSocketMap[targetPhoneNumber] == null) {
                         console.log(`targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`);
@@ -38,6 +42,7 @@ class MessageSocket {
             }
 
             if (pingWasSuccesful) {
+               //TO-DO
                 //instead of queueing the same message for each number, just send it once to the rabbitMq - because the above loop is just to make sure the message is forwarded to the desired phoneNumber
                 await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, data);
             }
