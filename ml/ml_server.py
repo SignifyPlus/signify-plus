@@ -129,22 +129,109 @@ class SignLanguageProcessor:
         print(f"Top prediction: {action_label}, confidence: {confidence:.2f}")
         return [{"action": action_label, "confidence": confidence}]
     
-    async def start_react_server(self):
+    async def start_websocket_server(self):
         """Start WebSocket server for React clients"""
          # Use '0.0.0.0' instead of 'localhost' to accept connections from any IP
         async with websockets.serve(self.handle_react_client, '0.0.0.0', REACT_WS_PORT):
             print(f"React WebSocket server running on port {REACT_WS_PORT}, accepting connections from any IP")
             await asyncio.Future()  # Run forever
 
+    async def handle_websocket_connection(self, websocket: websockets.WebSocketServerProtocol):
+        """Determine the type of connection and handle it accordingly"""
+        try:
+            # Wait for first message to determine connection type
+            message = await websocket.recv()
+            
+            try:
+                # Try to parse as JSON
+                data = json.loads(message)
+                
+                # Check if it's a frame-processing client
+                if data.get("type") == "frame":
+                    print(f"Frame processing client connected from {websocket.remote_address}")
+                    
+                    # Process the first frame right away
+                    jpg_data = b64decode(data["data"])
+                    nparr = np.frombuffer(jpg_data, np.uint8)
+                    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                    
+                    predictions = await self.process_frame(frame)
+                    
+                    # Send back results
+                    await websocket.send(json.dumps({
+                        "status": "success",
+                        "predictions": predictions
+                    }))
+                    
+                    # Continue processing as a frame client
+                    await self.handle_frame_client(websocket)
+                else:
+                    # JSON but not a frame - treat as a React client
+                    await self.handle_react_client(websocket, message)
+            except json.JSONDecodeError:
+                # Not JSON, must be a React client
+                await self.handle_react_client(websocket, message)
+                
+        except websockets.exceptions.ConnectionClosed:
+            print(f"Connection closed before identification from {websocket.remote_address}")
 
-    async def handle_react_client(self, websocket: websockets.WebSocketServerProtocol):
+    async def handle_frame_client(self, websocket):
+        """Handle a client sending frames for processing"""
+        try:
+            async for message in websocket:
+                try:
+                    data = json.loads(message)
+                    if data.get("type") == "frame":
+                        # Decode base64 frame
+                        jpg_data = b64decode(data["data"])
+                        nparr = np.frombuffer(jpg_data, np.uint8)
+                        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                        
+                        # Process frame
+                        predictions = await self.process_frame(frame)
+                        
+                        # Send back results
+                        await websocket.send(json.dumps({
+                            "status": "success",
+                            "predictions": predictions
+                        }))
+                        
+                        # If we have new predictions, broadcast them to React clients
+                        if predictions != self.last_predictions:
+                            self.last_predictions = predictions
+                            await self.broadcast_to_react_clients(predictions)
+                        
+                except Exception as e:
+                    print(f"Error processing frame message: {e}")
+                    await websocket.send(json.dumps({
+                        "status": "error",
+                        "message": str(e)
+                    }))
+                
+        except websockets.exceptions.ConnectionClosed:
+            print("Frame processing client disconnected")
+            
+    async def handle_react_client(self, websocket: websockets.WebSocketServerProtocol, initial_message=None):
         """Handle connections from React clients"""
         print(f"React client connected from {websocket.remote_address}")
         self.react_clients.add(websocket)
+        
+        # Send the latest predictions to the new client
+        if self.last_predictions:
+            try:
+                await websocket.send(json.dumps({
+                    "status": "success",
+                    "predictions": self.last_predictions
+                }))
+            except Exception as e:
+                print(f"Error sending initial predictions to new client: {e}")
+        
         try:
+            # Just keep the connection open until it's closed
             await websocket.wait_closed()
         finally:
             self.react_clients.remove(websocket)
+            print(f"React client disconnected from {websocket.remote_address}")
 
     async def broadcast_to_react_clients(self, predictions):
         """Send predictions to all connected React clients"""
@@ -169,7 +256,7 @@ class SignLanguageProcessor:
 
     async def start(self):
         """Start the React WebSocket server"""
-        self.react_server_task = asyncio.create_task(self.start_react_server())
+        self.react_server_task = asyncio.create_task(self.start_websocket_server())
 
     async def cleanup(self):
         """Cleanup resources"""

@@ -140,9 +140,9 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
         console.error("ngrokAgentIps not found");
         return;
       }
-      console.log("Using ngrokAgentIps:", ngrokAgentIps);
+      console.log("Using ngrokAgentIps:", result.data);
       // Use the fetched ngrokAgentIps in the WebSocket URL
-      ws = new WebSocket(`ws://${ngrokAgentIps}:8766`);
+      ws = new WebSocket(`ws://${result.data.localIP}:8766`);
       
       ws.onopen = () => {
         console.log('WebSocket Connected!');

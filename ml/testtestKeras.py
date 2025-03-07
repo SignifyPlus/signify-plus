@@ -10,7 +10,7 @@ import mediapipe as mp
 
 class KerasInferenceServer:
     def __init__(self, 
-                host='localhost', 
+                host='0.0.0.0', 
                 port=8765, 
                 model_path="./models_cache/best_model.keras"):
         """
