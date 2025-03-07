@@ -12,6 +12,7 @@ export type Chat = {
   mainUserId: User;
   participants: User[];
   totalNumberOfMessages: number;
+  totalNumberOfMessagesInChat: number;
   createdAt: string;
   __v: number;
   lastMessage: string;

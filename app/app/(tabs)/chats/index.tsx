@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,13 +21,15 @@ const Page = () => {
   const { phoneNumber } = useAppContext();
 
   const { contacts } = useUpdateContacts({ phoneNumber });
-  const { data } = useChatsQuery({ phoneNumber });
-  const { data: _data = [] } = useContactsQuery({ phoneNumber });
+  const { data, isPending } = useChatsQuery({ phoneNumber });
+  const { data: _data = [], isPending: isPendingContacts } = useContactsQuery({
+    phoneNumber,
+  });
 
   // const chats = data ?? [];
 
   const chatRows: ChatRowProps[] = (data ?? [])
-    .filter((chat) => chat.totalNumberOfMessages > 0)
+    .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
     .map((chat) => {
       const from = chat.participants.map((p) => p.phoneNumber)[0]!;
       const fromContact = contacts.find(
@@ -48,6 +51,19 @@ const Page = () => {
         unreadCount: 0,
       } satisfies ChatRowProps;
     });
+
+  if (isPending || isPendingContacts)
+    return (
+      <ActivityIndicator
+        color={Colors.primary}
+        style={{
+          height: '100%',
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    );
 
   return (
     <ScrollView

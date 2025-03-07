@@ -16,6 +16,7 @@ import { createMeeting, queryClient } from '@/api';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useUpdateContacts } from '@/context/use-update-contacts';
 import { useContactsQuery } from '@/api/contacts-query';
+import { chatMessagesQueryKey } from '@/api/chat/chats-messages-query';
 
 type IncomingCallType = {
   meetingId: string;
@@ -30,6 +31,7 @@ type AppContextType = {
   isConnected: boolean;
   incomingCall: IncomingCallType | null;
   declineVideoCall: () => void;
+  sendMessage: (message: string, targetPhoneNumbers: string[]) => void;
 };
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -85,6 +87,30 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       }
     },
     [phoneNumber]
+  );
+
+  const sendMessage = useCallback(
+    (message: string, targetPhoneNumbers: string[]) => {
+      console.log('sendMessage', message, targetPhoneNumbers);
+      const socket = socketRef.current;
+      if (socket && isConnected && phoneNumber) {
+        const sanitizedTargetPhones = targetPhoneNumbers.map((phone) =>
+          sanitizePhoneNumber(phone)
+        );
+        console.log(`Sending message to ${sanitizedTargetPhones}: ${message}`);
+
+        socket.emit('message', {
+          senderPhoneNumber: sanitizePhoneNumber(phoneNumber),
+          message,
+          targetPhoneNumbers: sanitizedTargetPhones,
+        });
+      } else {
+        console.error(
+          'Cannot send message. Socket is not connected or phone number is missing.'
+        );
+      }
+    },
+    [isConnected, phoneNumber]
   );
 
   //Function to send meeting ID via HTTP POST
@@ -162,6 +188,12 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       setIsConnected(false);
     });
 
+    socket.on('message', (data) => {
+      console.log(
+        `Received message from ${data.senderPhoneNumber}: ${data.message}`
+      );
+    });
+
     socket.on('meeting-id-offer', (data) => {
       console.log('Received meeting ID offer:', data);
       // Handle incoming meeting ID offer
@@ -176,6 +208,15 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     });
 
     socket.on('message', (msg) => {
+      if (msg.chatId) {
+        void queryClient.invalidateQueries({
+          queryKey: chatMessagesQueryKey(msg.chatId),
+        });
+      } else {
+        console.error(
+          "Could not invalidate chat messages query. Missing 'chatId'"
+        );
+      }
       console.log('Received message:', msg);
     });
 
@@ -201,8 +242,10 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       isConnected,
       incomingCall,
       declineVideoCall,
+      sendMessage,
     }),
     [
+      sendMessage,
       phoneNumber,
       videoCallUser,
       emitMessage,

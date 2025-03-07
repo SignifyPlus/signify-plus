@@ -3,7 +3,12 @@ import { ReplyMessageBar } from '@/components/ReplyMessageBar';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ImageBackground, StyleSheet, View } from 'react-native';
+import {
+  ImageBackground,
+  StyleSheet,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import {
   Bubble,
@@ -17,6 +22,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChatMessagesQuery } from '@/api/chat/chats-messages-query';
 import { useLocalSearchParams } from 'expo-router';
+import { useAppContext } from '@/context/app-context';
+import { useChatsQuery } from '@/api/chat/chats-query';
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -24,10 +31,11 @@ const Page = () => {
   const insets = useSafeAreaInsets();
 
   const { id } = useLocalSearchParams();
-  console.log('Chat ID', id);
-  const { data } = useChatMessagesQuery(id as string | undefined);
 
-  console.log('messages', data);
+  const { data, isPending } = useChatMessagesQuery(id as string | undefined);
+
+  const { sendMessage, phoneNumber } = useAppContext();
+  const { data: chats } = useChatsQuery({ phoneNumber });
 
   const [replyMessage, setReplyMessage] = useState<IMessage | null>(null);
   const swipeableRowRef = useRef<Swipeable | null>(null);
@@ -48,11 +56,24 @@ const Page = () => {
     );
   }, [data]);
 
-  const onSend = useCallback((messages = []) => {
-    setMessages((previousMessages: any[]) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-  }, []);
+  const onSend = useCallback(
+    (messages: IMessage[] = []) => {
+      setMessages((previousMessages: any[]) =>
+        GiftedChat.append(previousMessages, messages)
+      );
+      const chat = chats?.find((chat) => chat._id === id);
+      console.log('sending message in chat', chat?._id);
+      if (chat) {
+        messages.forEach((message) => {
+          sendMessage(
+            message.text,
+            chat.participants.map((p) => p.phoneNumber)
+          );
+        });
+      }
+    },
+    [chats, id, sendMessage]
+  );
 
   const renderInputToolbar = (props: InputToolbarProps<IMessage>) => {
     return (
@@ -94,6 +115,19 @@ const Page = () => {
       swipeableRowRef.current = null;
     }
   }, [replyMessage]);
+
+  if (isPending)
+    return (
+      <ActivityIndicator
+        color={Colors.primary}
+        style={{
+          height: '100%',
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    );
 
   return (
     <ImageBackground

@@ -32,7 +32,6 @@ export const useContactsQuery = (params: { phoneNumber?: string }) => {
     queryKey: contactsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
-      console.log('Fetching contacts', params.phoneNumber);
       const response = await fetch(`${API_URL}/contacts/${params.phoneNumber}`);
       return (await response.json()) as UserContact[];
     },
