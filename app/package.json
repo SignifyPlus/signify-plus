@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo run:android --device",
     "ios": "expo run:ios --device",
-    "type:check": "tsc --noEmit"
+    "type:check": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^9.0.0",
@@ -45,7 +46,7 @@
     "@types/react": "18.3.12",
     "@types/react-native": "^0.73.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^9.17.0",
+    "eslint": "8.57.1",
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-native": "^5.0.0",
