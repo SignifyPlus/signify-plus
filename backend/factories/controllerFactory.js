@@ -6,6 +6,7 @@
 
 //controllers
 const ChatController = require("../controllers/ChatController.js");
+const MessageController = require("../controllers/MessageController.js");
 
 class ControllerFactory {
     //private fields
@@ -15,6 +16,11 @@ class ControllerFactory {
      */
      static #chatController = null;
 
+    /**
+     * @private
+     * @type {ChatController | null}
+     */
+    static #messageController = null;
     constructor() {
     }
 
@@ -23,6 +29,13 @@ class ControllerFactory {
             this.#chatController = new ChatController();
         }
         return this.#chatController;
+    }
+
+    static get getMessageController() {
+        if (!this.#messageController) {
+            this.#messageController = new MessageController();
+        }
+        return this.#messageController;
     }
 }
 
