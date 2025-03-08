@@ -1,4 +1,4 @@
-package com.anonymous.videosdkexpoapp
+package com.bora.videosdkexpoapp
 
 import android.os.Build
 import android.os.Bundle

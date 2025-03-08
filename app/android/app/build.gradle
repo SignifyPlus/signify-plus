@@ -109,9 +109,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.videosdkexpoapp'
+    namespace 'com.bora.videosdkexpoapp'
     defaultConfig {
-        applicationId 'com.anonymous.videosdkexpoapp'
+        applicationId 'com.bora.videosdkexpoapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
