@@ -1,15 +1,26 @@
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, Stack, usePathname } from 'expo-router';
-import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '@/context/app-context';
-import chats from '@/assets/data/chats.json';
+import { useChatsQuery } from '@/api/chat/chats-query';
 
 const Layout = () => {
   const path = usePathname();
   const chatId = path.split('/').pop();
-  const chat = chats.find((chat) => chat.id === chatId);
-  const chatPhoneNumber = chat?.phoneNumber;
+
+  const { phoneNumber } = useAppContext();
+  const { data: chats } = useChatsQuery({ phoneNumber });
+
+  const chat = chats?.find((chat) => chat._id === chatId);
+  const chatPhoneNumber = chat?.participants
+    .filter((p) => p.phoneNumber !== phoneNumber)
+    .map((p) => p.phoneNumber)
+    ?.join(', ');
+
+  console.log('chatPhoneNumber', chatPhoneNumber);
+
+  console.log('chat', chat);
 
   const { videoCallUser } = useAppContext();
 
@@ -77,14 +88,26 @@ const Layout = () => {
                 marginLeft: Platform.OS === 'ios' ? -100 : 0,
               }}
             >
-              <Image
-                source={{
-                  uri: 'https://avatars.githubusercontent.com/u/97961673?v=4',
+              {/*<Image*/}
+              {/*  source={{*/}
+              {/*    uri: 'https://avatars.githubusercontent.com/u/97961673?v=4',*/}
+              {/*  }}*/}
+              {/*  style={{ width: 32, height: 32, borderRadius: 50 }}*/}
+              {/*/>*/}
+              <View
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: Colors.lightGray,
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 }}
-                style={{ width: 32, height: 32, borderRadius: 50 }}
-              />
+              >
+                <Ionicons name="person-outline" />
+              </View>
               <Text style={{ fontSize: 16, fontWeight: '500' }}>
-                Iman Zahid
+                {chatPhoneNumber}
               </Text>
             </View>
           ),

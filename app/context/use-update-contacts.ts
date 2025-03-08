@@ -64,19 +64,7 @@ export const useUpdateContacts = ({
           console.error('Permission error: ', error);
         });
     } else {
-      Contacts.checkPermission().then((permission) => {
-        if (permission === 'authorized') {
-          getContacts();
-        } else {
-          Contacts.requestPermission().then((newPermission) => {
-            if (newPermission === 'authorized') {
-              getContacts();
-            } else {
-              console.error('iOS Contacts permission denied');
-            }
-          });
-        }
-      });
+      getContacts();
     }
   }, [mutate, phoneNumber]);
 

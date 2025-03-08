@@ -1,13 +1,13 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import {
   GestureHandlerRootView,
   Swipeable,
-} from "react-native-gesture-handler";
-import { IMessage, Message, MessageProps } from "react-native-gifted-chat";
-import { isSameDay, isSameUser } from "react-native-gifted-chat/lib/utils";
-import Colors from "@/constants/Colors";
+} from 'react-native-gesture-handler';
+import { IMessage, Message, MessageProps } from 'react-native-gifted-chat';
+import { isSameDay, isSameUser } from 'react-native-gifted-chat/lib/utils';
+import Colors from '@/constants/Colors';
 
 type ChatMessageBoxProps = {
   setReplyOnSwipeOpen: (message: IMessage) => void;
@@ -26,7 +26,7 @@ export const ChatMessageBox = ({
     isSameDay(props.currentMessage, props.nextMessage);
 
   const renderRightAction = (
-    progressAnimatedValue: Animated.AnimatedInterpolation<any>,
+    progressAnimatedValue: Animated.AnimatedInterpolation<any>
   ) => {
     const size = progressAnimatedValue.interpolate({
       inputRange: [0, 1, 100],
@@ -45,7 +45,7 @@ export const ChatMessageBox = ({
           isNextMyMessage
             ? styles.defaultBottomOffset
             : styles.bottomOffsetNext,
-          props.position === "right" && styles.leftOffsetValue,
+          props.position === 'right' && styles.leftOffsetValue,
         ]}
       >
         <View style={styles.replyImageWrapper}>
@@ -86,12 +86,8 @@ const styles = StyleSheet.create({
   },
   replyImageWrapper: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  replyImage: {
-    width: 20,
-    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   defaultBottomOffset: {
     marginBottom: 2,

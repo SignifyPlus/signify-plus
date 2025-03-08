@@ -14,7 +14,7 @@ class RabbitMQQueueManager {
             this.#rabbitMqChannel = await this.#rabbitMqConnection.createChannel();
         }catch(exception){
             console.log(`Error: ${exception}`);
-            throw exception;
+            throw new Error(`${exception}`);
         }
     }
 
@@ -30,7 +30,7 @@ class RabbitMQQueueManager {
 
         }catch(exception) {
             console.log(`Error: ${exception}`);
-            throw exception;
+            throw new Error(`${exception}`);
         }
     }
 
@@ -43,26 +43,7 @@ class RabbitMQQueueManager {
             console.log(`Message has been queued!`);
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
-            throw exception;
-        }
-    }
-
-    async popMessage(queueName) {
-        try {
-            await this.#rabbitMqChannel.assertQueue(queueName, {durable: true});
-            return new Promise((resolve, reject) => {
-                this.#rabbitMqChannel.consume(queueName, (message) => {
-                    if (message) {
-                        //sends acknowledgement that its ready to be consumed - hence dequeues it entirely from the queue
-                        this.#rabbitMqChannel.ack(message);
-                        resolve(message.content.toString());
-                    }
-                    reject(new Error(`No Message Available`));
-                });
-            })
-        }catch(exception) {
-            console.log(`Exception Occured: ${exception}`);
-            throw exception;
+            throw new Error(`${exception}`);
         }
     }
 

@@ -9,6 +9,9 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/api';
 import { useUpdateContacts } from '@/context/use-update-contacts';
 import { Ionicons } from '@expo/vector-icons';
+import { useCreateChatMutation } from '@/api/chat/create-chat-mutation';
+import { useChatsQuery } from '@/api/chat/chats-query';
+import { useRouter } from 'expo-router';
 
 type Item = {
   value: string;
@@ -23,8 +26,12 @@ const Page = () => {
 
   const { contacts } = useUpdateContacts({ phoneNumber });
   const { data: _data = [] } = useContactsQuery({ phoneNumber });
+  const { data: chats } = useChatsQuery({ phoneNumber });
+  const { mutateAsync } = useCreateChatMutation();
 
-  console.log(_data);
+  const router = useRouter();
+
+  console.log(chats);
 
   const data = useMemo(() => {
     return _data
@@ -70,8 +77,20 @@ const Page = () => {
         }}
         renderCustomItem={(item: any) => (
           <TouchableOpacity
-            onPress={() => {
-              console.log(item);
+            onPress={async () => {
+              if (!phoneNumber) return;
+              const exisingChat = chats?.find(
+                (chat) => chat.participants[0] === item.value
+              );
+              if (!exisingChat) {
+                const result = await mutateAsync({
+                  mainUserPhoneNumber: phoneNumber,
+                  participants: [item.value],
+                });
+                router.push(`/chats/${result._id}`);
+              } else {
+                router.push(`/chats/${exisingChat._id}`);
+              }
             }}
           >
             <View style={styles.listItemContainer}>
