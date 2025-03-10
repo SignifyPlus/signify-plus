@@ -57,7 +57,7 @@ class ChatController {
                 select: "phoneNumber name"
             });
 
-            response.json(await this.getUserChats(chats));
+            response.json(await this.#getUserChats(chats));
         }catch(exception) {
             const signifyException = new SignifyException(500, `Exception Occured: ${exception.message}`);
             return response.status(signifyException.status).json(signifyException.loadResult());
@@ -84,13 +84,22 @@ class ChatController {
         }
     }
 
-    async getUserChats(chats) {
+    getAllChats = async() =>  {
+        try {
+            return await ServiceFactory.getMessageService.getDocuments();
+        }catch(exception) {
+            return new SignifyException(500, `Exception Occured: ${exception.message}`);
+        }
+    }
+
+    async #getUserChats(chats) {
         const chatObjects = [];
+        const ZERO_INDEX = 0;
         for (const chat of chats) {
-            const lastMessage = await ServiceFactory.getMessageService.findLatestDocument({chatId: chat._id.toString()});
+            const messages = await ServiceFactory.getMessageService.getDocumentsByCustomFiltersAndSortByCreatedAt({chatId: chat._id.toString()});
             const chatObject = chat.toObject();
-            //fix the null part - the chat should return the last message anyways!! - be it from other user!! so need to check this
-            chatObject.lastMessage = lastMessage == null? 'Chat is Empty - No last Message available!' : lastMessage.content;
+            chatObject.lastMessage =  messages == null || messages.length == ZERO_INDEX ? 'Chat is Empty - No last Message available!' : messages[ZERO_INDEX].content;
+            chatObject.totalNumberOfMessagesInChat = messages == null? 0 : messages.length;
             chatObjects.push(chatObject);
         }
         return chatObjects;

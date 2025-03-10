@@ -119,31 +119,61 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
         return null
       }
     }
+  // Function to fetch the local IP from the Python server
+  async function fetchLocalIPAndHeaders() {
+    try {
+      const response = await fetch(
+        'https://robust-hen-big.ngrok-free.app/local-ip'
+      );
+      if (!response.ok) {
+        throw new Error('Network response was not ok: ' + response.statusText);
+      }
+
+      // Get the JSON body
+      const data = await response.json();
+
+      // Get specific headers
+      const contentType = response.headers.get('content-type');
+      const date = response.headers.get('date');
+      const server = response.headers.get('server');
+      const ngrokAgentIps = response.headers.get('ngrok-agent-ips');
+
+      console.log('Fetched JSON data:', data);
+      console.log('Content-Type:', contentType);
+      console.log('Date:', date);
+      console.log('Server:', server);
+      console.log('ngrok-agent-ips:', ngrokAgentIps);
+
+      return { data, contentType, date, server, ngrokAgentIps };
+    } catch (error) {
+      console.error('Error fetching local IP:', error);
+      return null;
+    }
+  }
 
   // Monitor predictions changes
   useEffect(() => {
     console.log('Predictions updated:', predictions);
   }, [predictions]);
-  
+
   // Updated WebSocket connection setup using ngrokAgentIps from fetchLocalIPAndHeaders
   useEffect(() => {
     let ws: WebSocket | null = null;
-
     async function setupWebSocket() {
       const result = await fetchLocalIPAndHeaders();
       if (!result) {
-        console.error("Could not fetch local IP and headers");
+        console.error('Could not fetch local IP and headers');
         return;
       }
       const { ngrokAgentIps } = result;
       if (!ngrokAgentIps) {
-        console.error("ngrokAgentIps not found");
+        console.error('ngrokAgentIps not found');
         return;
       }
-      console.log("Using ngrokAgentIps:", result.data);
+      console.log('Using ngrokAgentIps:', result.data);
       // Use the fetched ngrokAgentIps in the WebSocket URL
       ws = new WebSocket(`ws://${result.data.localIP}:8766`);
-      
+
       ws.onopen = () => {
         console.log('WebSocket Connected!');
       };
@@ -170,9 +200,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
     setupWebSocket();
     return () => {
       console.log('Cleaning up WebSocket connection...');
-      if (ws) {
-        ws.close();
-      }
+      ws?.close();
     };
   }, []);
 
@@ -212,6 +240,7 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
 
 const ControlsContainer: React.FC = () => {
   const { join, leave, toggleWebcam, toggleMic } = useMeeting();
+
   const router = useRouter();
 
   // Function to notify the server that the meeting id is cleared
@@ -220,20 +249,20 @@ const ControlsContainer: React.FC = () => {
       const response = await fetch(
         "https://living-openly-ape.ngrok-free.app/meeting-id",
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ meetingId: null }),
         }
       );
       if (!response.ok) {
-        console.error("Failed to clear meeting ID on server:", response.status);
+        console.error('Failed to clear meeting ID on server:', response.status);
       } else {
-        console.log("Meeting ID cleared on server.");
+        console.log('Meeting ID cleared on server.');
       }
     } catch (error) {
-      console.error("Error clearing meeting ID on server:", error);
+      console.error('Error clearing meeting ID on server:', error);
     }
   };
 
@@ -257,7 +286,7 @@ const ControlsContainer: React.FC = () => {
           // Leave the meeting locally
           leave();
           // Redirect the user to another screen (or perform another action)
-          router.replace("/(tabs)/chats");
+          router.replace('/(tabs)/chats');
         }}
         buttonText="Leave"
         backgroundColor="#FF0000"

@@ -1,11 +1,11 @@
-import Colors from "@/constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import React, { Component, PropsWithChildren } from "react";
-import { Animated, StyleSheet, Text, View, I18nManager } from "react-native";
+import Colors from '@/constants/Colors';
+import { Ionicons } from '@expo/vector-icons';
+import React, { Component, PropsWithChildren } from 'react';
+import { Animated, StyleSheet, Text, View, I18nManager } from 'react-native';
 
-import { RectButton } from "react-native-gesture-handler";
+import { RectButton } from 'react-native-gesture-handler';
 
-import Swipeable from "react-native-gesture-handler/Swipeable";
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 export class AppleStyleSwipeableRow extends Component<
   PropsWithChildren<unknown>
@@ -14,7 +14,7 @@ export class AppleStyleSwipeableRow extends Component<
     text: string,
     color: string,
     x: number,
-    progress: Animated.AnimatedInterpolation<number>,
+    progress: Animated.AnimatedInterpolation<number>
   ) => {
     const trans = progress.interpolate({
       inputRange: [0, 1],
@@ -33,9 +33,9 @@ export class AppleStyleSwipeableRow extends Component<
           onPress={pressHandler}
         >
           <Ionicons
-            name={text === "More" ? "ellipsis-horizontal" : "archive"}
+            name={text === 'More' ? 'ellipsis-horizontal' : 'archive'}
             size={24}
-            color={"#fff"}
+            color={'#fff'}
             style={{ paddingTop: 10 }}
           />
           <Text style={styles.actionText}>{text}</Text>
@@ -46,16 +46,16 @@ export class AppleStyleSwipeableRow extends Component<
 
   private renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>,
-    _dragAnimatedValue: Animated.AnimatedInterpolation<number>,
+    _dragAnimatedValue: Animated.AnimatedInterpolation<number>
   ) => (
     <View
       style={{
         width: 192,
-        flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
+        flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
       }}
     >
-      {this.renderRightAction("More", "#C8C7CD", 192, progress)}
-      {this.renderRightAction("Archive", Colors.muted, 128, progress)}
+      {this.renderRightAction('More', '#C8C7CD', 192, progress)}
+      {this.renderRightAction('Archive', Colors.muted, 128, progress)}
     </View>
   );
 
@@ -91,20 +91,15 @@ export class AppleStyleSwipeableRow extends Component<
 }
 
 const styles = StyleSheet.create({
-  leftAction: {
-    flex: 1,
-    backgroundColor: "#497AFC",
-    justifyContent: "center",
-  },
   actionText: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     padding: 10,
   },
   rightAction: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
 });
