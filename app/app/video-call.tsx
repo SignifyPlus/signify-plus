@@ -19,7 +19,6 @@ import {
 import { createMeeting, token } from '@/api';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import GestureOverlay from '@/components/GestureOverlay';
-
 register();
 
 interface JoinScreenProps {
@@ -90,88 +89,40 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
   const { webcamStream, webcamOn } = useParticipant(participantId);
   const [predictions, setPredictions] = useState([]);
 
-  // Function to fetch the local IP from the Python server
-  async function fetchLocalIPAndHeaders() {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/local-ip'
-      );
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.statusText);
-      }
-
-      // Get the JSON body
-      const data = await response.json();
-
-      // Get specific headers
-      const contentType = response.headers.get('content-type');
-      const date = response.headers.get('date');
-      const server = response.headers.get('server');
-      const ngrokAgentIps = response.headers.get('ngrok-agent-ips');
-
-      console.log('Fetched JSON data:', data);
-      console.log('Content-Type:', contentType);
-      console.log('Date:', date);
-      console.log('Server:', server);
-      console.log('ngrok-agent-ips:', ngrokAgentIps);
-
-      return { data, contentType, date, server, ngrokAgentIps };
-    } catch (error) {
-      console.error('Error fetching local IP:', error);
-      return null;
-    }
-  }
-
   // Monitor predictions changes
   useEffect(() => {
     console.log('Predictions updated:', predictions);
   }, [predictions]);
-
-  // Updated WebSocket connection setup using ngrokAgentIps from fetchLocalIPAndHeaders
+  // Set up WebSocket connection for predictions
   useEffect(() => {
-    let ws: WebSocket | null = null;
-    async function setupWebSocket() {
-      const result = await fetchLocalIPAndHeaders();
-      if (!result) {
-        console.error('Could not fetch local IP and headers');
-        return;
-      }
-      const { ngrokAgentIps } = result;
-      if (!ngrokAgentIps) {
-        console.error('ngrokAgentIps not found');
-        return;
-      }
-      console.log('Using ngrokAgentIps:', ngrokAgentIps);
-      // Use the fetched ngrokAgentIps in the WebSocket URL
-      ws = new WebSocket(`ws://${ngrokAgentIps}:8888`);
+    console.log('Setting up WebSocket connection...');
+    const ws = new WebSocket("ws://localhost:8766");
 
-      ws.onopen = () => {
-        console.log('WebSocket Connected!');
-      };
-      ws.onmessage = (event) => {
-        console.log('Received message:', event.data);
-        try {
-          const response = JSON.parse(event.data);
-          console.log('Parsed response:', response);
-          if (response.status === 'success') {
-            console.log('Setting predictions:', response.predictions);
-            setPredictions(response.predictions);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+    ws.onopen = () => {
+      console.log('WebSocket Connected!');
+    };
+    ws.onmessage = (event) => {
+      console.log('Received message:', event.data);
+      try {
+        const response = JSON.parse(event.data);
+        console.log('Parsed response:', response);
+        if (response.status === 'success') {
+          console.log('Setting predictions:', response.predictions);
+          setPredictions(response.predictions);
         }
-      };
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
-      ws.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason);
-      };
-    }
-    setupWebSocket();
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    ws.onclose = (event) => {
+      console.log('WebSocket closed:', event.code, event.reason);
+    };
     return () => {
       console.log('Cleaning up WebSocket connection...');
-      ws?.close();
+      ws.close();
     };
   }, []);
 
@@ -214,29 +165,6 @@ const ControlsContainer: React.FC = () => {
 
   const router = useRouter();
 
-  // Function to notify the server that the meeting id is cleared
-  const clearMeetingIdOnServer = async () => {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/meeting-id',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ meetingId: null }),
-        }
-      );
-      if (!response.ok) {
-        console.error('Failed to clear meeting ID on server:', response.status);
-      } else {
-        console.log('Meeting ID cleared on server.');
-      }
-    } catch (error) {
-      console.error('Error clearing meeting ID on server:', error);
-    }
-  };
-
   return (
     <View style={styles.controlsContainer}>
       <Button onPress={join} buttonText="Join" backgroundColor="#1178F8" />
@@ -251,12 +179,8 @@ const ControlsContainer: React.FC = () => {
         backgroundColor="#1178F8"
       />
       <Button
-        onPress={async () => {
-          // Notify the server that the meeting has ended
-          await clearMeetingIdOnServer();
-          // Leave the meeting locally
+        onPress={() => {
           leave();
-          // Redirect the user to another screen (or perform another action)
           router.replace('/(tabs)/chats');
         }}
         buttonText="Leave"
