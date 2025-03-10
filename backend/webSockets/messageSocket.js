@@ -1,21 +1,31 @@
 const ManagerFactory = require("../factories/managerFactory.js");
+const RabbitMqConstants = require("../constants/rabbitMqConstants.js");
+const ControllerFactory = require("../factories/controllerFactory.js");
 class MessageSocket {
     #messageQueueName = null;
+    #cachedChats = null;
     constructor(socket, userSocketMap) {
         this.messageEvent(socket, userSocketMap);
-        this.messageQueueName = 'chat-messages';
+        this.messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
         //establish connection to rabbitMq
         this.establishConnectionWithRabbitMqQueue();
         //TODO
         //cache queries here
-        //on db update, then only update the map/list
+        //one more issue, why message socket is being initialized twice - make sure its universal and one if possible
+        this.#cachedChats = this.cacheChats();
+        //on db update (via an event), update the map/list
     }
 
     async establishConnectionWithRabbitMqQueue() {
         await ManagerFactory.getRabbitMqQueueManager().establishConnection();
     }
 
+    async cacheChats () {
+       return await ControllerFactory.getChatController.getAllChats();
+    }
+
     async messageEvent(socket, userSocketMap) {
+        console.log(this.#cachedChats);
         socket.on('message', async (data) => {
             var pingWasSuccesful = true;
             try {

@@ -1,5 +1,6 @@
-const ControllerFactory = require("../factories/controllerFactory.js");
 const ManagerFactory = require("../factories/managerFactory.js");
+const EventFactory = require("../factories/eventFactory.js");
+const EventConstants = require("../constants/eventConstants.js");
 class RabbitMqMessageProcessor{
     constructor() {}
     async messageProcessor(queueName) {
@@ -9,8 +10,9 @@ class RabbitMqMessageProcessor{
             consumerTag = ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().consume(queueName, (message) => {
                     if (message) {
                         ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().ack(message);
-                        //no need to enqueue in an array - send it via a event! I already am creating events
                         const message = JSON.parse(message.content.toString());
+                        //should be good now
+                        EventFactory.getEventDispatcher().dispatchEvent(EventConstants.MESSAGE_INGEST_EVENT, message);
                     }
                 }, {noAck: false});
 

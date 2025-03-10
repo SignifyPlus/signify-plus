@@ -7,9 +7,16 @@
 //controllers
 const ChatController = require("../controllers/ChatController.js");
 const MessageController = require("../controllers/MessageController.js");
+const UserController = require("../controllers/UserController.js");
+const ContactController = require("../controllers/ContactController.js");
+const UserActivityController = require("../controllers/UserActivityController.js");
 
 class ControllerFactory {
-    //private fields
+    /**
+     * @private
+     * @type {UserController | null}
+     */
+        static #userController = null;
      /**
      * @private
      * @type {ChatController | null}
@@ -18,10 +25,29 @@ class ControllerFactory {
 
     /**
      * @private
-     * @type {ChatController | null}
+     * @type {MessageController | null}
      */
     static #messageController = null;
+
+    /**
+     * @private
+     * @type {ContactController | null}
+     */
+        static #contactController = null;
+
+    /**
+     * @private
+     * @type {UserActivityController | null}
+     */
+            static #userActivityController = null;
     constructor() {
+    }
+
+    static get getUserController() {
+        if (!this.#userController) {
+            this.#userController = new UserController();
+        }
+        return this.#userController;
     }
 
     static get getChatController() {
@@ -36,6 +62,20 @@ class ControllerFactory {
             this.#messageController = new MessageController();
         }
         return this.#messageController;
+    }
+
+    static get getContactController() {
+        if (!this.#contactController) {
+            this.#contactController = new ContactController();
+        }
+        return this.#contactController;
+    }
+
+    static get getUserActivitiyController() {
+        if (!this.#userActivityController) {
+            this.#userActivityController = new UserActivityController();
+        }
+        return this.#userActivityController;
     }
 }
 

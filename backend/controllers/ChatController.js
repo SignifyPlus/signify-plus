@@ -57,7 +57,7 @@ class ChatController {
                 select: "phoneNumber name"
             });
 
-            response.json(await this.getUserChats(chats));
+            response.json(await this.#getUserChats(chats));
         }catch(exception) {
             const signifyException = new SignifyException(500, `Exception Occured: ${exception.message}`);
             return response.status(signifyException.status).json(signifyException.loadResult());
@@ -84,7 +84,15 @@ class ChatController {
         }
     }
 
-    async getUserChats(chats) {
+    getAllChats = async() =>  {
+        try {
+            return await ServiceFactory.getMessageService.getDocuments();
+        }catch(exception) {
+            return new SignifyException(500, `Exception Occured: ${exception.message}`);
+        }
+    }
+
+    async #getUserChats(chats) {
         const chatObjects = [];
         const ZERO_INDEX = 0;
         for (const chat of chats) {
