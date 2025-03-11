@@ -84,7 +84,7 @@ class ChatController {
         }
     }
 
-    getAllChats = async() =>  {
+    async getAllChats(){
         try {
             return await ServiceFactory.getMessageService.getDocuments();
         }catch(exception) {

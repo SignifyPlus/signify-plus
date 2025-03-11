@@ -5,15 +5,12 @@ class MessageSocket {
     #messageQueueName = null;
     #cachedChats = null;
     constructor(socket, userSocketMap) {
-        this.messageEvent(socket, userSocketMap);
-        this.messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
-        //establish connection to rabbitMq
+        this.#messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
         this.establishConnectionWithRabbitMqQueue();
-        //TODO
-        //cache queries here
-        //one more issue, why message socket is being initialized twice - make sure its universal and one if possible
-        this.#cachedChats = this.cacheChats();
         //on db update (via an event), update the map/list
+        this.#cachedChats = this.cacheChats();
+        this.messageEvent(socket, userSocketMap);
+
     }
 
     async establishConnectionWithRabbitMqQueue() {
@@ -21,12 +18,12 @@ class MessageSocket {
     }
 
     async cacheChats () {
-       return await ControllerFactory.getChatController.getAllChats();
+        return await ControllerFactory.getChatController.getAllChats();
     }
 
     async messageEvent(socket, userSocketMap) {
-        console.log(this.#cachedChats);
         socket.on('message', async (data) => {
+            this.#cachedChats = await this.#cachedChats;
             var pingWasSuccesful = true;
             try {
                 if (data.targetPhoneNumbers == null || data.targetPhoneNumbers.length == 0 ){
@@ -54,7 +51,7 @@ class MessageSocket {
             if (pingWasSuccesful) {
                //TO-DO
                 //instead of queueing the same message for each number, just send it once to the rabbitMq - because the above loop is just to make sure the message is forwarded to the desired phoneNumber
-                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, data);
+                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, [data]);
             }
         })
     }
