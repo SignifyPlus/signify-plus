@@ -21,9 +21,9 @@ class EventDispatcher {
     }
 
     async deprovisionListener(event, listener) {
-        if(this.#listeners[event]) [
+        if(this.#listeners[event]) {
             this.#listeners[event] = this.#listeners[event].filter(lis => lis != listener);
-        ]
+        }
     }
 }
 module.exports = EventDispatcher;
