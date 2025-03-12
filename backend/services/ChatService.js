@@ -1,4 +1,7 @@
 const AbstractService = require('./AbstractService')
+const EventFactory = require("../factories/eventFactory.js");
+const EventConstants = require("../constants/eventConstants.js");
+const SignifyException = require('../exception/SignifyException.js');
 class ChatService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
@@ -26,7 +29,14 @@ class ChatService extends AbstractService {
     }
 
     async saveDocument(data) {
-        return await super.saveDocument(data);
+        //i think its good to invoke the chat save event here, regardless from which controller it was executed - keep things centralized too
+        const chat = await super.saveDocument(data);
+        if (chat === null || chat == undefined) {
+            return new SignifyException(400, `Couldn't save chat - please look at the data ${data}`);
+        }
+        //trigger chat event
+        EventFactory.getEventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
+        return chat;
     }
 
     async saveDocuments(data) {

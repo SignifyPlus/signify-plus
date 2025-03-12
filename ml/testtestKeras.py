@@ -10,9 +10,9 @@ import mediapipe as mp
 
 class KerasInferenceServer:
     def __init__(self, 
-                host='0.0.0.0', 
-                port=8765, 
-                model_path="./models_cache/best_model.keras"):
+                 host='0.0.0.0', 
+                 port=8765, 
+                 model_path="C:\\signify-plus\\ml\\models_cache\\model.keras"):
         """
         host: IP/domain to run the WebSocket server
         port: Port for the server
@@ -48,20 +48,20 @@ class KerasInferenceServer:
         Extract a 99-dimensional feature vector from the frame using MediaPipe Hands.
         This replicates the feature extraction in dynamic_create_dataset.py.
         Steps:
-        1. Convert the frame to RGB.
-        2. Process with MediaPipe Hands.
-        3. For the first detected hand:
-            - Build a joint matrix (21 x 4) from the landmarks.
-            - Compute v1 and v2 using the index arrays:
-                idx1 = [0,1,2,3,0,5,6,7,0,9,10,11,0,13,14,15,0,17,18,19]
-                idx2 = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-            - Compute v = v2 - v1 and normalize it.
-            - Compute angles between vectors:
-                idx_angle1 = [0,1,2,4,5,6,8,9,10,12,13,14,16,17,18]
-                idx_angle2 = [1,2,3,5,6,7,9,10,11,13,14,15,17,18,19]
-            - Convert the angles to degrees.
-            - Concatenate joint.flatten() (84 values) with the angle array (15 values) to yield 99 values.
-        4. If no hand is detected, return a zero vector.
+          1. Convert the frame to RGB.
+          2. Process with MediaPipe Hands.
+          3. For the first detected hand:
+             - Build a joint matrix (21 x 4) from the landmarks.
+             - Compute v1 and v2 using the index arrays:
+                   idx1 = [0,1,2,3,0,5,6,7,0,9,10,11,0,13,14,15,0,17,18,19]
+                   idx2 = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+             - Compute v = v2 - v1 and normalize it.
+             - Compute angles between vectors:
+                   idx_angle1 = [0,1,2,4,5,6,8,9,10,12,13,14,16,17,18]
+                   idx_angle2 = [1,2,3,5,6,7,9,10,11,13,14,15,17,18,19]
+             - Convert the angles to degrees.
+             - Concatenate joint.flatten() (84 values) with the angle array (15 values) to yield 99 values.
+          4. If no hand is detected, return a zero vector.
         """
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(rgb_frame)
@@ -98,9 +98,9 @@ class KerasInferenceServer:
     async def process_frame(self, frame: np.ndarray) -> List[dict]:
         """
         Process an incoming frame:
-        1. Extract a 99-D feature vector.
-        2. Append it to the sequence buffer.
-        3. When the buffer has 30 timesteps, form a tensor of shape (1, 30, 99) and run inference.
+          1. Extract a 99-D feature vector.
+          2. Append it to the sequence buffer.
+          3. When the buffer has 30 timesteps, form a tensor of shape (1, 30, 99) and run inference.
         """
         try:
             features = self.extract_features(frame)
@@ -175,7 +175,7 @@ class KerasInferenceServer:
 def main():
     try:
         server = KerasInferenceServer(
-            model_path="./models_cache/best_model.keras"
+            model_path="C:\\signify-plus\\ml\\models_cache\\model.keras"
         )
         loop = asyncio.get_event_loop()
         loop.run_until_complete(server.start())

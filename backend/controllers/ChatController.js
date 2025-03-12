@@ -84,13 +84,14 @@ class ChatController {
         }
     }
 
-    getAllChats = async() =>  {
+    async getAllChats(){
         try {
             return await ServiceFactory.getMessageService.getDocuments();
         }catch(exception) {
             return new SignifyException(500, `Exception Occured: ${exception.message}`);
         }
     }
+    
 
     async #getUserChats(chats) {
         const chatObjects = [];
@@ -103,6 +104,11 @@ class ChatController {
             chatObjects.push(chatObject);
         }
         return chatObjects;
+    }
+
+    //Helper Methods
+    async getChat(chats, mainPhoneNumber, targetPhoneNumbers) {
+        
     }
 }
 module.exports = ChatController;
