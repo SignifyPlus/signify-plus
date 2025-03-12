@@ -4,7 +4,7 @@ class EventDispatcher {
     construct() {
     }
 
-    registerListener(event, listener) {
+    async registerListener(event, listener) {
         if(!this.#listeners[event]) {
             this.#listeners[event] = [];
         }
@@ -12,7 +12,7 @@ class EventDispatcher {
         this.#listeners[event].push(listener);
     }
 
-    dispatchEvent(event, data) {
+    async dispatchEvent(event, data) {
         if(this.#listeners[event]) {
             this.#listeners[event].array.forEach(listener => {
                listener(data) 
@@ -20,10 +20,10 @@ class EventDispatcher {
         }
     }
 
-    deprovisionListener(event, listener) {
-        if(this.#listeners[event]) [
+    async deprovisionListener(event, listener) {
+        if(this.#listeners[event]) {
             this.#listeners[event] = this.#listeners[event].filter(lis => lis != listener);
-        ]
+        }
     }
 }
 module.exports = EventDispatcher;

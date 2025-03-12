@@ -1,19 +1,17 @@
 const express = require('express');
 const userRouter = express.Router();
-const UserController = require('../controllers/UserController.js');
+const ControllerFactory = require("../factories/controllerFactory.js");
 
-const userController = new UserController();
+userRouter.get('/all', ControllerFactory.getUserController.getAllUsers);
 
-userRouter.get('/all', userController.getAllUsers);
+userRouter.post('/create', ControllerFactory.getUserController.createUser);
 
-userRouter.post('/create', userController.createUser);
+userRouter.delete('/delete/filter/', ControllerFactory.getUserController.deleteUser);
 
-userRouter.delete('/delete/filter/', userController.deleteUser);
+userRouter.delete('/delete/:id', ControllerFactory.getUserController.deleteUserById);
 
-userRouter.delete('/delete/:id', userController.deleteUserById);
+userRouter.get('/:id', ControllerFactory.getUserController.getUserById);
 
-userRouter.get('/:id', userController.getUserById);
-
-userRouter.get('/phone/:phoneNumber', userController.getUserByPhoneNumber);
+userRouter.get('/phone/:phoneNumber', ControllerFactory.getUserController.getUserByPhoneNumber);
 
 module.exports = userRouter;
