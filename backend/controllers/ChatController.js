@@ -86,13 +86,16 @@ class ChatController {
 
     async getAllChats(){
         try {
-            return await ServiceFactory.getMessageService.getDocuments();
+            const chatsQuery = ServiceFactory.getChatService.getDocumentsQuery();
+            return await chatsQuery.populate({
+                path: "mainUserId participants",
+                select: "phoneNumber"
+            });
         }catch(exception) {
             return new SignifyException(500, `Exception Occured: ${exception.message}`);
         }
     }
     
-
     async #getUserChats(chats) {
         const chatObjects = [];
         const ZERO_INDEX = 0;
@@ -107,8 +110,10 @@ class ChatController {
     }
 
     //Helper Methods
-    async getChat(chats, mainPhoneNumber, targetPhoneNumbers) {
-        
+    async filterChat(cachedChats, mainPhoneNumber, targetPhoneNumbers) {
+        cachedChats.forEach(chat => {
+            console.log(`Chat ${chat}`);
+        });
     }
 }
 module.exports = ChatController;

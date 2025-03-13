@@ -3,6 +3,7 @@ const RabbitMqConstants = require("../constants/rabbitMqConstants.js");
 const ControllerFactory = require("../factories/controllerFactory.js");
 const EventFactory = require("../factories/eventFactory.js");
 const EventConstants = require("../constants/eventConstants.js");
+const CommonUtils = require("../utilities/commonUtils.js");
 class MessageSocket {
     #messageQueueName = null;
     #cachedChats = null;
@@ -30,14 +31,14 @@ class MessageSocket {
                     throw new Error(`Queue Name not initialized - terminating the event`);
                 }
                 ///use event driven approach
-                data.targetPhoneNumbers.forEach(targetPhoneNumber => {
+                data.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                     if (userSocketMap[targetPhoneNumber] == null) {
                         console.log(`targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`);
                         return;
                     }
-                    console.log(`Original cached chat: ${this.#cachedChats}`);
                     console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${targetPhoneNumber}`);
                     //find the chat now
+                    await ControllerFactory.getChatController.filterChat(this.#cachedChats);
                     socket.to(userSocketMap[targetPhoneNumber]).emit('message', data.message);
                 });
 
@@ -49,6 +50,8 @@ class MessageSocket {
             if (pingWasSuccesful) {
                 //instead of queueing the same message for each number, just send it once to the rabbitMq - because the above loop is just to make sure the message is forwarded to the desired phoneNumber
                 //requires an array
+                //fix this - blocking
+                //await CommonUtils.waitForVariableToBecomeNonNull(ManagerFactory.getRabbitMqQueueManager, 1000);
                 await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, [data]);
             }
         })
