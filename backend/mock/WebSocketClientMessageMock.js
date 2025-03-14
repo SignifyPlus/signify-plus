@@ -7,12 +7,12 @@ const mockSocketUser2 = io("http://localhost:3001");
 mockSocketUser1.on('connect', () => {
     console.log(`Connected User 1 to MocketSocket ${"http://localhost:3001"}`);
     mockSocketUser1.emit('socket-registration', {
-        userPhoneNumber : '12523643765'
+        userPhoneNumber : '030014124'
     });
     mockSocketUser1.emit('message', {
-        senderPhoneNumber: "12523643765",
+        senderPhoneNumber: "030014124",
         message: "Hi, How are you!!",
-        targetPhoneNumbers: ['312451255']
+        targetPhoneNumbers: ['868578654']
     });
 })
 
@@ -32,7 +32,7 @@ mockSocketUser1.on('message-failure', (data) => {
 mockSocketUser2.on('connect', () => {
     console.log(`Connected User 2 to MocketSocket ${"http://localhost:3001"}`);
     mockSocketUser2.emit('socket-registration', {
-        userPhoneNumber : '312451255'
+        userPhoneNumber : '868578654'
     });
 })
 
@@ -40,8 +40,8 @@ mockSocketUser2.on('message', (message) => {
     console.log(`Incoming Message from Mock1: ${message}`);
     mockSocketUser2.emit('message', {
         message: "I'm Good!, How are you!!",
-        senderPhoneNumber: "312451255",
-        targetPhoneNumbers: ['12523643765']
+        senderPhoneNumber: "868578654",
+        targetPhoneNumbers: ['030014124']
     });
 });
 

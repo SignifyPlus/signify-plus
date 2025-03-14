@@ -59,6 +59,10 @@ class ChatService extends AbstractService {
     getDocumentsByCustomFiltersQuery(filterConditions) {
         return super.getDocumentsByCustomFiltersQuery(filterConditions);
     }
+
+    getDocumentsQuery() {
+        return super.getDocumentsQuery();
+    }
 }
 
 module.exports = ChatService;

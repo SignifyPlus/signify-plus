@@ -12,6 +12,14 @@ class AbstractService {
         }
     }
 
+    getDocumentsQuery() {
+        try{
+            return this.schemaModel.find();
+        }catch(exception){
+            throw new Error(`Error Fetching the Documents: ${exception.message}`);
+        }
+    }
+
     async getDocumentsByCustomFilters(filterConditions) {
         try{
             return await this.schemaModel.find(filterConditions);

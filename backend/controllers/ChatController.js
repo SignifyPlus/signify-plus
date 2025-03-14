@@ -86,13 +86,16 @@ class ChatController {
 
     async getAllChats(){
         try {
-            return await ServiceFactory.getMessageService.getDocuments();
+            const chatsQuery = ServiceFactory.getChatService.getDocumentsQuery();
+            return await chatsQuery.populate({
+                path: "mainUserId participants",
+                select: "phoneNumber"
+            });
         }catch(exception) {
             return new SignifyException(500, `Exception Occured: ${exception.message}`);
         }
     }
     
-
     async #getUserChats(chats) {
         const chatObjects = [];
         const ZERO_INDEX = 0;
@@ -107,8 +110,23 @@ class ChatController {
     }
 
     //Helper Methods
-    async getChat(chats, mainPhoneNumber, targetPhoneNumbers) {
-        
+    async filterChat(cachedChats, phoneNumbers) {
+        var chatId = null;
+        for (var i = 0; i < cachedChats.length; i++) {
+            ///the best way is to combine mainPhoneNumber and targetPhoneNumbers in an array
+            //and match them with the array from the chat (mainuserIdPhoneNumber and participantsPhoneNumbers)
+            //this way if we have an exact match, that's the chat
+            const chatPhoneNumbers = [...cachedChats[i].participants, cachedChats[i].mainUserId];
+            chatPhoneNumbers.sort();
+            phoneNumbers.sort();
+            //since sorted, the comparision will work
+            const perfectMatch = phoneNumbers.every((value, index) => value == chatPhoneNumbers[index].phoneNumber);
+            if (perfectMatch) {
+                chatId = cachedChats[i]._id.toString();
+                break;
+            }
+        }
+        return chatId;
     }
 }
 module.exports = ChatController;
