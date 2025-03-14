@@ -110,10 +110,23 @@ class ChatController {
     }
 
     //Helper Methods
-    async filterChat(cachedChats, mainPhoneNumber, targetPhoneNumbers) {
-        cachedChats.forEach(chat => {
-            console.log(`Chat ${chat}`);
-        });
+    async filterChat(cachedChats, phoneNumbers) {
+        var chatId = null;
+        for (var i = 0; i < cachedChats.length; i++) {
+            ///the best way is to combine mainPhoneNumber and targetPhoneNumbers in an array
+            //and match them with the array from the chat (mainuserIdPhoneNumber and participantsPhoneNumbers)
+            //this way if we have an exact match, that's the chat
+            const chatPhoneNumbers = [...cachedChats[i].participants, cachedChats[i].mainUserId];
+            chatPhoneNumbers.sort();
+            phoneNumbers.sort();
+            //since sorted, the comparision will work
+            const perfectMatch = phoneNumbers.every((value, index) => value == chatPhoneNumbers[index].phoneNumber);
+            if (perfectMatch) {
+                chatId = cachedChats[i]._id.toString();
+                break;
+            }
+        }
+        return chatId;
     }
 }
 module.exports = ChatController;
