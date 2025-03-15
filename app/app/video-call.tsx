@@ -19,6 +19,7 @@ import {
 import { createMeeting, token } from '@/api';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import GestureOverlay from '@/components/GestureOverlay';
+import { ML_WEBSOCKET_URL,  } from '@/constants/Config';
 register();
 
 interface JoinScreenProps {
@@ -96,7 +97,7 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
   // Set up WebSocket connection for predictions
   useEffect(() => {
     console.log('Setting up WebSocket connection...');
-    const ws = new WebSocket("ws://localhost:8766");
+    const ws = new WebSocket(ML_WEBSOCKET_URL);
 
     ws.onopen = () => {
       console.log('WebSocket Connected!');

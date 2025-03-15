@@ -11,11 +11,18 @@ from typing import Optional
 from contextlib import suppress
 import aiohttp
 import os
+import dotenv
 
-# Configuration
-VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIyN2ZhZDRjMy0xM2ZiLTQ1ZGQtYjBkOS1mODEzYWUxNmU2ZjIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTczNDY0ODU1OSwiZXhwIjoxODkyNDM2NTU5fQ.Y3bEl5_ffScQJroMT_ihsKs0W0U45bS0w9481rWwl4c"
-WEBSOCKET_URL = "ws://139.179.149.77:8765"
-MEETING_ID_API = "https://living-openly-ape.ngrok-free.app/meeting-id"
+
+dotenv.load_dotenv()
+
+VIDEOSDK_TOKEN = os.environ.get('VIDEOSDK_TOKEN')
+ML_WEBSOCKET_URL = os.environ.get('ML_WEBSOCKET_URL', 'ws://localhost:8765')
+NGROK_URL = os.environ.get('MEETING_ID_API', 'http://localhost:8080/meeting-id')
+REACT_WEBSOCKET_PORT = int(os.environ.get('REACT_WEBSOCKET_PORT', 8766))
+FRAME_INTERVAL = float(os.environ.get('FRAME_INTERVAL', 1/30))  # Default 30 FPS
+BROADCAST_INTERVAL = float(os.environ.get('BROADCAST_INTERVAL', 0.05))  # Default 20 updates/sec
+
 
 # Global meeting variable
 meeting: Meeting = None
@@ -33,7 +40,7 @@ react_clients = set()
 async def get_meeting_id():
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(MEETING_ID_API) as response:
+            async with session.get(NGROK_URL) as response:
                 data = await response.json()
                 meeting_id = data.get("meetingId")
                 if meeting_id:
@@ -104,7 +111,7 @@ async def handle_react_client(websocket: websockets.WebSocketServerProtocol):
         react_clients.remove(websocket)
 
 async def start_react_server():
-    port = 8766
+    port = REACT_WEBSOCKET_PORT
     async with websockets.serve(handle_react_client, "0.0.0.0", port):
         print(f"React WebSocket server running on port {port}")
         await asyncio.Future()
@@ -128,14 +135,14 @@ class VideoProcessor:
     def __init__(self) -> None:
         self.ml_websocket: Optional[websockets.WebSocketClientProtocol] = None
         self.last_process_time = 0
-        self.frame_interval = 1/30  # 30 FPS for minimal delay
+        self.frame_interval = FRAME_INTERVAL
         self.last_predictions = []
         self.is_processing = False
         self.processing_task = None
         self.current_frame = None
         self.frame_ready = asyncio.Event()
         self.last_broadcast_time = 0
-        self.broadcast_interval = 0.05  # Send at most 20 updates per second
+        self.broadcast_interval = BROADCAST_INTERVAL
     
     async def start(self):
         """Initialize and start processing"""
@@ -160,8 +167,8 @@ class VideoProcessor:
         """Ensure WebSocket connection to ML server exists"""
         while self.is_processing and (self.ml_websocket is None or self.ml_websocket.closed):
             try:
-                self.ml_websocket = await websockets.connect(WEBSOCKET_URL)
-                print(f"Connected to ML server at {WEBSOCKET_URL}")
+                self.ml_websocket = await websockets.connect(ML_WEBSOCKET_URL)
+                print(f"Connected to ML server at {ML_WEBSOCKET_URL}")
                 return True
             except Exception as e:
                 print(f"ML server connection failed: {e}")

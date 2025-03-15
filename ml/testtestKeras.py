@@ -7,33 +7,34 @@ from base64 import b64decode
 import tensorflow as tf
 from typing import List
 import mediapipe as mp
+import dotenv
+import os
+
+dotenv.load_dotenv()
 
 class KerasInferenceServer:
     def __init__(self, 
-             host='0.0.0.0', 
-             port=8765, 
-             model_path=".\\models_cache\\model.keras"):
+             host=None, 
+             port=None, 
+             model_path=None):
         """
         host: IP/domain to run the WebSocket server
         port: Port for the server
         model_path: Path to your Keras model file
         """
-        self.host = host
-        self.port = port
-        # Load the Keras model (trained on sequences of shape (30, 99))
-        self.model = tf.keras.models.load_model(model_path)
-        print("Keras model loaded successfully.")
+        self.host = host or os.environ.get('ML_SERVER_HOST', '0.0.0.0')
+        self.port = port or int(os.environ.get('ML_SERVER_PORT', 8765))
+        self.model_path = model_path or os.environ.get('ML_MODEL_PATH', './models/model.keras')
         
-        # Class names as defined in your actions.txt (update as needed)
-        self.class_names = [
-            "welcome", "we", "happy", "you", "here",
-            "today", "topic", "c", "t", "i", "s"
-        ]
+        self.load_model()
+        self.load_class_names()
+
+        self.sequence_length = int(os.environ.get('ML_SEQUENCE_LENGTH', 30))
+        self.confidence_threshold = float(os.environ.get('ML_CONFIDENCE_THRESHOLD', 0.95))
         
-        self.sequence_length = 30
         self.sequence_buffer = [] 
-        self.action_seq = []  # Initialize action sequence
-        
+        self.action_seq = []  
+
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             max_num_hands=2,
@@ -46,6 +47,35 @@ class KerasInferenceServer:
         self.no_hand_threshold = 3
         self.hand_present = False
         self.last_prediction = None
+
+    def load_model(self):
+        """Load the Keras model from the specified path."""
+        try:
+            self.model = tf.keras.models.load_model(self.model_path)
+        except Exception as e:
+            print(f"Failed to load model from {self.model_path}: {e}")
+            raise
+    
+    def load_class_names(self):
+        """Load class names from a file or environment variable."""
+        class_names_env = os.environ.get('ML_CLASS_NAMES')
+        if class_names_env:
+            self.class_names = class_names_env.split(',')
+            return
+            
+        # Try to load from a file
+        class_names_file = os.environ.get('ML_CLASS_NAMES_FILE', './config/actions.txt')
+        try:
+            with open(class_names_file, 'r') as f:
+                self.class_names = [line.strip() for line in f.readlines()]
+            print(f"Loaded {len(self.class_names)} classes from {class_names_file}")
+        except Exception as e:
+            print(f"Could not load class names from {class_names_file}: {e}")
+            self.class_names = [
+                "welcome", "we", "happy", "you", "here",
+                "today", "topic", "c", "t", "i", "s"
+            ]
+            print("Using default class names")
     
     def extract_features(self, frame: np.ndarray) -> tuple:
         """
@@ -118,7 +148,7 @@ class KerasInferenceServer:
                 confidence = float(predictions[predicted_idx])
                 
                 # Only return predictions with high confidence
-                if confidence < 0.95:
+                if confidence < self.confidence_threshold:
                     return []
                 
                 action = self.class_names[predicted_idx]
@@ -179,9 +209,7 @@ class KerasInferenceServer:
 
 def main():
     try:
-        server = KerasInferenceServer(
-            model_path=".\\models_cache\\model.keras"
-        )
+        server = KerasInferenceServer()
         loop = asyncio.get_event_loop()
         loop.run_until_complete(server.start())
         loop.run_forever()

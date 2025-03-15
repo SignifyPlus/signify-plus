@@ -1,7 +1,12 @@
 import asyncio
 import json
 from aiohttp import web
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+SERVER_HOST = os.environ.get('SERVER_HOST', '0.0.0.0')
+SERVER_PORT = int(os.environ.get('SERVER_PORT', 8080))
 CURRENT_MEETING_ID = None  # Global variable to store the meeting ID
 
 # HTTP handler to receive the meeting ID (POST /meeting-id)
@@ -30,9 +35,9 @@ async def start_http_server():
     app.router.add_get('/meeting-id', get_meeting_id_handler)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8080)
+    site = web.TCPSite(runner, SERVER_HOST, SERVER_PORT)
     await site.start()
-    print("HTTP server running on port 8080")
+    print(f"HTTP server running on {SERVER_HOST}:{SERVER_PORT}")
     # Keep the server running indefinitely
     while True:
         await asyncio.sleep(3600)
