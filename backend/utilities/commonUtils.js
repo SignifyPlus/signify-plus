@@ -1,13 +1,9 @@
 class CommonUtils {
-
-    static async waitForVariableToBecomeNonNull(variableGetter, waitForTimeOut) {
-        while(variableGetter() === null) {
-            console.log(`Waiting`);
+    static async waitForVariableToBecomeNonNull(getterFunction, waitForTimeOut) {
+        while(getterFunction() === null) {
             await new Promise((resolve) => setTimeout(resolve, waitForTimeOut));
         }
-        console.log("Done!");
-        return variableGetter();
+        return getterFunction();
     }
 }
-
 module.exports = CommonUtils;

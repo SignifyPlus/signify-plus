@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 import io, { Socket } from 'socket.io-client';
-import { API_URL } from '@/constants/Config';
+import { API_URL, NGROK_URL } from '@/constants/Config';
 import { useRouter } from 'expo-router';
 import { createMeeting, queryClient } from '@/api';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -74,7 +74,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const sendMeetingIdToPython = useCallback(
     async (meetingId: string) => {
       try {
-        const response = await fetch('https://moving-cardinal-happily.ngrok-free.app/meeting-id', {
+        const response = await fetch(NGROK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ meetingId }),

@@ -38,6 +38,7 @@ class RabbitMQQueueManager {
         try {
             //message survives when persistent is set to true
             //durable : true, queue survives upon crash/restart
+            //check if channel is null
             await this.#rabbitMqChannel.assertQueue(queueName, {durable: true});
             this.#rabbitMqChannel.sendToQueue(queueName, Buffer.from(message), {persistent: true});
             console.log(`Message has been queued!`);
