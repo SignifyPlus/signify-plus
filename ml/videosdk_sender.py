@@ -1,6 +1,8 @@
 import asyncio
-import websockets
 import json
+import websockets
+from base64 import b64encode
+from videosdk import MeetingConfig, VideoSDK, Participant, Stream, MeetingEventHandler, ParticipantEventHandler, CustomVideoTrack, Meeting
 import cv2
 from av import VideoFrame
 import numpy as np
@@ -8,40 +10,42 @@ from time import time
 from typing import Optional
 from contextlib import suppress
 import aiohttp
-from videosdk import MeetingConfig, VideoSDK, Participant, Stream, MeetingEventHandler, ParticipantEventHandler, CustomVideoTrack, Meeting
-from av import VideoFrame
-# from meetingEventHandler import MeetingEventHandler
+import os
 
-# VideoSDK configuration
+# Configuration
 VIDEOSDK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIyN2ZhZDRjMy0xM2ZiLTQ1ZGQtYjBkOS1mODEzYWUxNmU2ZjIiLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTczNDY0ODU1OSwiZXhwIjoxODkyNDM2NTU5fQ.Y3bEl5_ffScQJroMT_ihsKs0W0U45bS0w9481rWwl4c"
-WEBSOCKET_URL = "ws://localhost:8765"  
+WEBSOCKET_URL = "ws://139.179.149.77:8765"
+MEETING_ID_API = "https://living-openly-ape.ngrok-free.app/meeting-id"
 
-# Global meeting variable (initialized to None)
+# Global meeting variable
 meeting: Meeting = None
+
+# Track active processors for cleanup
+active_processors = set()
+
+# Global set to store connected React clients
+react_clients = set()
 
 #########################
 # MEETING ID AUTOMATION #
 #########################
 
-# Function to fetch the meeting id from the ngrok endpoint
 async def get_meeting_id():
-    url = "https://moving-cardinal-happily.ngrok-free.app/meeting-id"
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(url) as response:
+            async with session.get(MEETING_ID_API) as response:
                 data = await response.json()
-                MEETING_ID = data.get("meetingId")
-                if MEETING_ID:
-                    print(f"Retrieved meeting ID: {MEETING_ID}")
-                    return MEETING_ID
+                meeting_id = data.get("meetingId")
+                if meeting_id:
+                    print(f"Retrieved meeting ID: {meeting_id}")
+                    return meeting_id
                 else:
-                    print("No meeting ID available:", data)
+                    print(f"No meeting ID available: {data}")
                     return None
         except Exception as e:
-            print("Error fetching meeting ID:", e)
+            print(f"Error fetching meeting ID: {e}")
             return None
 
-# Monitor meeting ID changes and update the active meeting accordingly
 async def monitor_meeting():
     global meeting
     current_meeting_id = None
@@ -54,10 +58,11 @@ async def monitor_meeting():
                 if meeting is not None:
                     print("Leaving current meeting...")
                     meeting.leave()
-                    for participant in meeting.participants.values():
-                        for stream in participant.streams.values():
-                            if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
-                                await stream.track.stop()
+                    # Clean up any processing resources
+                    for processor in active_processors:
+                        await processor.cleanup()
+                    active_processors.clear()
+                
                 current_meeting_id = new_meeting_id
                 meeting_config = MeetingConfig(
                     meeting_id=new_meeting_id,
@@ -67,7 +72,7 @@ async def monitor_meeting():
                     token=VIDEOSDK_TOKEN,
                 )
                 meeting = VideoSDK.init_meeting(**meeting_config)
-                meeting.add_event_listener(MyMeetingEventHandler())
+                meeting.add_event_listener(SimpleEventHandler())
                 print("Joining new meeting...")
                 meeting.join()
             else:
@@ -78,71 +83,71 @@ async def monitor_meeting():
             if meeting is not None:
                 print("Received null meeting id, ending current meeting...")
                 meeting.leave()
-                for participant in meeting.participants.values():
-                    for stream in participant.streams.values():
-                        if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
-                            await stream.track.stop()
+                # Clean up any processing resources
+                for processor in active_processors:
+                    await processor.cleanup()
+                active_processors.clear()
                 current_meeting_id = None
                 meeting = None
         await asyncio.sleep(5)
 
 ##############################################
-# GLOBAL REACT WEBSOCKET SERVER (Option 1)   #
+# REACT WEBSOCKET SERVER                     #
 ##############################################
 
-# Global set to store connected React clients
-global_react_clients = set()
-
-async def handle_react_client_global(websocket: websockets.WebSocketServerProtocol):
-    print(f"Global React client connected from {websocket.remote_address}")
-    global_react_clients.add(websocket)
+async def handle_react_client(websocket: websockets.WebSocketServerProtocol):
+    print(f"React client connected from {websocket.remote_address}")
+    react_clients.add(websocket)
     try:
         await websocket.wait_closed()
     finally:
-        global_react_clients.remove(websocket)
+        react_clients.remove(websocket)
 
-async def start_global_react_server():
-    async with websockets.serve(handle_react_client_global, "0.0.0.0", 8766):
-        print("Persistent Global React WebSocket server running on port 8766")
+async def start_react_server():
+    port = 8766
+    async with websockets.serve(handle_react_client, "0.0.0.0", port):
+        print(f"React WebSocket server running on port {port}")
         await asyncio.Future()
 
-async def broadcast_global(predictions):
-    if not global_react_clients:
+async def broadcast_predictions(predictions):
+    if not react_clients:
         return
     message = json.dumps({
         "status": "success",
         "predictions": predictions
     })
-    send_tasks = [asyncio.create_task(ws.send(message)) for ws in list(global_react_clients)]
+    send_tasks = [asyncio.create_task(ws.send(message)) for ws in list(react_clients)]
     if send_tasks:
         await asyncio.gather(*send_tasks, return_exceptions=True)
 
 ##############################################
-# EXISTING VIDEO/ML PROCESSOR (Modified)     #
+# VIDEO/ML PROCESSOR                         #
 ##############################################
 
-class OptimizedWebSocketProcessor:
+class VideoProcessor:
     def __init__(self) -> None:
         self.ml_websocket: Optional[websockets.WebSocketClientProtocol] = None
-        # Removed instance-specific react_clients; using global instead.
         self.last_process_time = 0
-        self.frame_interval = 1/2
+        self.frame_interval = 1/30  # 30 FPS for minimal delay
         self.last_predictions = []
         self.is_processing = False
         self.processing_task = None
         self.current_frame = None
         self.frame_ready = asyncio.Event()
-
+        self.last_broadcast_time = 0
+        self.broadcast_interval = 0.05  # Send at most 20 updates per second
+    
     async def start(self):
-        """Initialize and start all async tasks"""
+        """Initialize and start processing"""
         self.is_processing = True
+        active_processors.add(self)
         # Connect to ML server first
         await self.ensure_ml_connection()
-        # Start frame processing loop (do not start a per-instance react server)
+        # Start frame processing loop
         self.processing_task = asyncio.create_task(self.process_frames())
     
     async def cleanup(self):
-        """Clean up all resources and connections"""
+        """Clean up resources"""
         self.is_processing = False
         if self.ml_websocket:
             await self.ml_websocket.close()
@@ -162,7 +167,7 @@ class OptimizedWebSocketProcessor:
                 print(f"ML server connection failed: {e}")
                 await asyncio.sleep(0.5)
         return False
-    
+        
     async def process_frames(self):
         """Continuous frame processing loop"""
         while self.is_processing:
@@ -177,11 +182,10 @@ class OptimizedWebSocketProcessor:
                     continue
 
             try:
-                # Convert frame to jpg with optimal settings
+                # Convert frame to jpg
                 _, buffer = cv2.imencode('.jpg', self.current_frame, 
-                                          [cv2.IMWRITE_JPEG_QUALITY, 80,
-                                           cv2.IMWRITE_JPEG_PROGRESSIVE, 0,
-                                           cv2.IMWRITE_JPEG_OPTIMIZE, 1])
+                                         [cv2.IMWRITE_JPEG_QUALITY, 95,
+                                          cv2.IMWRITE_JPEG_OPTIMIZE, 1])
                 frame_data = b64encode(buffer).decode('utf-8')
                 
                 await self.ml_websocket.send(json.dumps({
@@ -194,10 +198,21 @@ class OptimizedWebSocketProcessor:
                 
                 if results.get("status") == "success":
                     predictions = results.get("predictions", [])
-                    if predictions != self.last_predictions:
+                    current_time = time()
+                    
+                    # Always broadcast empty predictions to clear UI
+                    if not predictions and self.last_predictions:
+                        await broadcast_predictions([])
+                        print("Broadcasting empty predictions to clear UI")
+                        self.last_predictions = []
+                    # For non-empty predictions, limit broadcast rate to reduce UI lag
+                    elif predictions and (predictions != self.last_predictions or 
+                                         current_time - self.last_broadcast_time >= self.broadcast_interval):
                         self.last_predictions = predictions
-                        # Broadcast predictions to the global React WebSocket clients
-                        await broadcast_global(predictions)
+                        self.last_broadcast_time = current_time
+                        await broadcast_predictions(predictions)
+                        if predictions:  # Guard against empty list
+                            print(f"Broadcasting prediction: {predictions[0]['gesture']} with confidence {predictions[0]['confidence']:.2f}")
                 
             except Exception as e:
                 print(f"Error in frame processing: {e}")
@@ -220,7 +235,7 @@ class ProcessedVideoTrack(CustomVideoTrack):
     def __init__(self, track):
         super().__init__()
         self.track = track
-        self.processor = OptimizedWebSocketProcessor()
+        self.processor = VideoProcessor()
         # Start the processor
         asyncio.create_task(self.processor.start())
 
@@ -228,79 +243,62 @@ class ProcessedVideoTrack(CustomVideoTrack):
         frame = await self.track.recv()
         return await self.processor.process(frame)
 
-    async def stop(self):
-        await self.processor.cleanup()
-
-def process_video(track: CustomVideoTrack):
-    global meeting
-    meeting.add_custom_video_track(
-        track=ProcessedVideoTrack(track=track)
-    )
-
 ##############################################
-# EVENT HANDLERS (Unchanged)                 #
+# SIMPLIFIED EVENT HANDLERS                  #
 ##############################################
 
-class MyMeetingEventHandler(MeetingEventHandler):
-    def __init__(self):
-        super().__init__()
-    def on_meeting_left(self, data):
-        print("on_meeting_left")
+class SimpleEventHandler(MeetingEventHandler):
     def on_participant_joined(self, participant: Participant):
-        participant.add_event_listener(
-            MyParticipantEventHandler(participant_id=participant.id)
-        )
-    def on_participant_left(self, participant: Participant):
-        print("on_participant_left")
+        # Just add an event listener to detect when video is enabled
+        participant.add_event_listener(SimpleParticipantHandler())
 
-class MyParticipantEventHandler(ParticipantEventHandler):
-    def __init__(self, participant_id: str):
-        super().__init__()
-        self.participant_id = participant_id
+class SimpleParticipantHandler(ParticipantEventHandler):
     def on_stream_enabled(self, stream: Stream):
-        print(f"Stream enabled: {stream.kind}")
+        # Only process video streams
         if stream.kind == "video":
-            process_video(track=stream.track)
-    def on_stream_disabled(self, stream: Stream):
-        print("on_stream_disabled")
+            print(f"Processing video stream from participant")
+            meeting.add_custom_video_track(
+                track=ProcessedVideoTrack(track=stream.track)
+            )
 
 ##############################################
 # MAIN FUNCTION                              #
 ##############################################
 
 async def main():
-    global meeting
+    monitor_task = None
+    react_server_task = None
     try:
-        # Start the meeting ID monitor in the background
+        # Start the meeting ID monitor
         monitor_task = asyncio.create_task(monitor_meeting())
-        # Start the persistent global React WebSocket server
-        react_server_task = asyncio.create_task(start_global_react_server())
+        
+        # Start the React WebSocket server
+        react_server_task = asyncio.create_task(start_react_server())
+        
         # Wait indefinitely
         await asyncio.Event().wait()
     except Exception as e:
         print(f"Error in main: {e}")
-        raise
     finally:
         print("Cleaning up...")
+        # Cancel background tasks
+        if monitor_task:
+            monitor_task.cancel()
+        if react_server_task:
+            react_server_task.cancel()
+            
+        # Leave meeting if active
         if meeting:
-            try:
-                for participant in meeting.participants.values():
-                    for stream in participant.streams.values():
-                        if hasattr(stream, 'track') and isinstance(stream.track, ProcessedVideoTrack):
-                            await stream.track.stop()
-                meeting.leave()
-                print("Successfully left meeting")
-            except Exception as e:
-                print(f"Error during cleanup: {e}")
+            meeting.leave()
+            
+        # Clean up processors
+        for processor in active_processors:
+            await processor.cleanup()
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nReceived keyboard interrupt, shutting down...")
+        print("\nShutting down...")
     except Exception as e:
         print(f"Fatal error: {e}")
-    finally:
-        pending = asyncio.all_tasks()
-        for task in pending:
-            task.cancel()

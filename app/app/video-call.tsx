@@ -128,11 +128,12 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
 
   return webcamOn && webcamStream ? (
     <View style={styles.mediaContainer}>
-      <RTCView
-        streamURL={new MediaStream([webcamStream.track]).toURL()}
-        objectFit="cover"
-        style={styles.mediaView}
-      />
+        <RTCView
+      streamURL={new MediaStream([webcamStream.track]).toURL()}
+      objectFit="cover"
+      style={styles.mediaView}
+      mirror={true}
+    />
       <GestureOverlay predictions={predictions} />
     </View>
   ) : (
@@ -195,6 +196,12 @@ const MeetingView: React.FC = () => {
   const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
 
+  // Filter out the AI_MODEL participant by name
+  const participantsFiltered = Array.from(participants.keys()).filter(participantId => {
+    const participant = participants.get(participantId);
+    return participant?.displayName !== 'AI_MODEL';
+  });
+
   useEffect(() => {
     if (joinedRef.current) {
       return;
@@ -207,14 +214,14 @@ const MeetingView: React.FC = () => {
         join();
       }, 200);
     }
-  }, [join, localParticipant?.id, participantsArrId]);
+  }, [join, localParticipant?.id, participantsFiltered]);
 
   return (
     <View style={styles.meetingContainer}>
       {meetingId && (
         <Text style={styles.meetingId}>Meeting Id: {meetingId}</Text>
       )}
-      <ParticipantList participants={participantsArrId} />
+      <ParticipantList participants={participantsFiltered} />
       <ControlsContainer />
     </View>
   );
