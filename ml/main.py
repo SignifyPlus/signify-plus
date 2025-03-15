@@ -1,5 +1,4 @@
 import asyncio
-import json
 from aiohttp import web
 
 CURRENT_MEETING_ID = None  # Global variable to store the meeting ID
