@@ -1,57 +1,64 @@
 import asyncio
-import websockets
 import json
 import cv2
 import numpy as np
 from base64 import b64decode
 import tensorflow as tf
-from typing import List
+from typing import List, Dict, Any
 import mediapipe as mp
 import dotenv
 import os
+from fastapi import WebSocket
 
 dotenv.load_dotenv()
 
-class KerasInferenceServer:
-    def __init__(self, 
-             host=None, 
-             port=None, 
-             model_path=None):
+class KerasInferenceService:
+    def __init__(self, model_path=None):
         """
-        host: IP/domain to run the WebSocket server
-        port: Port for the server
+        Initialize the Keras inference service
         model_path: Path to your Keras model file
         """
-        self.host = host or os.environ.get('ML_SERVER_HOST', '0.0.0.0')
-        self.port = port or int(os.environ.get('ML_SERVER_PORT', 8765))
         self.model_path = model_path or os.environ.get('ML_MODEL_PATH', './models/model.keras')
-        
-        self.load_model()
-        self.load_class_names()
-
         self.sequence_length = int(os.environ.get('ML_SEQUENCE_LENGTH', 30))
         self.confidence_threshold = float(os.environ.get('ML_CONFIDENCE_THRESHOLD', 0.95))
         
         self.sequence_buffer = [] 
         self.action_seq = []  
+        
+        # Hand state tracking
+        self.no_hand_counter = 0
+        self.no_hand_threshold = 3
+        self.hand_present = False
+        self.last_prediction = None
+        
+        # Active clients
+        self.active_clients = set()
 
+    async def initialize(self):
+        """Initialize the service, load models and resources"""
+        self.load_model()
+        self.load_class_names()
+        
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             max_num_hands=2,
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5   
         )
-        
-        # Hand state tracking (simplified)
-        self.no_hand_counter = 0
-        self.no_hand_threshold = 3
-        self.hand_present = False
-        self.last_prediction = None
+        print("ML Inference service initialized")
+        return self
+
+    async def cleanup(self):
+        """Clean up resources"""
+        # Release MediaPipe resources
+        self.hands.close()
+        return True
 
     def load_model(self):
         """Load the Keras model from the specified path."""
         try:
             self.model = tf.keras.models.load_model(self.model_path)
+            print(f"Loaded model from {self.model_path}")
         except Exception as e:
             print(f"Failed to load model from {self.model_path}: {e}")
             raise
@@ -84,6 +91,10 @@ class KerasInferenceServer:
         """
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(rgb_frame)
+        
+        if not results.multi_hand_landmarks:
+            return np.zeros(99, dtype=np.float32), False
+            
         for hand_landmarks in results.multi_hand_landmarks:
             # Extract joint coordinates
             joint = np.zeros((21, 4))
@@ -104,12 +115,14 @@ class KerasInferenceServer:
                 v[[1,2,3,5,6,7,9,10,11,13,14,15,17,18,19],:]))
             angle = np.degrees(angle)
             
-            # Concatenate joint.flatten() (84 values) and angle (15 values) to get 99 features.
+            # Concatenate joint.flatten() (84 values) and angle (15 values) to get 99 features
             d = np.concatenate([joint.flatten(), angle])
             return d, True
+            
         return np.zeros(99, dtype=np.float32), False
     
-    async def process_frame(self, frame: np.ndarray) -> List[dict]:
+    async def process_frame(self, frame: np.ndarray) -> List[Dict[str, Any]]:
+        """Process a video frame and return predictions"""
         try:
             features, hand_detected = self.extract_features(frame)
             
@@ -171,25 +184,24 @@ class KerasInferenceServer:
             print(f"Error during inference: {e}")
             return []
     
-    async def handle_client(self, websocket):
+    async def handle_client(self, websocket: WebSocket):
         """Handle WebSocket client connection"""
-        print("New client connected")
+        print("New inference client connected")
         
-        # Helper function for sending responses
-        async def send_response(status, data=None, error=None):
-            response = {"status": status}
-            if data is not None:
-                response.update(data)
-            if error is not None:
-                response["message"] = str(error)
-            await websocket.send(json.dumps(response))
-            
         try:
-            async for message in websocket:
+            # Helper function for sending responses
+            async def send_response(status, data=None, error=None):
+                response = {"status": status}
+                if data is not None:
+                    response.update(data)
+                if error is not None:
+                    response["message"] = str(error)
+                await websocket.send_json(response)
+                
+            async for message in websocket.iter_json():
                 try:
-                    data = json.loads(message)
-                    if data.get("type") == "frame":
-                        jpg_data = b64decode(data["data"])
+                    if message.get("type") == "frame":
+                        jpg_data = b64decode(message["data"])
                         nparr = np.frombuffer(jpg_data, np.uint8)
                         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                         
@@ -197,24 +209,6 @@ class KerasInferenceServer:
                         await send_response("success", {"predictions": predictions})
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    await send_response("error", error=e)
-        except websockets.exceptions.ConnectionClosed:
-            print("Client connection closed")
-    
-    async def start(self):
-        """Start the WebSocket server"""
-        server = await websockets.serve(self.handle_client, self.host, self.port)
-        print(f"Inference server running on ws://{self.host}:{self.port}")
-        await server.wait_closed()
-
-def main():
-    try:
-        server = KerasInferenceServer()
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(server.start())
-        loop.run_forever()
-    except Exception as e:
-        print(f"Fatal error: {e}")
-
-if __name__ == "__main__":
-    main()
+                    await send_response("error", error=str(e))
+        except Exception as e:
+            print(f"WebSocket connection error: {e}")
