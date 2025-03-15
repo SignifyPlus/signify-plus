@@ -10,7 +10,6 @@ class MessageSocket {
     constructor(socket, userSocketMap) {
         //setup rabbitMq
         this.#messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
-        this.establishConnectionWithRabbitMqQueue();
         //setup events (for observer/subject pattern)
         EventFactory.getEventDispatcher.registerListener(EventConstants.CHAT_CREATED_EVENT, this.chatCreatedListener.bind(this));
         //on db update (via an event), update the map/list
@@ -51,10 +50,7 @@ class MessageSocket {
 
             if (pingWasSuccesful) {
                 //aww this worked!! - blocks the execution
-                await CommonUtils.waitForVariableToBecomeNonNull(this.#getRabbitMqManager, 1000);
-                //requires an array
-                //send the data
-                console.log(this.#getRabbitMqManager());
+                await CommonUtils.waitForVariableToBecomeNonNull(this.#getRabbitMqManager);
                 await this.#getRabbitMqManager().queueMessage(this.#messageQueueName, [data]);
             }
         })
@@ -63,10 +59,7 @@ class MessageSocket {
     async chatCreatedListener() {
         //cache upon creation - (better approach since we are not monitoring database constantly + neither querying in each message socket event)
         this.#cachedChats = await this.cacheChats();
-    }
-
-    async establishConnectionWithRabbitMqQueue() {
-        await this.#getRabbitMqManager().establishConnection();
+        console.log(`Chat Renewed: ${this.#cachedChats}`);
     }
 
     async cacheChats () {
