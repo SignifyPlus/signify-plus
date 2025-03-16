@@ -3,13 +3,13 @@ const RabbitMqConstants = require("../constants/rabbitMqConstants.js");
 const ControllerFactory = require("../factories/controllerFactory.js");
 const EventFactory = require("../factories/eventFactory.js");
 const EventConstants = require("../constants/eventConstants.js");
+const CommonUtils = require("../utilities/commonUtils.js");
 class MessageSocket {
     #messageQueueName = null;
     #cachedChats = null;
     constructor(socket, userSocketMap) {
         //setup rabbitMq
         this.#messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
-        this.establishConnectionWithRabbitMqQueue();
         //setup events (for observer/subject pattern)
         EventFactory.getEventDispatcher.registerListener(EventConstants.CHAT_CREATED_EVENT, this.chatCreatedListener.bind(this));
         //on db update (via an event), update the map/list
@@ -29,16 +29,18 @@ class MessageSocket {
                 if (this.#messageQueueName == null) {
                     throw new Error(`Queue Name not initialized - terminating the event`);
                 }
+
+                //find the chat now
+                const chatId = await ControllerFactory.getChatController.filterChat(this.#cachedChats, [...data.targetPhoneNumbers, data.senderPhoneNumber]);
                 ///use event driven approach
-                data.targetPhoneNumbers.forEach(targetPhoneNumber => {
+                data.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                     if (userSocketMap[targetPhoneNumber] == null) {
                         console.log(`targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`);
                         return;
                     }
-                    console.log(`Original cached chat: ${this.#cachedChats}`);
-                    console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${targetPhoneNumber}`);
-                    //find the chat now
-                    socket.to(userSocketMap[targetPhoneNumber]).emit('message', data.message);
+                    console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${targetPhoneNumber} chatId: ${chatId}`);
+
+                    socket.to(userSocketMap[targetPhoneNumber]).emit('message', {message: data.message, chatId: chatId});
                 });
 
             }catch(exception) {
@@ -47,9 +49,9 @@ class MessageSocket {
             }
 
             if (pingWasSuccesful) {
-                //instead of queueing the same message for each number, just send it once to the rabbitMq - because the above loop is just to make sure the message is forwarded to the desired phoneNumber
-                //requires an array
-                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, [data]);
+                //aww this worked!! - blocks the execution
+                await CommonUtils.waitForVariableToBecomeNonNull(this.#getRabbitMqManager);
+                await this.#getRabbitMqManager().queueMessage(this.#messageQueueName, [data]);
             }
         })
     }
@@ -57,16 +59,17 @@ class MessageSocket {
     async chatCreatedListener() {
         //cache upon creation - (better approach since we are not monitoring database constantly + neither querying in each message socket event)
         this.#cachedChats = await this.cacheChats();
-    }
-
-    async establishConnectionWithRabbitMqQueue() {
-        await ManagerFactory.getRabbitMqQueueManager().establishConnection();
+        console.log(`Chat Renewed: ${this.#cachedChats}`);
     }
 
     async cacheChats () {
         return await ControllerFactory.getChatController.getAllChats();
     }
 
+    //a helper function
+    #getRabbitMqManager() {
+        return ManagerFactory.getRabbitMqQueueManager;
+    }
 } 
 
 module.exports = MessageSocket;

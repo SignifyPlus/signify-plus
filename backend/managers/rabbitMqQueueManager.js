@@ -1,7 +1,8 @@
 const amqp = require("amqplib");
+const CommonUtils = require("../utilities/commonUtils.js");
 class RabbitMQQueueManager {
-    #rabbitMqConnection = null;
-    #rabbitMqChannel = null;
+    #rabbitMqConnection;
+    #rabbitMqChannel;
     constructor(rabbitMqQueueURL) {
         this.rabbitMqQueueURL = rabbitMqQueueURL;
         this.#rabbitMqConnection = null;
@@ -38,20 +39,20 @@ class RabbitMQQueueManager {
         try {
             //message survives when persistent is set to true
             //durable : true, queue survives upon crash/restart
-            await this.#rabbitMqChannel.assertQueue(queueName, {durable: true});
-            this.#rabbitMqChannel.sendToQueue(queueName, Buffer.from(message), {persistent: true});
-            console.log(`Message has been queued!`);
+            CommonUtils.waitForVariableToBecomeNonNull(this.getRabbitMqChannel.bind(this), 1000)
+            await this.getRabbitMqChannel().assertQueue(queueName, {durable: true});
+            this.getRabbitMqChannel().sendToQueue(queueName, Buffer.from(message), {persistent: true});
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
             throw new Error(`${exception}`);
         }
     }
 
-    async getRabbitMqConnection() {
-        return this.#rabbitMqConnection
+    getRabbitMqConnection() {
+        return this.#rabbitMqConnection;
     }
 
-    async getRabbitMqChannel() {
+    getRabbitMqChannel() {
         return this.#rabbitMqChannel;
     }
 }

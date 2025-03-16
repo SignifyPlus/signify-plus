@@ -17,7 +17,7 @@ class ManagerFactory {
     constructor() {
     }
 
-    static getRabbitMqQueueManager() {
+    static get getRabbitMqQueueManager() {
         if (!this.#rabbitMqQueueManager) {
             this.#rabbitMqQueueManager = new RabbitMqQueueManager(process.env.CLOUD_AMQP_RABBIT_MQ_HOST_URL);
         }
