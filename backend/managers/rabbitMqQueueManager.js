@@ -42,6 +42,7 @@ class RabbitMQQueueManager {
             CommonUtils.waitForVariableToBecomeNonNull(this.getRabbitMqChannel.bind(this), 1000)
             await this.getRabbitMqChannel().assertQueue(queueName, {durable: true});
             this.getRabbitMqChannel().sendToQueue(queueName, Buffer.from(message), {persistent: true});
+            console.log(`Messagesa are Queued!`);
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
             throw new Error(`${exception}`);

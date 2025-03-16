@@ -31,11 +31,13 @@ signifyPlusApp.use('/chats', chatRoutes);
 signifyPlusApp.use('/messages', messageRoutes);
 
 //initialize RabbitMQ
-ManagerFactory.getRabbitMqQueueManager.establishConnection();
+ManagerFactory.getRabbitMqQueueManager().establishConnection();
 //initialzie Event Dispatcher
 EventFactory.setEventDispatcher = new EventDispatcher();
 //setup events
 EventFactory.setMessageEvent = new MessageEvent(EventFactory.getEventDispatcher);
+//setup processors, if any
+//ManagerFactory.getRabbitMqProcessorManager.ExecuteProcessors();
 //use these for reading connecting string from firebase
 mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));

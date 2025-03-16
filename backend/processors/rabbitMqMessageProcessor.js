@@ -1,10 +1,12 @@
 const ManagerFactory = require("../factories/managerFactory.js");
 const EventFactory = require("../factories/eventFactory.js");
+const CommonUtils = require("../utilities/commonUtils.js");
 class RabbitMqMessageProcessor{
     constructor() {}
     async executeMessageProcessor(messageDispatchEventName, queueName) {
         var consumerTag;
         try {
+            await CommonUtils.waitForVariableToBecomeNonNull(ManagerFactory.getRabbitMqQueueManager);
             await ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().assertQueue(queueName, {durable: true});
             consumerTag = ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().consume(queueName, (message) => {
                     if (message) {
