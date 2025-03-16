@@ -1,9 +1,8 @@
 const ManagerFactory = require("../factories/managerFactory.js");
 const EventFactory = require("../factories/eventFactory.js");
-const EventConstants = require("../constants/eventConstants.js");
 class RabbitMqMessageProcessor{
     constructor() {}
-    async messageProcessor(queueName) {
+    async executeMessageProcessor(messageDispatchEventName, queueName) {
         var consumerTag;
         try {
             await ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().assertQueue(queueName, {durable: true});
@@ -12,7 +11,7 @@ class RabbitMqMessageProcessor{
                         ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().ack(message);
                         const message = JSON.parse(message.content.toString());
                         //should be good now
-                        EventFactory.getEventDispatcher.dispatchEvent(EventConstants.MESSAGE_INGEST_EVENT, message);
+                        EventFactory.getEventDispatcher.dispatchEvent(messageDispatchEventName, message);
                     }
                 }, {noAck: false});
 
