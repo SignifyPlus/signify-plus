@@ -1,18 +1,17 @@
 const amqp = require("amqplib");
 const CommonUtils = require("../utilities/commonUtils.js");
 class RabbitMQQueueManager {
-    #rabbitMqConnection;
-    #rabbitMqChannel;
     constructor(rabbitMqQueueURL) {
         this.rabbitMqQueueURL = rabbitMqQueueURL;
-        this.#rabbitMqConnection = null;
-        this.#rabbitMqChannel = null;
+        this.rabbitMqConnection = null;
+        this.rabbitMqChannel = null;
+        this.establishConnection = this.establishConnection.bind(this);
     }
 
     async establishConnection() {
         try{
-            this.#rabbitMqConnection = await amqp.connect(this.rabbitMqQueueURL);
-            this.#rabbitMqChannel = await this.#rabbitMqConnection.createChannel();
+            this.rabbitMqConnection = await amqp.connect(this.rabbitMqQueueURL);
+            this.rabbitMqChannel = await this.rabbitMqConnection.createChannel();
         }catch(exception){
             console.log(`Error: ${exception}`);
             throw new Error(`${exception}`);
@@ -21,12 +20,12 @@ class RabbitMQQueueManager {
 
     async disposeConnection () {
         try {
-            if (this.#rabbitMqChannel) {
-                await this.#rabbitMqChannel.close();
+            if (this.rabbitMqChannel) {
+                await this.rabbitMqChannel.close();
             }
 
-            if (this.#rabbitMqConnection) {
-                await this.#rabbitMqConnection.close();
+            if (this.rabbitMqConnection) {
+                await this.rabbitMqConnection.close();
             }
 
         }catch(exception) {
@@ -42,6 +41,7 @@ class RabbitMQQueueManager {
             CommonUtils.waitForVariableToBecomeNonNull(this.getRabbitMqChannel.bind(this), 1000)
             await this.getRabbitMqChannel().assertQueue(queueName, {durable: true});
             this.getRabbitMqChannel().sendToQueue(queueName, Buffer.from(message), {persistent: true});
+            console.log(`Messagesa are Queued!`);
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
             throw new Error(`${exception}`);
@@ -49,11 +49,11 @@ class RabbitMQQueueManager {
     }
 
     getRabbitMqConnection() {
-        return this.#rabbitMqConnection;
+        return this.rabbitMqConnection;
     }
 
     getRabbitMqChannel() {
-        return this.#rabbitMqChannel;
+        return this.rabbitMqChannel;
     }
 }
 

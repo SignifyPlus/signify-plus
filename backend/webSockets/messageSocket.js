@@ -31,7 +31,7 @@ class MessageSocket {
                 }
 
                 //find the chat now
-                const chatId = await ControllerFactory.getChatController.filterChat(this.#cachedChats, [...data.targetPhoneNumbers, data.senderPhoneNumber]);
+                const chatId = await ControllerFactory.getChatController().filterChat(this.#cachedChats, [...data.targetPhoneNumbers, data.senderPhoneNumber]);
                 ///use event driven approach
                 data.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                     if (userSocketMap[targetPhoneNumber] == null) {
@@ -50,8 +50,8 @@ class MessageSocket {
 
             if (pingWasSuccesful) {
                 //aww this worked!! - blocks the execution
-                await CommonUtils.waitForVariableToBecomeNonNull(this.#getRabbitMqManager);
-                await this.#getRabbitMqManager().queueMessage(this.#messageQueueName, [data]);
+                await CommonUtils.waitForVariableToBecomeNonNull(ManagerFactory.getRabbitMqQueueManager);
+                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, [data]);
             }
         })
     }
@@ -63,12 +63,7 @@ class MessageSocket {
     }
 
     async cacheChats () {
-        return await ControllerFactory.getChatController.getAllChats();
-    }
-
-    //a helper function
-    #getRabbitMqManager() {
-        return ManagerFactory.getRabbitMqQueueManager;
+        return await ControllerFactory.getChatController().getAllChats();
     }
 } 
 

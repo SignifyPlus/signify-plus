@@ -7,10 +7,10 @@ chatRouter.get('/', async (request, response) => { //default for phoneNumber end
     return await ExceptionHelper.validate(null, 400, `phoneNumber is not provided.`, response);
 });
 
-chatRouter.get('/:phoneNumber', ControllerFactory.getChatController.getChatByPhoneNumber);
+chatRouter.get('/:phoneNumber', ControllerFactory.getChatController().getChatByPhoneNumber);
 
-chatRouter.get('/custom/id/:chatId', ControllerFactory.getChatController.getChatHistoryById);
+chatRouter.get('/custom/id/:chatId', ControllerFactory.getChatController().getChatHistoryById);
 
-chatRouter.post('/create', ControllerFactory.getChatController.initializeEmptyChat);
+chatRouter.post('/create', ControllerFactory.getChatController().initializeEmptyChat);
 
 module.exports = chatRouter;

@@ -43,39 +43,39 @@ class ControllerFactory {
     constructor() {
     }
 
-    static get getUserController() {
-        if (!this.#userController) {
-            this.#userController = new UserController();
+    static getUserController() {
+        if (!ControllerFactory.#userController) {
+            ControllerFactory.#userController = new UserController();
         }
-        return this.#userController;
+        return ControllerFactory.#userController;
     }
 
-    static get getChatController() {
-        if (!this.#chatController) {
-            this.#chatController = new ChatController();
+    static getChatController() {
+        if (!ControllerFactory.#chatController) {
+            ControllerFactory.#chatController = new ChatController();
         }
-        return this.#chatController;
+        return ControllerFactory.#chatController;
     }
 
-    static get getMessageController() {
-        if (!this.#messageController) {
-            this.#messageController = new MessageController();
+    static getMessageController() {
+        if (!ControllerFactory.#messageController) {
+            ControllerFactory.#messageController = new MessageController();
         }
-        return this.#messageController;
+        return ControllerFactory.#messageController;
     }
 
-    static get getContactController() {
-        if (!this.#contactController) {
-            this.#contactController = new ContactController();
+    static getContactController() {
+        if (!ControllerFactory.#contactController) {
+            ControllerFactory.#contactController = new ContactController();
         }
-        return this.#contactController;
+        return ControllerFactory.#contactController;
     }
 
-    static get getUserActivitiyController() {
-        if (!this.#userActivityController) {
-            this.#userActivityController = new UserActivityController();
+    static getUserActivitiyController() {
+        if (!ControllerFactory.#userActivityController) {
+            ControllerFactory.#userActivityController = new UserActivityController();
         }
-        return this.#userActivityController;
+        return ControllerFactory.#userActivityController;
     }
 }
 
