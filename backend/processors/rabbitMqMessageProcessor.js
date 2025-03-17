@@ -1,34 +1,36 @@
-const ManagerFactory = require("../factories/managerFactory.js");
 const EventFactory = require("../factories/eventFactory.js");
 const CommonUtils = require("../utilities/commonUtils.js");
 class RabbitMqMessageProcessor{
-    constructor() {}
-    async executeMessageProcessor(messageDispatchEventName, queueName) {
+    constructor() {
+        this.executeMessageProcessor = this.executeMessageProcessor.bind(this);
+        this.haltConsumer = this.haltConsumer.bind(this);
+    }
+    async executeMessageProcessor(rabbitMqChannel, messageDispatchEventName, queueName) {
         var consumerTag;
         try {
-            await CommonUtils.waitForVariableToBecomeNonNull(ManagerFactory.getRabbitMqQueueManager);
-            await ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().assertQueue(queueName, {durable: true});
-            consumerTag = ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().consume(queueName, (message) => {
+            await rabbitMqChannel.assertQueue(queueName, {durable: true});
+            consumerTag = rabbitMqChannel.consume(queueName, (message) => {
                     if (message) {
-                        ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().ack(message);
-                        const message = JSON.parse(message.content.toString());
+                        rabbitMqChannel.ack(message);
+                        console.log(message.content.toString());
+                        const parsedMessage = JSON.parse(message.content.toString());
                         //should be good now
-                        EventFactory.getEventDispatcher.dispatchEvent(messageDispatchEventName, message);
+                        EventFactory.getEventDispatcher.dispatchEvent(messageDispatchEventName, parsedMessage);
                     }
                 }, {noAck: false});
 
         }catch(exception) {
             console.log(`Exception Occured: ${exception}`);
-            await this.haltConsumer(consumerTag);
+            await this.haltConsumer(rabbitMqChannel, consumerTag);
             throw new Error(`${exception}`);
         }
     }
 
-    async haltConsumer(consumerTag) {
+    async haltConsumer(rabbitMqChannel, consumerTag) {
         if (consumerTag == null) {
             throw new Error(`Tried to close a consumer tag which is null!`);
         }
-        await ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().cancel(consumerTag);
+        await rabbitMqChannel.cancel(consumerTag);
     }
 }
 

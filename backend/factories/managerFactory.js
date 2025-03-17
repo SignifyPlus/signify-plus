@@ -13,17 +13,13 @@ class ManagerFactory {
      * @private
      * @type {RabbitMqQueueManager | null}
      */
-     static #rabbitMqQueueManager = null;
+    static #rabbitMqQueueManager = null;
 
      /**
      * @private
      * @type {RabbitMqProcessorManager | null}
      */
-     static #rabbitMqProcessorManager = null;
-
-
-    constructor() {
-    }
+    static #rabbitMqProcessorManager = null;
 
     static getRabbitMqQueueManager() {
         if (!ManagerFactory.#rabbitMqQueueManager) {
@@ -32,9 +28,9 @@ class ManagerFactory {
         return ManagerFactory.#rabbitMqQueueManager;
     }
 
-    static get getRabbitMqProcessorManager() {
+    static getRabbitMqProcessorManager() {
         if (!ManagerFactory.#rabbitMqProcessorManager) {
-            ManagerFactory.#rabbitMqProcessorManager = new RabbitMqProcessorManager();
+            ManagerFactory.#rabbitMqProcessorManager = new RabbitMqProcessorManager(ManagerFactory.getRabbitMqQueueManager());
         }
         return ManagerFactory.#rabbitMqProcessorManager;
     }

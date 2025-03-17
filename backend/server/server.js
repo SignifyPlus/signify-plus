@@ -13,8 +13,8 @@ const contactRoutes = require("../routes/ContactRoutes.js");
 const chatRoutes = require("../routes/ChatRoutes.js");
 const messageRoutes = require("../routes/MessageRoutes.js");
 const Encrypt = require("../utilities/encrypt.js");
-const EventDispatcher = require("../events/eventDispatcher.js");
 const MessageEvent = require("../events/services/messageEvent.js");
+const EventDispatcher = require("../events/eventDispatcher.js");
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -30,19 +30,40 @@ signifyPlusApp.use('/contacts', contactRoutes);
 signifyPlusApp.use('/chats', chatRoutes);
 signifyPlusApp.use('/messages', messageRoutes);
 
-//initialize RabbitMQ
-ManagerFactory.getRabbitMqQueueManager().establishConnection();
-//initialzie Event Dispatcher
-EventFactory.setEventDispatcher = new EventDispatcher();
-//setup events
-EventFactory.setMessageEvent = new MessageEvent(EventFactory.getEventDispatcher);
-//setup processors, if any
-//ManagerFactory.getRabbitMqProcessorManager.ExecuteProcessors();
-//use these for reading connecting string from firebase
-mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('MongoDB connection error:', err));
+//setup Server
+setupServer();
+//connect to the database
+connectToMongoDB();
 
 mainServer.listen(port, () => {
     console.log("Server is Running")
     const websocketManager = new WebSocketManager(mainServer);
 })
+
+async function setupServer() {
+    try {
+        //initialize RabbitMQ
+        await ManagerFactory.getRabbitMqQueueManager().establishConnection();
+        //initialzie Event Dispatcher
+        EventFactory.setEventDispatcher = new EventDispatcher();
+        EventFactory.setMessageEvent = new MessageEvent(EventFactory.getEventDispatcher);
+        //setup processors, if any
+        //debug this - currently it seems like nothing is getting queued properly
+        //await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
+        //use these for reading connecting string from firebase
+    }catch(exception) {
+        console.log(`Exception Occured ${exception}`);
+        throw new Error(exception);
+    }
+}
+
+async function connectToMongoDB() {
+    try {
+        //connect to the database now
+        await mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
+        .catch((err) => console.error('MongoDB connection error:', err));
+    }catch(exception) {
+        console.log(`Exception Occured ${exception}`);
+        throw new Error(exception);
+    }
+}
