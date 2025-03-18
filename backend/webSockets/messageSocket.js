@@ -51,7 +51,8 @@ class MessageSocket {
             if (pingWasSuccesful) {
                 //aww this worked!! - blocks the execution
                 await CommonUtils.waitForVariableToBecomeNonNull(ManagerFactory.getRabbitMqQueueManager);
-                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, [data]);
+                //send stringified data - otherwise causes issue
+                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, RabbitMqConstants.APPLICATION_JSON_CONTENT_TYPE, RabbitMqConstants.BUFFER_ENCODING, JSON.stringify(data));
             }
         })
     }

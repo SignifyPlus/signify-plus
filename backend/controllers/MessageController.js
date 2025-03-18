@@ -9,6 +9,7 @@ class MessageController {
     }
 
     //creates a message entry in the database, with To and From + content and chat id - if a chat doesn't exist before sending a message, initialize an empty chat
+    //refactor postMessage so it can be used by the event listeners as well
     postMessage = async(request, response) =>{
         try {
             //request validations

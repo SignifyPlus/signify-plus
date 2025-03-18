@@ -14,7 +14,7 @@ class EventDispatcher {
 
     async dispatchEvent(event, data) {
         if(this.#listeners[event]) {
-            this.#listeners[event].array.forEach(listener => {
+            this.#listeners[event].forEach(listener => {
                listener(data) 
             });
         }

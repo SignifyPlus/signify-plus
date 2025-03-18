@@ -12,8 +12,8 @@ class RabbitMqMessageProcessor{
             consumerTag = rabbitMqChannel.consume(queueName, (message) => {
                     if (message) {
                         rabbitMqChannel.ack(message);
-                        console.log(message.content.toString());
                         const parsedMessage = JSON.parse(message.content.toString());
+                        console.log(`Parsed Message: ${JSON.stringify(parsedMessage)}`);
                         //should be good now
                         EventFactory.getEventDispatcher.dispatchEvent(messageDispatchEventName, parsedMessage);
                     }
