@@ -13,7 +13,6 @@ class RabbitMqMessageProcessor{
                     if (message) {
                         rabbitMqChannel.ack(message);
                         const parsedMessage = JSON.parse(message.content.toString());
-                        console.log(`Parsed Message: ${JSON.stringify(parsedMessage)}`);
                         //should be good now
                         EventFactory.getEventDispatcher.dispatchEvent(messageDispatchEventName, parsedMessage);
                     }

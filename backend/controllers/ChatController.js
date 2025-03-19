@@ -110,6 +110,7 @@ class ChatController {
     }
 
     //Helper Methods
+    //revise this logic too! --not returning correct chat id i think
     async filterChat(cachedChats, phoneNumbers) {
         var chatId = null;
         for (var i = 0; i < cachedChats.length; i++) {

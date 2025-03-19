@@ -48,7 +48,7 @@ async function setupServer() {
         EventFactory.setEventDispatcher = new EventDispatcher();
         EventFactory.setMessageEvent = new MessageEvent(EventFactory.getEventDispatcher);
         //setup processors, if any
-        //await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
+        await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
         //use these for reading connecting string from firebase
     }catch(exception) {
         console.log(`Exception Occured ${exception}`);

@@ -5,5 +5,12 @@ class CommonUtils {
         }
         return getterFunction();
     }
+
+    static async isValueNull(valueToCheck) {
+        if (valueToCheck === undefined || valueToCheck === null) {
+            return true;
+        }
+        return false;
+    }
 }
 module.exports = CommonUtils;
