@@ -2,6 +2,7 @@ const ServiceFactory = require("../factories/serviceFactory.js");
 const ExceptionHelper = require("../exception/ExceptionHelper.js");
 const SignifyException = require("../exception/SignifyException.js");
 const TimeUtils = require("../utilities/timeUtils.js");
+const CommonUtils = require("../utilities/commonUtils.js");
 const ControllerConstants = require("../constants/controllerConstants.js");
 class MessageController {
     
@@ -9,7 +10,8 @@ class MessageController {
     }
 
     //creates a message entry in the database, with To and From + content and chat id - if a chat doesn't exist before sending a message, initialize an empty chat
-    postMessage = async(request, response) =>{
+    //refactor postMessage so it can be used by the event listeners as well
+    postMessage = async(request, response) => {
         try {
             //request validations
             const mainUserPhoneNumberValidation = await ExceptionHelper.validate(request.body.mainUserPhoneNumber, 400, `mainUserPhoneNumber is required!`, response);
@@ -91,6 +93,44 @@ class MessageController {
         }catch(exception) {
             return response.status(500).json({error: exception.message})
         }
+    }
+
+    //event database post methods
+    async postMessageToDb(mainUser, participants, message) {
+        //in the case of building chat history, we shouldn't let the application crash
+        //websockets are realtime, and throwing exceptions can lead to bad user experience.
+        //persistence of chat should take second priority so 
+        //if a chat doesn't exist, or if an XYZ user is missing from the user tble dont persist anything and send back an appropriate response, or log error etc
+        const mainUserPhoneNumberUserObject = await ServiceFactory.getUserService.getDocumentByCustomFilters({phoneNumber: mainUser});
+        if (await CommonUtils.isValueNull(mainUserPhoneNumberUserObject)) {
+            return null;
+        }
+
+        const targetUserPhoneNumberUserObjects = await ServiceFactory.getUserService.getDocumentsByCustomFilters({phoneNumber: {$in: participants}})
+        if (targetUserPhoneNumberUserObjects.length != participants.length) {
+            return null;
+        }
+        
+        const mappedTargetUserPhoneNumbersToId = targetUserPhoneNumberUserObjects.map(user => user._id.toString());
+        const mappedMainUserId = mainUserPhoneNumberUserObject._id.toString();
+
+        var chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({
+            mainUserId: mappedMainUserId,
+            participants: { $all: mappedTargetUserPhoneNumbersToId,
+                            $size: targetUserPhoneNumberUserObjects.length
+            }
+        }) 
+        
+        if (await CommonUtils.isValueNull(chat)) {
+            return null;
+        }
+
+        return await ServiceFactory.getMessageService.saveDocument({
+            senderId: mappedMainUserId,
+            receiverIds: mappedTargetUserPhoneNumbersToId,
+            chatId: chat._id.toString(),
+            content: message
+        });
     }
 }
 module.exports = MessageController;

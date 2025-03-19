@@ -6,9 +6,12 @@ class MessageEvent {
         eventDispatcher.registerListener(EventConstants.MESSAGE_INGEST_EVENT, this.IngestMessage.bind(this));
     }
 
-    async IngestMessage(from, to, message) {
+    async IngestMessage(messageObject) {
         //for persisting to the backend
-        const response = await ControllerFactory.getMessageController().postMessage({mainUserPhoneNumber: from , targetUserPhoneNumbers: to , message: message})
+        console.log(messageObject);
+        //need to fix this
+        const response = await ControllerFactory.getMessageController().postMessageToDb(messageObject.senderPhoneNumber, messageObject.targetPhoneNumbers, messageObject.message);
+        console.log(response);
         return response;
     }
 }

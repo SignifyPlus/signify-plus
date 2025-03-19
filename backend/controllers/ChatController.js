@@ -118,9 +118,13 @@ class ChatController {
             //this way if we have an exact match, that's the chat
             const chatPhoneNumbers = [...cachedChats[i].participants, cachedChats[i].mainUserId];
             chatPhoneNumbers.sort();
+            console.log(chatPhoneNumbers);
             phoneNumbers.sort();
+            console.log(phoneNumbers);
             //since sorted, the comparision will work
-            const perfectMatch = phoneNumbers.every((value, index) => value == chatPhoneNumbers[index].phoneNumber);
+            //once compared, please also check that the length is exact or not - we should not be returning a chat where there are extra participants but the above two phoneNumbers are part of that chat
+            //that will be a wrong chat then
+            const perfectMatch = phoneNumbers.length == chatPhoneNumbers.length && phoneNumbers.every((value, index) => value == chatPhoneNumbers[index].phoneNumber);
             if (perfectMatch) {
                 chatId = cachedChats[i]._id.toString();
                 break;
