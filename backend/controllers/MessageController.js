@@ -120,6 +120,16 @@ class MessageController {
                             $size: targetUserPhoneNumberUserObjects.length
             }
         }) 
+
+        //the fix is this - modify the above query to look in participants as well, but come up with a better solution
+        //the sender can be in participants but we need to reverse the chat and also confirm the length
+        //do this tomorrow!
+        const chatsQuery = ServiceFactory.getChatService.getDocumentsByCustomFiltersQuery({
+            $or: [ //checks in both mainUserId + participants!
+                {mainUserId: mappedMainUserId},
+                {participants: mappedMainUserId}
+            ]
+        });
         
         if (await CommonUtils.isValueNull(chat)) {
             return null;
