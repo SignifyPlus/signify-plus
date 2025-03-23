@@ -8,8 +8,12 @@ class ChatController {
     }
 
     initializeEmptyChat = async(request, response) => {
+        var moongooseSession = null;
         try {
             //request validation
+            moongooseSession = await ServiceFactory.getMongooseService.getMoongooseSession();
+            await ServiceFactory.getMongooseService.startMongooseTransaction(moongooseSession);
+
             const mainUserPhoneNumberValidation = await ExceptionHelper.validate(request.body.mainUserPhoneNumber, 400, `mainUserPhoneNumber is not provided.`, response);
             if (mainUserPhoneNumberValidation) return mainUserPhoneNumberValidation;
  
@@ -35,6 +39,7 @@ class ChatController {
 
             return response.json(chat);
         }catch(exception) {
+            await ServiceFactory.getMongooseService.abandonMongooseTransaction(moongooseSession);
             const signifyException = new SignifyException(500, `Exception Occured: ${exception.message}`);
             return response.status(signifyException.status).json(signifyException.loadResult());
         }

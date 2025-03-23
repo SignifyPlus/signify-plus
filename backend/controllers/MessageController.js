@@ -96,7 +96,7 @@ class MessageController {
     }
 
     //event database post methods
-    async postMessageToDb(mainUser, participants, message) {
+    async postMessageToDb(mainUser, participants, message, chatId) {
         //in the case of building chat history, we shouldn't let the application crash
         //websockets are realtime, and throwing exceptions can lead to bad user experience.
         //persistence of chat should take second priority so 
@@ -113,32 +113,11 @@ class MessageController {
         
         const mappedTargetUserPhoneNumbersToId = targetUserPhoneNumberUserObjects.map(user => user._id.toString());
         const mappedMainUserId = mainUserPhoneNumberUserObject._id.toString();
-
-        var chat = await ServiceFactory.getChatService.getDocumentByCustomFilters({
-            mainUserId: mappedMainUserId,
-            participants: { $all: mappedTargetUserPhoneNumbersToId,
-                            $size: targetUserPhoneNumberUserObjects.length
-            }
-        }) 
-
-        //the fix is this - modify the above query to look in participants as well, but come up with a better solution
-        //the sender can be in participants but we need to reverse the chat and also confirm the length
-        //do this tomorrow!
-        const chatsQuery = ServiceFactory.getChatService.getDocumentsByCustomFiltersQuery({
-            $or: [ //checks in both mainUserId + participants!
-                {mainUserId: mappedMainUserId},
-                {participants: mappedMainUserId}
-            ]
-        });
         
-        if (await CommonUtils.isValueNull(chat)) {
-            return null;
-        }
-
         return await ServiceFactory.getMessageService.saveDocument({
             senderId: mappedMainUserId,
             receiverIds: mappedTargetUserPhoneNumbersToId,
-            chatId: chat._id.toString(),
+            chatId: chatId,
             content: message
         });
     }

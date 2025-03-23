@@ -40,7 +40,6 @@ class RabbitMQQueueManager {
             //durable : true, queue survives upon crash/restart
             CommonUtils.waitForVariableToBecomeNonNull(this.getRabbitMqChannel.bind(this), 1000)
             await this.getRabbitMqChannel().assertQueue(queueName, {durable: true});
-            console.log(`Stringified Data: ${stringifiedData}`);
             console.log(`Buffered Data - ${Buffer.from(stringifiedData, 'utf-8')}`);
             const sentToQueue = this.getRabbitMqChannel().sendToQueue(queueName, Buffer.from(stringifiedData, bufferEncoding), {persistent: true, contentType: contentType});
             console.log(`Is Message Queued: ${sentToQueue}`);

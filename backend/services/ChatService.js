@@ -35,7 +35,7 @@ class ChatService extends AbstractService {
             return new SignifyException(400, `Couldn't save chat - please look at the data ${data}`);
         }
         //trigger chat event
-        EventFactory.getEventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
+        await EventFactory.getEventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
         return chat;
     }
 

@@ -4,23 +4,25 @@ class AbstractService {
         this.schemaModel = schemaModel;
     }
 
-    async getDocuments() {
+    async getDocuments(session = null) {
         try{
-            return await this.schemaModel.find();
+            const document = session ? await this.schemaModel.find().session(session) : await this.schemaModel.find();
+            return document;
         }catch(exception){
             throw new Error(`Error Fetching the Documents: ${exception.message}`);
         }
     }
 
-    getDocumentsQuery() {
+    getDocumentsQuery(session = null) {
         try{
-            return this.schemaModel.find();
+            const documents = session ? this.schemaModel.find().session(session) : this.schemaModel.find().session(session);
+            return documents;
         }catch(exception){
             throw new Error(`Error Fetching the Documents: ${exception.message}`);
         }
     }
 
-    async getDocumentsByCustomFilters(filterConditions) {
+    async getDocumentsByCustomFilters(filterConditions, session = null) {
         try{
             return await this.schemaModel.find(filterConditions);
         }catch(exception){
@@ -28,7 +30,7 @@ class AbstractService {
         }
     }
 
-    async getDocumentById(objectId) {
+    async getDocumentById(objectId, session = null) {
         try{
             return await this.schemaModel.findById(objectId);
         }catch(exception){
@@ -36,7 +38,7 @@ class AbstractService {
         }
     }
 
-    getDocumentsByCustomFiltersQuery(filterConditions) {
+    getDocumentsByCustomFiltersQuery(filterConditions, session = null) {
         try{
             return this.schemaModel.find(filterConditions);
         }catch(exception){
@@ -44,7 +46,7 @@ class AbstractService {
         }
     }
 
-    async getDocumentByCustomFilters(filterConditions) {
+    async getDocumentByCustomFilters(filterConditions, session = null) {
         try{
             const entity = await this.schemaModel.findOne(filterConditions);
             return entity;
@@ -53,7 +55,7 @@ class AbstractService {
         }
     }
 
-    async updateDocument(filterConditions, updateFields) {
+    async updateDocument(filterConditions, updateFields, session = null) {
         try{
             const entity = await this.schemaModel.findOneAndUpdate(filterConditions, updateFields, {new : true});
             return entity;
@@ -62,16 +64,16 @@ class AbstractService {
         }
     }
 
-    async saveDocument(data) {
+    async saveDocument(data, session = null) {
         try{
-            const entity = await this.schemaModel.create(data);
+            const entity = session ? await this.schemaModel.create(data).session(session) : await this.schemaModel.create(data);
             return entity;
         }catch(exception){
             throw new Error(`Error Saving the Document: ${exception.message}`);
         }
     }
 
-    async saveDocuments(data) {
+    async saveDocuments(data, session = null) {
         try{
             const entity = await this.schemaModel.insertMany(data);
             return entity;
@@ -80,7 +82,7 @@ class AbstractService {
         }
     }
 
-    async deleteDocument(filterConditions) {
+    async deleteDocument(filterConditions, session = null) {
         try{
             const entity = await this.schemaModel.findOneAndDelete(filterConditions, {new : true})
             return entity;
@@ -90,7 +92,7 @@ class AbstractService {
     }
 
     
-    async deleteDocuments(filterConditions) {
+    async deleteDocuments(filterConditions, session = null) {
         try{
             const entity = await this.schemaModel.deleteMany(filterConditions)
             return entity;
@@ -99,7 +101,7 @@ class AbstractService {
         }
     }
 
-    async deleteDocumentById(objectId) {
+    async deleteDocumentById(objectId, session = null) {
         try{
             const entity = await this.schemaModel.findOneAndDelete({_id: objectId}, {new : true})
             return entity;
