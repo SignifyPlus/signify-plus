@@ -49,6 +49,7 @@ const Settings = require("../models/Settings.js");
 const ThreadComment = require("../models/ThreadComment.js");
 const User = require("../models/User.js");
 const UserActivity = require("../models/UserActivity.js");
+const MongooseService = require("../services/mongooseService.js");
 
 class ServiceFactory {
     //private fields
@@ -171,6 +172,12 @@ class ServiceFactory {
       * @type {UserService | null}
       */
      static #userService = null;
+
+    /**
+      * @private
+      * @type {MongooseService | null}
+    */
+          static #mongooseService = null;
 
     constructor() {
     }
@@ -313,6 +320,13 @@ class ServiceFactory {
             this.#userService = new UserService(User);
         }
         return this.#userService;
+    }
+
+    static get getMongooseService() {
+        if (!this.#mongooseService) {
+            this.#mongooseService = new MongooseService()
+        }
+        return this.#mongooseService;
     }
 }
 

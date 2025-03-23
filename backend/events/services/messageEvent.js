@@ -8,10 +8,8 @@ class MessageEvent {
 
     async IngestMessage(messageObject) {
         //for persisting to the backend
-        console.log(messageObject);
-        //need to fix this
-        const response = await ControllerFactory.getMessageController().postMessageToDb(messageObject.senderPhoneNumber, messageObject.targetPhoneNumbers, messageObject.message);
-        console.log(response);
+        const response = await ControllerFactory.getMessageController().postMessageToDb(messageObject.data.senderPhoneNumber, messageObject.data.targetPhoneNumbers, 
+            messageObject.data.message, messageObject.chatId);
         return response;
     }
 }

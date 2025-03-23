@@ -1,5 +1,4 @@
 const EventFactory = require("../factories/eventFactory.js");
-const CommonUtils = require("../utilities/commonUtils.js");
 class RabbitMqMessageProcessor{
     constructor() {
         this.executeMessageProcessor = this.executeMessageProcessor.bind(this);

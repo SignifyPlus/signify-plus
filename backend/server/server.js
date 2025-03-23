@@ -3,7 +3,6 @@ require("reflect-metadata");
 const { injectable, inject } = require('inversify');
 const express = require("express");
 const http = require('http');
-const mongoose = require("mongoose");
 const WebSocketManager = require("../managers/websocketManager.js");
 const EventFactory = require("../factories/eventFactory.js");
 const ManagerFactory = require("../factories/managerFactory.js");
@@ -15,6 +14,7 @@ const messageRoutes = require("../routes/MessageRoutes.js");
 const Encrypt = require("../utilities/encrypt.js");
 const MessageEvent = require("../events/services/messageEvent.js");
 const EventDispatcher = require("../events/eventDispatcher.js");
+const ServiceFactory = require("../factories/serviceFactory.js");
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -33,7 +33,7 @@ signifyPlusApp.use('/messages', messageRoutes);
 //setup Server
 setupServer();
 //connect to the database
-connectToMongoDB();
+ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 
 mainServer.listen(port, () => {
     console.log("Server is Running")
@@ -50,17 +50,6 @@ async function setupServer() {
         //setup processors, if any
         await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
         //use these for reading connecting string from firebase
-    }catch(exception) {
-        console.log(`Exception Occured ${exception}`);
-        throw new Error(exception);
-    }
-}
-
-async function connectToMongoDB() {
-    try {
-        //connect to the database now
-        await mongoose.connect(mongoDburl).then(() => console.log('Connected to MongoDB'))
-        .catch((err) => console.error('MongoDB connection error:', err));
     }catch(exception) {
         console.log(`Exception Occured ${exception}`);
         throw new Error(exception);

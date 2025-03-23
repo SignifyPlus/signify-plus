@@ -25,6 +25,7 @@
     "mongodb": "6.10",
     "mongoose": "^8.10.1",
     "mysql": "^2.18.1",
+    "pino": "^9.6.0",
     "reflect-metadata": "^0.2.2",
     "signify-plus": "file:",
     "socket.io": "^4.8.1",

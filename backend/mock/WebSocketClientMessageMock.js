@@ -18,6 +18,11 @@ mockSocketUser1.on('connect', () => {
 
 mockSocketUser1.on('message', (message) => {
     console.log(`Incoming Message from Mock2: ${message}`);
+    // mockSocketUser1.emit('message', {
+    //     message: "Damn sexyyyy gay boi!!",
+    //     senderPhoneNumber: "868578654",
+    //     targetPhoneNumbers: ['868578654']
+    // });
 });
 
 mockSocketUser1.on('disconnect', () => {
