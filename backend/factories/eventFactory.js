@@ -26,25 +26,25 @@ class EventFactory {
     }
 
     static get getEventDispatcher() {
-        return this.#eventDispatcher;
+        return EventFactory.#eventDispatcher;
     }
     
     /**
      * @param {(param: EventDispatcher) => void} value
      */
     static set setEventDispatcher(value) {
-        this.#eventDispatcher = value;
+        EventFactory.#eventDispatcher = value;
     }
 
     static get getMessageEvent() {
-        return this.#messageEvent;
+        return EventFactory.#messageEvent;
     }
         
     /**
      * @param {(param: MessageEvent) => void} value
      */
     static set setMessageEvent(value) {
-        this.#messageEvent = value;
+        EventFactory.#messageEvent = value;
     }
 }
 

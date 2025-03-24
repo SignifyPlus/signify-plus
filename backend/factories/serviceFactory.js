@@ -183,150 +183,150 @@ class ServiceFactory {
     }
 
     static get getCallHistoryService() {
-        if (!this.#callHistoryService) {
-            this.#callHistoryService = new CallHistoryService(CallHistory);
+        if (!ServiceFactory.#callHistoryService) {
+            ServiceFactory.#callHistoryService = new CallHistoryService(CallHistory);
         }
-        return this.#callHistoryService;
+        return ServiceFactory.#callHistoryService;
     }
 
     static get getChannelService() {
-        if (!this.#channelService) {
-            this.#channelService = new ChannelService(Channel);
+        if (!ServiceFactory.#channelService) {
+            ServiceFactory.#channelService = new ChannelService(Channel);
         }
-        return this.#channelService;
+        return ServiceFactory.#channelService;
     }
 
     static get getChannelSubscriberService() {
-        if (!this.#channelSubscriberService) {
-            this.#channelSubscriberService = new ChannelSubscriberService(ChannelSubscriber);
+        if (!ServiceFactory.#channelSubscriberService) {
+            ServiceFactory.#channelSubscriberService = new ChannelSubscriberService(ChannelSubscriber);
         }
-        return this.#channelSubscriberService;
+        return ServiceFactory.#channelSubscriberService;
     }
 
     static get getContactService() {
-        if (!this.#contactService) {
-            this.#contactService = new ContactService(Contact);
+        if (!ServiceFactory.#contactService) {
+            ServiceFactory.#contactService = new ContactService(Contact);
         }
-        return this.#contactService;
+        return ServiceFactory.#contactService;
     }
 
     static get getForumMemberService() {
-        if (!this.#forumMemberService) {
-            this.#forumMemberService = new ForumMemberService(ForumMember);
+        if (!ServiceFactory.#forumMemberService) {
+            ServiceFactory.#forumMemberService = new ForumMemberService(ForumMember);
         }
-        return this.#forumMemberService;
+        return ServiceFactory.#forumMemberService;
     }
 
     static get getForumPermissionsService() {
-        if (!this.#forumPermissionsService) {
-            this.#forumPermissionsService = new ForumPermissionsService(ForumPermissions);
+        if (!ServiceFactory.#forumPermissionsService) {
+            ServiceFactory.#forumPermissionsService = new ForumPermissionsService(ForumPermissions);
         }
-        return this.#forumPermissionsService;
+        return ServiceFactory.#forumPermissionsService;
     }
 
     static get getForumService() {
-        if (!this.#forumService) {
-            this.#forumService = new ForumService(Forum);
+        if (!ServiceFactory.#forumService) {
+            ServiceFactory.#forumService = new ForumService(Forum);
         }
-        return this.#forumService;
+        return ServiceFactory.#forumService;
     }
 
     static get getForumThreadService() {
-        if (!this.#forumThreadService) {
-            this.#forumThreadService = new ForumThreadService(ForumThread);
+        if (!ServiceFactory.#forumThreadService) {
+            ServiceFactory.#forumThreadService = new ForumThreadService(ForumThread);
         }
-        return this.#forumThreadService;
+        return ServiceFactory.#forumThreadService;
     }
 
     static get getGroupMemberService() {
-        if (!this.#groupMemberService) {
-            this.#groupMemberService = new GroupMemberService(GroupMember);
+        if (!ServiceFactory.#groupMemberService) {
+            ServiceFactory.#groupMemberService = new GroupMemberService(GroupMember);
         }
-        return this.#groupMemberService;
+        return ServiceFactory.#groupMemberService;
     }
 
     static get getGroupService() {
-        if (!this.#groupService) {
-            this.#groupService = new GroupService(Group);
+        if (!ServiceFactory.#groupService) {
+            ServiceFactory.#groupService = new GroupService(Group);
         }
-        return this.#groupService;
+        return ServiceFactory.#groupService;
     }
 
     static get getMediaService() {
-        if (!this.#mediaService) {
-            this.#mediaService = new MediaService(Media);
+        if (!ServiceFactory.#mediaService) {
+            ServiceFactory.#mediaService = new MediaService(Media);
         }
-        return this.#mediaService;
+        return ServiceFactory.#mediaService;
     }
 
     static get getMessageService() {
-        if (!this.#messageService) {
-            this.#messageService = new MessageService(Message);
+        if (!ServiceFactory.#messageService) {
+            ServiceFactory.#messageService = new MessageService(Message);
         }
-        return this.#messageService;
+        return ServiceFactory.#messageService;
     }
 
     static get getChatService() {
-        if (!this.#chatService) {
-            this.#chatService = new ChatService(Chat);
+        if (!ServiceFactory.#chatService) {
+            ServiceFactory.#chatService = new ChatService(Chat);
         }
-        return this.#chatService;
+        return ServiceFactory.#chatService;
     }
 
     static get getNotificationService() {
-        if (!this.#notificationService) {
-            this.#notificationService = new NotificationService(Notification);
+        if (!ServiceFactory.#notificationService) {
+            ServiceFactory.#notificationService = new NotificationService(Notification);
         }
-        return this.#notificationService;
+        return ServiceFactory.#notificationService;
     }
 
     static get getReactionService() {
-        if (!this.#reactionService) {
-            this.#reactionService = new ReactionService(Reaction);
+        if (!ServiceFactory.#reactionService) {
+            ServiceFactory.#reactionService = new ReactionService(Reaction);
         }
-        return this.#reactionService;
+        return ServiceFactory.#reactionService;
     }
 
     static get getReportService() {
-        if (!this.#reportService) {
-            this.#reportService = new ReportService(Report);
+        if (!ServiceFactory.#reportService) {
+            ServiceFactory.#reportService = new ReportService(Report);
         }
-        return this.#reportService;
+        return ServiceFactory.#reportService;
     }
 
     static get getSettingsService() {
-        if (!this.#settingsService) {
-            this.#settingsService = new SettingsService(Settings);
+        if (!ServiceFactory.#settingsService) {
+            ServiceFactory.#settingsService = new SettingsService(Settings);
         }
-        return this.#settingsService;
+        return ServiceFactory.#settingsService;
     }
 
     static get getThreadCommentService() {
-        if (!this.#threadCommentService) {
-            this.#threadCommentService = new ThreadCommentService(ThreadComment);
+        if (!ServiceFactory.#threadCommentService) {
+            ServiceFactory.#threadCommentService = new ThreadCommentService(ThreadComment);
         }
-        return this.#threadCommentService;
+        return ServiceFactory.#threadCommentService;
     }
 
     static get getUserActivityService() {
-        if (!this.#userActivityService) {
-            this.#userActivityService = new UserActivityService(UserActivity);
+        if (!ServiceFactory.#userActivityService) {
+            ServiceFactory.#userActivityService = new UserActivityService(UserActivity);
         }
-        return this.#userActivityService;
+        return ServiceFactory.#userActivityService;
     }
 
     static get getUserService() {
-        if (!this.#userService) {
-            this.#userService = new UserService(User);
+        if (!ServiceFactory.#userService) {
+            ServiceFactory.#userService = new UserService(User);
         }
-        return this.#userService;
+        return ServiceFactory.#userService;
     }
 
     static get getMongooseService() {
-        if (!this.#mongooseService) {
-            this.#mongooseService = new MongooseService()
+        if (!ServiceFactory.#mongooseService) {
+            ServiceFactory.#mongooseService = new MongooseService()
         }
-        return this.#mongooseService;
+        return ServiceFactory.#mongooseService;
     }
 }
 

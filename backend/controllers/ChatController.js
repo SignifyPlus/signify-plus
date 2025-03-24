@@ -1,7 +1,6 @@
 const ServiceFactory = require("../factories/serviceFactory.js");
 const ExceptionHelper = require("../exception/ExceptionHelper.js");
 const SignifyException = require("../exception/SignifyException.js");
-const { default: mongoose } = require("mongoose");
 class ChatController {
     
     constructor(){
@@ -32,11 +31,13 @@ class ChatController {
                 return response.status(signifyException.status).json(signifyException.loadResult());
             }
             //create chat document/object
+            //when using session, we must pass documents as an array, be it a single doc, or multiple
             const chat = await ServiceFactory.getChatService.saveDocument({
                 mainUserId: mainUserPhoneNumberUserObject._id.toString(),
                 participants: particpantsUserObjects.map(participant => participant._id.toString())
-            });
+            }, moongooseSession);
 
+            await ServiceFactory.getMongooseService.commitMongooseTransaction();
             return response.json(chat);
         }catch(exception) {
             await ServiceFactory.getMongooseService.abandonMongooseTransaction(moongooseSession);
