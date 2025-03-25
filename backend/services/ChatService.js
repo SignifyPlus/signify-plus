@@ -1,6 +1,7 @@
 const AbstractService = require('./AbstractService')
 const EventConstants = require("../constants/eventConstants.js");
 const SignifyException = require('../exception/SignifyException.js');
+const EventDispatcher = require("../events/eventDispatcher.js");
 class ChatService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
@@ -34,9 +35,7 @@ class ChatService extends AbstractService {
             return new SignifyException(400, `Couldn't save chat - please look at the data ${data}`);
         }
         //trigger chat event
-        console.log(EventFactory);
-        console.log(EventFactory.getEventDispatcher);
-        await EventFactory.getEventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
+        await EventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
         return chat;
     }
 

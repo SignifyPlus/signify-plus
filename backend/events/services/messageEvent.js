@@ -1,9 +1,10 @@
 const EventConstants = require("../../constants/eventConstants.js");
 const ControllerFactory = require("../../factories/controllerFactory.js");
+const EventDispatcher = require("../eventDispatcher.js");
 class MessageEvent {
-    constructor(eventDispatcher){
+    constructor(){
         //registers one of the message Events!
-        eventDispatcher.registerListener(EventConstants.MESSAGE_INGEST_EVENT, this.IngestMessage.bind(this));
+        EventDispatcher.registerListener(EventConstants.MESSAGE_INGEST_EVENT, this.IngestMessage.bind(this));
     }
 
     async IngestMessage(messageObject) {

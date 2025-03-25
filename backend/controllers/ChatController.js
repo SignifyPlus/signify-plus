@@ -37,7 +37,7 @@ class ChatController {
                 participants: particpantsUserObjects.map(participant => participant._id.toString())
             }, moongooseSession);
 
-            await ServiceFactory.getMongooseService.commitMongooseTransaction();
+            await ServiceFactory.getMongooseService.commitMongooseTransaction(moongooseSession);
             return response.json(chat);
         }catch(exception) {
             await ServiceFactory.getMongooseService.abandonMongooseTransaction(moongooseSession);

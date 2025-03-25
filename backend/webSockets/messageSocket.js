@@ -4,6 +4,7 @@ const EventFactory = require("../factories/eventFactory.js");
 const EventConstants = require("../constants/eventConstants.js");
 const CommonUtils = require("../utilities/commonUtils.js");
 const MessageSocketUtils = require("./utils/messageSocketUtils.js");
+const EventDispatcher = require("../events/eventDispatcher.js");
 class MessageSocket {
     #messageQueueName = null;
     #cachedChats = null;
@@ -11,8 +12,7 @@ class MessageSocket {
         //setup rabbitMq
         this.#messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
         //setup events (for observer/subject pattern)
-        EventFactory.getEventDispatcher.registerListener(EventConstants.CHAT_CREATED_EVENT, this.chatCreatedListener.bind(this));
-        console.log(`Here!`);
+        EventDispatcher.registerListener(EventConstants.CHAT_CREATED_EVENT, this.chatCreatedListener.bind(this));
         //on db update (via an event), update the map/list
         this.#cachedChats = MessageSocketUtils.cacheChats();
         this.messageEvent(socket, userSocketMap);
@@ -63,7 +63,6 @@ class MessageSocket {
     async chatCreatedListener() {
         //cache upon creation - (better approach since we are not monitoring database constantly + neither querying in each message socket event)
         this.#cachedChats = await MessageSocketUtils.cacheChats();
-        console.log(`Chat Renewed: ${this.#cachedChats}`);
     }
 } 
 
