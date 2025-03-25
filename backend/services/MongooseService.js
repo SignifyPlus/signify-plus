@@ -20,15 +20,23 @@ class MongooseService{
         if (!session || session === undefined) {
             throw new Error(`${session} is Not a valid Mongoose Session...`);
         }
-        session.startTransaction();
+        await session.startTransaction();
     }
 
     async abandonMongooseTransaction(session) {
         if (!session || session === undefined) {
             throw new Error(`${session} is Not a valid Mongoose Session...`);
         }
-        session.abortTransaction();
+        await session.abortTransaction();
     }
+
+    async commitMongooseTransaction(session) {
+        if (!session || session === undefined) {
+            throw new Error(`${session} is Not a valid Mongoose Session...`);
+        }
+        await session.commitTransaction();
+    }
+
 }
 
 module.exports = MongooseService;

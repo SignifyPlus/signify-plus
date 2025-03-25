@@ -1,6 +1,5 @@
 require("dotenv").config();
 require("reflect-metadata");
-const { injectable, inject } = require('inversify');
 const express = require("express");
 const http = require('http');
 const WebSocketManager = require("../managers/websocketManager.js");
@@ -23,15 +22,12 @@ const mainServer = http.createServer(signifyPlusApp);
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
 
-//routes
-signifyPlusApp.use('/users', userRoutes);
-signifyPlusApp.use('/', homeRoutes);
-signifyPlusApp.use('/contacts', contactRoutes);
-signifyPlusApp.use('/chats', chatRoutes);
-signifyPlusApp.use('/messages', messageRoutes);
-
 //setup Server
 setupServer();
+
+//routes
+setupApplicationRoutes(signifyPlusApp);
+
 //connect to the database
 ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 
@@ -50,6 +46,19 @@ async function setupServer() {
         //setup processors, if any
         await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
         //use these for reading connecting string from firebase
+    }catch(exception) {
+        console.log(`Exception Occured ${exception}`);
+        throw new Error(exception);
+    }
+}
+
+function setupApplicationRoutes(signifyPlusAppServer) {
+    try {
+        signifyPlusAppServer.use('/users', userRoutes);
+        signifyPlusAppServer.use('/', homeRoutes);
+        signifyPlusAppServer.use('/contacts', contactRoutes);
+        signifyPlusAppServer.use('/chats', chatRoutes);
+        signifyPlusAppServer.use('/messages', messageRoutes);
     }catch(exception) {
         console.log(`Exception Occured ${exception}`);
         throw new Error(exception);

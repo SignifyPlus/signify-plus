@@ -1,4 +1,4 @@
-const EventFactory = require("../factories/eventFactory.js");
+const EventDispatcher = require("../events/eventDispatcher.js");
 class RabbitMqMessageProcessor{
     constructor() {
         this.executeMessageProcessor = this.executeMessageProcessor.bind(this);
@@ -13,7 +13,7 @@ class RabbitMqMessageProcessor{
                         rabbitMqChannel.ack(message);
                         const parsedMessage = JSON.parse(message.content.toString());
                         //should be good now
-                        EventFactory.getEventDispatcher.dispatchEvent(messageDispatchEventName, parsedMessage);
+                        EventDispatcher.dispatchEvent(messageDispatchEventName, parsedMessage);
                     }
                 }, {noAck: false});
 

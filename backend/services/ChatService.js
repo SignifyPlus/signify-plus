@@ -1,67 +1,67 @@
 const AbstractService = require('./AbstractService')
-const EventFactory = require("../factories/eventFactory.js");
 const EventConstants = require("../constants/eventConstants.js");
 const SignifyException = require('../exception/SignifyException.js');
+const EventDispatcher = require("../events/eventDispatcher.js");
 class ChatService extends AbstractService {
     constructor(schemaModel) {
         super(schemaModel);
     }
 
     //result methods
-    async getDocuments() {
-        return await super.getDocuments();
+    async getDocuments(session = null) {
+        return await super.getDocuments(session);
     }
     
-    async getDocumentById(objectId) {
-        return await super.getDocumentById(objectId);
+    async getDocumentById(objectId, session = null) {
+        return await super.getDocumentById(objectId, session);
     }
 
-    async getDocumentsByCustomFilters(filterConditions) {
-        return await super.getDocumentsByCustomFilters(filterConditions);
+    async getDocumentsByCustomFilters(filterConditions, session = null) {
+        return await super.getDocumentsByCustomFilters(filterConditions, session);
     }
 
-    async getDocumentByCustomFilters(filterConditions) {
-        return await super.getDocumentByCustomFilters(filterConditions);
+    async getDocumentByCustomFilters(filterConditions, session = null) {
+        return await super.getDocumentByCustomFilters(filterConditions, session);
     }
 
-    async updateDocument(filterConditions, updateFields) {
-        return await super.updateDocument(filterConditions, updateFields);
+    async updateDocument(filterConditions, updateFields, session = null) {
+        return await super.updateDocument(filterConditions, updateFields, session);
     }
 
-    async saveDocument(data) {
+    async saveDocument(data, session = null) {
         //i think its good to invoke the chat save event here, regardless from which controller it was executed - keep things centralized too
-        const chat = await super.saveDocument(data);
+        const chat = await super.saveDocument(data, session);
         if (chat === null || chat == undefined) {
             return new SignifyException(400, `Couldn't save chat - please look at the data ${data}`);
         }
         //trigger chat event
-        await EventFactory.getEventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
+        await EventDispatcher.dispatchEvent(EventConstants.CHAT_CREATED_EVENT, data);
         return chat;
     }
 
-    async saveDocuments(data) {
-        return await super.saveDocuments(data);
+    async saveDocuments(data, session = null) {
+        return await super.saveDocuments(data, session);
     }
 
-    async deleteDocument(filterConditions) {
-        return await super.deleteDocument(filterConditions);
+    async deleteDocument(filterConditions, session = null) {
+        return await super.deleteDocument(filterConditions, session);
     }
 
-    async deleteDocumentById(objectId) {
-        return await super.deleteDocumentById(objectId);
+    async deleteDocumentById(objectId, session = null) {
+        return await super.deleteDocumentById(objectId, session);
     }
 
-    async deleteDocuments(filterConditions) {
-        return await super.deleteDocuments(filterConditions);
+    async deleteDocuments(filterConditions, session = null) {
+        return await super.deleteDocuments(filterConditions, session);
     }
 
     //query methods
-    getDocumentsByCustomFiltersQuery(filterConditions) {
-        return super.getDocumentsByCustomFiltersQuery(filterConditions);
+    getDocumentsByCustomFiltersQuery(filterConditions, session = null) {
+        return super.getDocumentsByCustomFiltersQuery(filterConditions, session);
     }
 
-    getDocumentsQuery() {
-        return super.getDocumentsQuery();
+    getDocumentsQuery(session = null) {
+        return super.getDocumentsQuery(session);
     }
 }
 

@@ -5,46 +5,25 @@
  */
 
 //controllers
-const EventDispatcher = require("../events/eventDispatcher.js");
 const MessageEvent = require("../events/services/messageEvent.js");
 
 class EventFactory {
     //private fields
-     /**
-     * @private
-     * @type {EventDispatcher | null}
-     */
-     static #eventDispatcher = null;
-
     /**
      * @private
      * @type {MessageEvent | null}
      */
       static #messageEvent = null;
 
-    constructor() {
-    }
-
-    static get getEventDispatcher() {
-        return this.#eventDispatcher;
-    }
-    
-    /**
-     * @param {(param: EventDispatcher) => void} value
-     */
-    static set setEventDispatcher(value) {
-        this.#eventDispatcher = value;
-    }
-
     static get getMessageEvent() {
-        return this.#messageEvent;
+        return EventFactory.#messageEvent;
     }
         
     /**
      * @param {(param: MessageEvent) => void} value
      */
     static set setMessageEvent(value) {
-        this.#messageEvent = value;
+        EventFactory.#messageEvent = value;
     }
 }
 
