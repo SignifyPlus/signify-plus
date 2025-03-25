@@ -74,7 +74,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const sendMeetingIdToPython = useCallback(
     async (meetingId: string) => {
       try {
-        const response = await fetch('https://moving-cardinal-happily.ngrok-free.app/meeting-id', {
+        const response = await fetch('https://robust-hen-big.ngrok-free.app/meeting-id', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ meetingId }),

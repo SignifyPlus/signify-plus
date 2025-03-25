@@ -23,7 +23,7 @@ meeting: Meeting = None
 
 # Function to fetch the meeting id from the ngrok endpoint
 async def get_meeting_id():
-    url = "https://moving-cardinal-happily.ngrok-free.app/meeting-id"
+    url = "https://robust-hen-big.ngrok-free.app/meeting-id"
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(url) as response:
