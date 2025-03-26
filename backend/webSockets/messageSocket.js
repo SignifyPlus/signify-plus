@@ -1,10 +1,10 @@
 const ManagerFactory = require("../factories/managerFactory.js");
 const RabbitMqConstants = require("../constants/rabbitMqConstants.js");
-const EventFactory = require("../factories/eventFactory.js");
 const EventConstants = require("../constants/eventConstants.js");
 const CommonUtils = require("../utilities/commonUtils.js");
 const MessageSocketUtils = require("./utils/messageSocketUtils.js");
 const EventDispatcher = require("../events/eventDispatcher.js");
+const LoggerFactory = require("../factories/loggerFactory.js");
 class MessageSocket {
     #messageQueueName = null;
     #cachedChats = null;
@@ -37,16 +37,16 @@ class MessageSocket {
                 ///use event driven approach
                 data.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                     if (userSocketMap[targetPhoneNumber] == null) {
-                        console.log(`targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`);
+                        LoggerFactory.getApplicationLogger.info(`targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`);
                         return;
                     }
-                    console.log(`Incoming Message ${data.message} for the targetPhoneNumber ${targetPhoneNumber} chatId: ${chatId}`);
+                    LoggerFactory.getApplicationLogger.info(`Incoming Message ${data.message} for the targetPhoneNumber ${targetPhoneNumber} chatId: ${chatId}`);
 
                     socket.to(userSocketMap[targetPhoneNumber]).emit('message', {message: data.message, chatId: chatId});
                 });
 
             }catch(exception) {
-                console.log(`Exception Occured: ${exception}`);
+                LoggerFactory.getApplicationLogger.error(`Exception Occured: ${exception}`);
                 pingWasSuccesful = false;
             }
 

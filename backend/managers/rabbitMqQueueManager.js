@@ -1,5 +1,6 @@
 const amqp = require("amqplib");
 const CommonUtils = require("../utilities/commonUtils.js");
+const LoggerFactory = require("../factories/loggerFactory.js");
 class RabbitMQQueueManager {
     constructor(rabbitMqQueueURL) {
         this.rabbitMqQueueURL = rabbitMqQueueURL;
@@ -13,7 +14,7 @@ class RabbitMQQueueManager {
             this.rabbitMqConnection = await amqp.connect(this.rabbitMqQueueURL);
             this.rabbitMqChannel = await this.rabbitMqConnection.createChannel();
         }catch(exception){
-            console.log(`Error: ${exception}`);
+            LoggerFactory.getApplicationLogger.error(`Error: ${exception}`);
             throw new Error(`${exception}`);
         }
     }
@@ -29,7 +30,7 @@ class RabbitMQQueueManager {
             }
 
         }catch(exception) {
-            console.log(`Error: ${exception}`);
+            LoggerFactory.getApplicationLogger.error(`Error: ${exception}`);
             throw new Error(`${exception}`);
         }
     }
@@ -40,11 +41,11 @@ class RabbitMQQueueManager {
             //durable : true, queue survives upon crash/restart
             CommonUtils.waitForVariableToBecomeNonNull(this.getRabbitMqChannel.bind(this), 1000)
             await this.getRabbitMqChannel().assertQueue(queueName, {durable: true});
-            console.log(`Buffered Data - ${Buffer.from(stringifiedData, 'utf-8')}`);
+            LoggerFactory.getApplicationLogger.info(`Buffered Data - ${Buffer.from(stringifiedData, 'utf-8')}`);
             const sentToQueue = this.getRabbitMqChannel().sendToQueue(queueName, Buffer.from(stringifiedData, bufferEncoding), {persistent: true, contentType: contentType});
-            console.log(`Is Message Queued: ${sentToQueue}`);
+            LoggerFactory.getApplicationLogger.info(`Is Message Queued: ${sentToQueue}`);
         }catch(exception) {
-            console.log(`Exception Occured: ${exception}`);
+            LoggerFactory.getApplicationLogger.error(`Exception Occured: ${exception}`);
             throw new Error(`${exception}`);
         }
     }

@@ -14,6 +14,9 @@ const Encrypt = require("../utilities/encrypt.js");
 const MessageEvent = require("../events/services/messageEvent.js");
 const EventDispatcher = require("../events/eventDispatcher.js");
 const ServiceFactory = require("../factories/serviceFactory.js");
+const CommonUtils = require("../utilities/commonUtils.js");
+const ServerConstants = require('../constants/serverConstants.js');
+const LoggerFactory = require("../factories/loggerFactory.js");
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -21,6 +24,9 @@ const mainServer = http.createServer(signifyPlusApp);
 
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
+
+//setup a logger
+setupApplicationLogger(ServerConstants.LOG_LEVEL_DEBUG);
 
 //setup Server
 setupServer();
@@ -31,8 +37,9 @@ setupApplicationRoutes(signifyPlusApp);
 //connect to the database
 ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 
-mainServer.listen(port, () => {
-    console.log("Server is Running")
+mainServer.listen(port, async () => {
+    await CommonUtils.waitForVariableToBecomeNonNull(getApplicationLogger);
+    LoggerFactory.getApplicationLogger.info(`SignifyPlus Server is Up & Running`);
     const websocketManager = new WebSocketManager(mainServer);
 })
 
@@ -40,14 +47,13 @@ async function setupServer() {
     try {
         //initialize RabbitMQ
         await ManagerFactory.getRabbitMqQueueManager().establishConnection();
-        //initialzie Event Dispatcher
-        EventFactory.setEventDispatcher = new EventDispatcher();
-        EventFactory.setMessageEvent = new MessageEvent(EventFactory.getEventDispatcher);
+        //setup message event
+        EventFactory.setMessageEvent = new MessageEvent();
         //setup processors, if any
         await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
         //use these for reading connecting string from firebase
     }catch(exception) {
-        console.log(`Exception Occured ${exception}`);
+        LoggerFactory.getApplicationLogger.error(`Exception Occured ${exception}`);
         throw new Error(exception);
     }
 }
@@ -60,7 +66,16 @@ function setupApplicationRoutes(signifyPlusAppServer) {
         signifyPlusAppServer.use('/chats', chatRoutes);
         signifyPlusAppServer.use('/messages', messageRoutes);
     }catch(exception) {
-        console.log(`Exception Occured ${exception}`);
+        LoggerFactory.getApplicationLogger.error(`Exception Occured ${exception}`);
         throw new Error(exception);
     }
+}
+
+async function setupApplicationLogger(logLevel) {
+    const logger = await CommonUtils.getLogger(logLevel);
+    LoggerFactory.setApplicationLogger = logger;
+}
+
+function getApplicationLogger() {
+    return LoggerFactory.getApplicationLogger;
 }

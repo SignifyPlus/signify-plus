@@ -1,4 +1,5 @@
 const EventDispatcher = require("../events/eventDispatcher.js");
+const LoggerFactory = require("../factories/loggerFactory.js");
 class RabbitMqMessageProcessor{
     constructor() {
         this.executeMessageProcessor = this.executeMessageProcessor.bind(this);
@@ -12,13 +13,14 @@ class RabbitMqMessageProcessor{
                     if (message) {
                         rabbitMqChannel.ack(message);
                         const parsedMessage = JSON.parse(message.content.toString());
+                        LoggerFactory.getApplicationLogger.info(`${parsedMessage}`);
                         //should be good now
                         EventDispatcher.dispatchEvent(messageDispatchEventName, parsedMessage);
                     }
                 }, {noAck: false});
 
         }catch(exception) {
-            console.log(`Exception Occured: ${exception}`);
+            LoggerFactory.getApplicationLogger.error(`Exception Occured: ${exception}`);
             await this.haltConsumer(rabbitMqChannel, consumerTag);
             throw new Error(`${exception}`);
         }
