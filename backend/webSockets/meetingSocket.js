@@ -1,3 +1,4 @@
+const LoggerFactory = require("../factories/loggerFactory.js");
 class MeetingSocket {
     constructor(socket, userSocketMap) {
         this.meetingIdEvent(socket, userSocketMap);
@@ -6,15 +7,15 @@ class MeetingSocket {
 
     meetingIdEvent(socket, userSocketMap) {
         socket.on('meeting-id', (data) => {
-            console.log(data);
+            LoggerFactory.getApplicationLogger.info(data);
             const sendersSocketId = userSocketMap[data.userPhoneNumber];
             if (!sendersSocketId) { //if sender is undefined, exit
                 return;
             }
-            console.log(`Meeting ID: ${data.meetingId} callerPhoneNumber: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
+            LoggerFactory.getApplicationLogger.info(`Meeting ID: ${data.meetingId} callerPhoneNumber: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`);
             data.targetPhoneNumbers.forEach(phoneNumber => {
                 const targetSocketId = userSocketMap[phoneNumber];
-                console.log(`Iterating ${targetSocketId}`);
+                LoggerFactory.getApplicationLogger.info(`Iterating ${targetSocketId}`);
                 const event = targetSocketId? 'meeting-id-offer': 'meeting-id-failed';
                 const socketEventType = targetSocketId? socket.to(targetSocketId) : socket;
                 const payloadBody = targetSocketId? 
@@ -35,7 +36,7 @@ class MeetingSocket {
 
     meetingIdDeclineEvent(socket, userSocketMap) {
         socket.on('meeting-id-decline', (data) => {
-            console.log(`decline offer ${data.userPhoneNumber} ${data.meetingId} ${data.targetPhoneNumber}`)
+            LoggerFactory.getApplicationLogger.info(`decline offer ${data.userPhoneNumber} ${data.meetingId} ${data.targetPhoneNumber}`)
             //send the decline offer to the targetPhoneNumber
             //find the user from the map
             const targetPhoneNumberSocketId = userSocketMap[data.targetPhoneNumber];

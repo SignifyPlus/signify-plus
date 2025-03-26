@@ -1,13 +1,14 @@
 const mongoose = require("mongoose");
+const LoggerFactory = require("../factories/loggerFactory.js");
 class MongooseService{
     constructor() {}    
     async connectToMongoDB(mongoDbUrl) {
         try {
             //connect to the database now
-            await mongoose.connect(mongoDbUrl).then(() => console.log('Connected to MongoDB'))
-            .catch((err) => console.error('MongoDB connection error:', err));
+            await mongoose.connect(mongoDbUrl).then(() => LoggerFactory.getApplicationLogger.info('Connected to MongoDB'))
+            .catch((err) => LoggerFactory.getApplicationLogger.error('MongoDB connection error:', err));
         }catch(exception) {
-            console.log(`Exception Occured ${exception}`);
+            LoggerFactory.getApplicationLogger.error(`Exception Occured ${exception}`);
             throw new Error(exception);
         }
     }

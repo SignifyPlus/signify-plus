@@ -1,3 +1,4 @@
+const LoggerManager = require('../managers/loggerManager.js');
 class CommonUtils {
     static async waitForVariableToBecomeNonNull(getterFunction, waitForTimeOut = 1000) {
         while(getterFunction() === null) {
@@ -11,6 +12,11 @@ class CommonUtils {
             return true;
         }
         return false;
+    }
+
+        
+    static async getLogger(logLevel) {
+        return new LoggerManager().createLogger(logLevel);
     }
 }
 module.exports = CommonUtils;
