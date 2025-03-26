@@ -49,7 +49,7 @@ const Settings = require("../models/Settings.js");
 const ThreadComment = require("../models/ThreadComment.js");
 const User = require("../models/User.js");
 const UserActivity = require("../models/UserActivity.js");
-const MongooseService = require("../services/mongooseService.js");
+const MongooseService = require("../services/MongooseService.js");
 
 class ServiceFactory {
     //private fields
