@@ -4,6 +4,7 @@ const SignifyException = require("../exception/SignifyException.js");
 const TimeUtils = require("../utilities/timeUtils.js");
 const CommonUtils = require("../utilities/commonUtils.js");
 const ControllerConstants = require("../constants/controllerConstants.js");
+const LoggerFactory = require("../factories/loggerFactory.js");
 class MessageController {
     
     constructor(){
@@ -46,7 +47,7 @@ class MessageController {
             }) 
 
             if (!chat) {
-                console.log("Chat Doesnt Exist - initializing a new chat");
+                LoggerFactory.getApplicationLogger.info("Chat Doesnt Exist - initializing a new chat");
                 chat = await ServiceFactory.getChatService.saveDocument({
                     mainUserId: mappedMainUserId,
                     participants: mappedTargetUserPhoneNumbersToId

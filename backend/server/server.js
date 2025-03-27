@@ -12,7 +12,6 @@ const chatRoutes = require("../routes/ChatRoutes.js");
 const messageRoutes = require("../routes/MessageRoutes.js");
 const Encrypt = require("../utilities/encrypt.js");
 const MessageEvent = require("../events/services/messageEvent.js");
-const EventDispatcher = require("../events/eventDispatcher.js");
 const ServiceFactory = require("../factories/serviceFactory.js");
 const CommonUtils = require("../utilities/commonUtils.js");
 const ServerConstants = require('../constants/serverConstants.js');

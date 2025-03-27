@@ -1,5 +1,6 @@
 const ManagerFactory = require("../factories/managerFactory.js");
 const RabbitMqConstants = require("../constants/rabbitMqConstants.js");
+const CommonConstants = require("../constants/commonConstants.js");
 const EventConstants = require("../constants/eventConstants.js");
 const CommonUtils = require("../utilities/commonUtils.js");
 const MessageSocketUtils = require("./utils/messageSocketUtils.js");
@@ -54,7 +55,7 @@ class MessageSocket {
                 //aww this worked!! - blocks the execution
                 await CommonUtils.waitForVariableToBecomeNonNull(ManagerFactory.getRabbitMqQueueManager);
                 //send stringified data - otherwise causes issue
-                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, RabbitMqConstants.APPLICATION_JSON_CONTENT_TYPE, RabbitMqConstants.BUFFER_ENCODING,
+                await ManagerFactory.getRabbitMqQueueManager().queueMessage(this.#messageQueueName, RabbitMqConstants.APPLICATION_JSON_CONTENT_TYPE, CommonConstants.BUFFER_ENCODING,
                      JSON.stringify(await MessageSocketUtils.prepareChatQueueData(data, chatId)));
             }
         })

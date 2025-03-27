@@ -1,3 +1,4 @@
+const CommonConstants = require('../constants/commonConstants.js');
 const LoggerManager = require('../managers/loggerManager.js');
 class CommonUtils {
     static async waitForVariableToBecomeNonNull(getterFunction, waitForTimeOut = 1000) {
@@ -17,6 +18,10 @@ class CommonUtils {
         
     static async getLogger(logLevel) {
         return new LoggerManager().createLogger(logLevel);
+    }
+
+    static async decodeFromBase64(base64EncodedString) {
+        return Buffer.from(CommonConstants.BASE_64, base64EncodedString).toString(CommonConstants.BUFFER_ENCODING);
     }
 }
 module.exports = CommonUtils;
