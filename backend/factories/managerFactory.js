@@ -6,6 +6,7 @@
 
 const RabbitMqProcessorManager = require("../managers/rabbitMqProcessorManager.js");
 const RabbitMqQueueManager = require("../managers/rabbitMqQueueManager.js");
+const FirebaseManager = require("../managers/firebase/firebaseManager.js");
 
 class ManagerFactory {
     //private fields
@@ -21,6 +22,12 @@ class ManagerFactory {
      */
     static #rabbitMqProcessorManager = null;
 
+    /**
+     * @private
+     * @type {FirebaseManager | null}
+     */
+    static #fireBaseManager = null;
+
     static getRabbitMqQueueManager() {
         if (!ManagerFactory.#rabbitMqQueueManager) {
             ManagerFactory.#rabbitMqQueueManager = new RabbitMqQueueManager(process.env.CLOUD_AMQP_RABBIT_MQ_HOST_URL);
@@ -33,6 +40,13 @@ class ManagerFactory {
             ManagerFactory.#rabbitMqProcessorManager = new RabbitMqProcessorManager(ManagerFactory.getRabbitMqQueueManager());
         }
         return ManagerFactory.#rabbitMqProcessorManager;
+    }
+
+    static getFirebaseManager() {
+        if (!ManagerFactory.#fireBaseManager) {
+            ManagerFactory.#fireBaseManager = new FirebaseManager();
+        }
+        return ManagerFactory.#fireBaseManager;
     }
 }
 

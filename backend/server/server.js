@@ -50,7 +50,9 @@ async function setupServer() {
         EventFactory.setMessageEvent = new MessageEvent();
         //setup processors, if any
         await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
-        //use these for reading connecting string from firebase
+        //initiliaze firebase admin
+        const firebaseAdminSdk = await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);
+        //now use the adminSDK for OTP, etc
     }catch(exception) {
         LoggerFactory.getApplicationLogger.error(`Exception Occured ${exception}`);
         throw new Error(exception);

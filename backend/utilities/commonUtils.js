@@ -21,7 +21,7 @@ class CommonUtils {
     }
 
     static async decodeFromBase64(base64EncodedString) {
-        return Buffer.from(CommonConstants.BASE_64, base64EncodedString).toString(CommonConstants.BUFFER_ENCODING);
+        return Buffer.from(base64EncodedString, CommonConstants.BASE_64).toString(CommonConstants.BUFFER_ENCODING);
     }
 }
 module.exports = CommonUtils;
