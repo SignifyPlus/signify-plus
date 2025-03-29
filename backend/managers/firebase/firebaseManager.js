@@ -31,6 +31,28 @@ class FirebaseManager{
         }
     }
 
+    async createUserAccountByPhoneNumber(phoneNumber) { //E.164 format
+        try {
+            const newAccount = await this.#adminSdk.auth().createUser({
+                phoneNumber: phoneNumber
+            });
+            return newAccount.toJSON();
+        }catch (exception) {
+            LoggerFactory.getApplicationLogger.error(`Account Exception: ! ${exception.code}`);
+        }
+    }
+
+    async getUserAccountByPhoneNumber(phoneNumber) { //E.164 format
+        try {
+            const existingAccount = await this.#adminSdk.auth().getUserByPhoneNumber({
+                phoneNumber: phoneNumber
+            });
+            return existingAccount.toJSON();
+        }catch (exception) {
+            LoggerFactory.getApplicationLogger.error(`Account Exception: ! ${exception.code}`);
+        }
+    }
+
     async getfirebaseAdminSdk() {
         return this.#adminSdk;
     }

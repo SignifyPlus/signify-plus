@@ -51,7 +51,9 @@ async function setupServer() {
         //setup processors, if any
         await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel());
         //initiliaze firebase admin
-        const firebaseAdminSdk = await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);
+        await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);
+
+        //await ManagerFactory.getFirebaseManager().createUserAccountByPhoneNumber('+905343096627');
         //now use the adminSDK for OTP, etc
     }catch(exception) {
         LoggerFactory.getApplicationLogger.error(`Exception Occured ${exception}`);
