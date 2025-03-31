@@ -7,7 +7,8 @@ const ControllerConstants = require('../constants/controllerConstants.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
-      this.#saltRoundForEncryption = ControllerConstants.SALT_ROUND_FOR_USERS_CONTROLLER;
+      this.#saltRoundForEncryption =
+         ControllerConstants.SALT_ROUND_FOR_USERS_CONTROLLER;
    }
 
    //Get all Users
@@ -57,37 +58,43 @@ class UserController {
 
    getUserByPhoneNumberForLogin = async (request, response) => {
       try {
-            const phoneNumberValidation = await ExceptionHelper.validate(
+         const phoneNumberValidation = await ExceptionHelper.validate(
             request.body.phoneNumber,
             400,
             `phoneNumber is not provided.`,
             response,
          );
-         if (phoneNumberValidation)
-            return phoneNumberValidation;
+         if (phoneNumberValidation) return phoneNumberValidation;
          const passwordValidation = await ExceptionHelper.validate(
             request.body.password,
             400,
             `password is not provided.`,
             response,
          );
-         if (passwordValidation)
-            return passwordValidation;
+         if (passwordValidation) return passwordValidation;
          const user =
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: request.body.phoneNumber,
             });
-         const doesPasswordMatch = await Encrypt.compare(request.body.password, user.password);
+         const doesPasswordMatch = await Encrypt.compare(
+            request.body.password,
+            user.password,
+         );
          if (!doesPasswordMatch) {
-            const signifyException = new SignifyException(401, `Passwords don't match!`);
-            return response.status(signifyException.status).json(signifyException.loadResult());
+            const signifyException = new SignifyException(
+               401,
+               `Passwords don't match!`,
+            );
+            return response
+               .status(signifyException.status)
+               .json(signifyException.loadResult());
          }
          response.json(user);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
       }
    };
-   
+
    //Creates a user
    createUser = async (request, response) => {
       try {
@@ -98,26 +105,26 @@ class UserController {
             `name is not provided.`,
             response,
          );
-         if (nameValidation)
-            return nameValidation;
+         if (nameValidation) return nameValidation;
          const phoneNumberValidation = await ExceptionHelper.validate(
             newUser.phoneNumber,
             400,
             `phoneNumber is not provided.`,
             response,
          );
-         if (phoneNumberValidation)
-            return phoneNumberValidation;
+         if (phoneNumberValidation) return phoneNumberValidation;
          const passwordValidation = await ExceptionHelper.validate(
             newUser.password,
             400,
             `password is not provided.`,
             response,
          );
-         if (passwordValidation)
-            return passwordValidation;
+         if (passwordValidation) return passwordValidation;
          //encrypt password
-         newUser.password = await Encrypt.encrypt(this.#saltRoundForEncryption, newUser.password);
+         newUser.password = await Encrypt.encrypt(
+            this.#saltRoundForEncryption,
+            newUser.password,
+         );
          const userObject =
             await ServiceFactory.getUserService.saveDocument(newUser);
          response.json(userObject);
