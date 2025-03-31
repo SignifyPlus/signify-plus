@@ -1,11 +1,13 @@
 # SignifyPlus Backend
 
 ## Overview
+
 SignifyPlus Backend is built using **Node.js** and **Express.js**, with **MongoDB** as the database. The application includes WebSocket management and routing for user and home endpoints.
 
 ---
 
 ## Features
+
 - REST API for user and home functionalities.
 - WebSocket management for real-time communication.
 - MongoDB integration for database operations.
@@ -25,6 +27,7 @@ Before setting up the project, ensure you have the following installed:
 ## Installation Guide
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/YunoGasasi9862/signify-plus.git
 cd signify-plus
@@ -32,26 +35,33 @@ cd backend
 ```
 
 ### 2. Install Dependencies
+
 Install all required Node.js packages using the `package.json` file:
+
 ```bash
 npm install
 ```
 
 ### 3. Set Up Environment Variables
+
 Create a `.env` file in the root of the project and add the following:
 
 ```env
 MONGO_DB_URL=<Your MongoDB Connection String>
 PORT=3000
 ```
+
 - Replace `<Your MongoDB Connection String>` with your MongoDB URI.
 - `PORT` is the port number where the application will run.
 
 ### 4. Firebase Integration (Optional)
+
 If connecting the MongoDB URI from Firebase, ensure the Firebase SDK is configured and the URI is retrieved dynamically.
 
 ### 5. Run the Application
+
 Start the server:
+
 ```bash
 node server/server.js
 ```
@@ -86,10 +96,12 @@ signify-plus/backend/
 ## Usage
 
 ### API Endpoints
+
 - **User Routes**: `/users`
 - **Home Routes**: `/`
 
 ### WebSocket Management
+
 WebSocketManager is initialized after the server starts. Extend its functionality by editing `managers/websocketManager.js`.
 
 ---
@@ -97,17 +109,21 @@ WebSocketManager is initialized after the server starts. Extend its functionalit
 ## Troubleshooting
 
 ### MongoDB Connection Error
+
 If you encounter a MongoDB connection error:
+
 1. Verify the `MONGO_DB_URL` in your `.env` file.
 2. Check your network access and credentials for MongoDB Atlas or local instance.
 3. Ensure MongoDB is running if using a local instance.
 
 ### Port Already in Use
+
 If the specified port is in use, modify the `PORT` value in the `.env` file to a different number.
 
 ---
 
 ## Future Enhancements
+
 - Add detailed API documentation (e.g., using Swagger).
 - Enhance WebSocketManager with more real-time event handling.
 - Implement Firebase dynamic configuration for MongoDB URI.
@@ -115,5 +131,5 @@ If the specified port is in use, modify the `PORT` value in the `.env` file to a
 ---
 
 ## License
-This project is licensed under the MIT License.
 
+This project is licensed under the MIT License.

@@ -4,6 +4,9 @@ const ChannelSubcriberController = require('../controllers/ChannelSubscriberCont
 
 const channelSubcriberController = new ChannelSubcriberController();
 
-channelSubcriberRouter.get('/all', channelSubcriberController.getAllChannelSubscribers);
+channelSubcriberRouter.get(
+   '/all',
+   channelSubcriberController.getAllChannelSubscribers,
+);
 
 module.exports = channelSubcriberRouter;
