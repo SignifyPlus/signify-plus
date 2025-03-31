@@ -23,4 +23,9 @@ userRouter.get(
    ControllerFactory.getUserController().getUserByPhoneNumber,
 );
 
+userRouter.post(
+   '/phone/',
+   ControllerFactory.getUserController().getUserByPhoneNumberForLogin,
+);
+
 module.exports = userRouter;

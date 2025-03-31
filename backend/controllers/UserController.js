@@ -1,8 +1,14 @@
 const ServiceFactory = require('../factories/serviceFactory.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const Encrypt = require('../utilities/encrypt.js');
+const ExceptionHelper = require('../exception/ExceptionHelper.js');
+const SignifyException = require('../exception/SignifyException.js');
+const ControllerConstants = require('../constants/controllerConstants.js');
 class UserController {
-   constructor() {}
+   #saltRoundForEncryption = null;
+   constructor() {
+      this.#saltRoundForEncryption = ControllerConstants.SALT_ROUND_FOR_USERS_CONTROLLER;
+   }
 
    //Get all Users
    getAllUsers = async (request, response) => {
@@ -49,14 +55,71 @@ class UserController {
       }
    };
 
+   getUserByPhoneNumberForLogin = async (request, response) => {
+      try {
+            const phoneNumberValidation = await ExceptionHelper.validate(
+            request.body.phoneNumber,
+            400,
+            `phoneNumber is not provided.`,
+            response,
+         );
+         if (phoneNumberValidation)
+            return phoneNumberValidation;
+         const passwordValidation = await ExceptionHelper.validate(
+            request.body.password,
+            400,
+            `password is not provided.`,
+            response,
+         );
+         if (passwordValidation)
+            return passwordValidation;
+         const user =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.phoneNumber,
+            });
+         const doesPasswordMatch = await Encrypt.compare(request.body.password, user.password);
+         if (!doesPasswordMatch) {
+            const signifyException = new SignifyException(401, `Passwords don't match!`);
+            return response.status(signifyException.status).json(signifyException.loadResult());
+         }
+         response.json(user);
+      } catch (exception) {
+         response.status(500).json({ error: exception.message });
+      }
+   };
+   
    //Creates a user
    createUser = async (request, response) => {
       try {
-         LoggerFactory.getApplicationLogger.info('Creating the user...');
-         const user = request.body;
-         LoggerFactory.getApplicationLogger.info(user);
+         const newUser = request.body;
+         const nameValidation = await ExceptionHelper.validate(
+            newUser.name,
+            400,
+            `name is not provided.`,
+            response,
+         );
+         if (nameValidation)
+            return nameValidation;
+         const phoneNumberValidation = await ExceptionHelper.validate(
+            newUser.phoneNumber,
+            400,
+            `phoneNumber is not provided.`,
+            response,
+         );
+         if (phoneNumberValidation)
+            return phoneNumberValidation;
+         const passwordValidation = await ExceptionHelper.validate(
+            newUser.password,
+            400,
+            `password is not provided.`,
+            response,
+         );
+         if (passwordValidation)
+            return passwordValidation;
+         //encrypt password
+         newUser.password = await Encrypt.encrypt(this.#saltRoundForEncryption, newUser.password);
          const userObject =
-            await ServiceFactory.getUserService.saveDocument(user);
+            await ServiceFactory.getUserService.saveDocument(newUser);
          response.json(userObject);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
