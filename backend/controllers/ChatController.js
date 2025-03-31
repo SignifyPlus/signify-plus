@@ -1,6 +1,7 @@
 const ServiceFactory = require("../factories/serviceFactory.js");
 const ExceptionHelper = require("../exception/ExceptionHelper.js");
 const SignifyException = require("../exception/SignifyException.js");
+const mongoose = require("mongoose");
 class ChatController {
     
     constructor(){
