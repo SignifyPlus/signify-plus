@@ -43,7 +43,7 @@ class UserController {
    getUserByPhoneNumber = async (request, response) => {
       try {
          LoggerFactory.getApplicationLogger.info(
-            'Fetching the user with the Phone Number...',
+            `Fetching the user with the Phone Number ${request.params.phoneNumber}`,
          );
          const phoneNumber = request.params.phoneNumber;
          const user =

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const ForumSchema = new mongoose.Schema({
    forumName: { type: String, required: true },
    forumDescription: { type: String, required: true },
-   forumStatus: { type: Boolean, required: true },
+   active: { type: Boolean, required: true },
    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

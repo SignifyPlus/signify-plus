@@ -9,6 +9,7 @@ const MessageController = require('../controllers/MessageController.js');
 const UserController = require('../controllers/UserController.js');
 const ContactController = require('../controllers/ContactController.js');
 const UserActivityController = require('../controllers/UserActivityController.js');
+const ForumController = require ('../controllers/ForumController.js');
 
 class ControllerFactory {
    /**
@@ -21,6 +22,12 @@ class ControllerFactory {
     * @type {ChatController | null}
     */
    static #chatController = null;
+
+   /**
+    * @private
+    * @type {ForumController | null}
+    */
+      static #forumController = null;
 
    /**
     * @private
@@ -71,10 +78,17 @@ class ControllerFactory {
 
    static getUserActivitiyController() {
       if (!ControllerFactory.#userActivityController) {
-         ControllerFactory.#userActivityController =
+         ControllerFactory.#userActivityController = 
             new UserActivityController();
       }
       return ControllerFactory.#userActivityController;
+   }
+
+   static getForumController() {
+      if (!ControllerFactory.#forumController) {
+         ControllerFactory.#forumController = new ForumController();
+      }
+      return ControllerFactory.#forumController;
    }
 }
 
