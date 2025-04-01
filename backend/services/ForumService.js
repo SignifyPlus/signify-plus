@@ -22,7 +22,11 @@ class ForumService extends AbstractService {
    }
 
    async updateDocument(filterConditions, updateFields, session = null) {
-      return await super.updateDocument(filterConditions, updateFields, session);
+      return await super.updateDocument(
+         filterConditions,
+         updateFields,
+         session,
+      );
    }
 
    async saveDocument(data, session = null) {

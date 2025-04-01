@@ -13,9 +13,7 @@ class ForumController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             moongooseSession,
          );
-         LoggerFactory.getApplicationLogger.info(
-            `Retrieving all forums!`,
-         );
+         LoggerFactory.getApplicationLogger.info(`Retrieving all forums!`);
          const forums =
             await ServiceFactory.getForumService.getDocuments(moongooseSession);
          response.json(forums);
@@ -35,7 +33,7 @@ class ForumController {
       var moongooseSession = null;
       try {
          moongooseSession =
-         await ServiceFactory.getMongooseService.getMoongooseSession();
+            await ServiceFactory.getMongooseService.getMoongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             moongooseSession,
          );
@@ -43,8 +41,10 @@ class ForumController {
          LoggerFactory.getApplicationLogger.info(
             `Retrieving the forum by the id ${forumId}`,
          );
-         const forum =
-            await ServiceFactory.getForumService.getDocumentById(forumId, moongooseSession);
+         const forum = await ServiceFactory.getForumService.getDocumentById(
+            forumId,
+            moongooseSession,
+         );
          response.json(forum);
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -62,23 +62,24 @@ class ForumController {
       var moongooseSession = null;
       try {
          moongooseSession =
-         await ServiceFactory.getMongooseService.getMoongooseSession();
+            await ServiceFactory.getMongooseService.getMoongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             moongooseSession,
          );
          //add validations here
-         const forum =
-            await ServiceFactory.getForumService.saveDocument(request.body, moongooseSession);
+         const forum = await ServiceFactory.getForumService.saveDocument(
+            request.body,
+            moongooseSession,
+         );
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
-               moongooseSession,
-            );   
+            moongooseSession,
+         );
          response.json(forum);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
-                     moongooseSession,
+            moongooseSession,
          );
-         const signifyException
-          = new SignifyException(
+         const signifyException = new SignifyException(
             500,
             `Exception Occured: ${exception.message}`,
          );
