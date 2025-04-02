@@ -4,7 +4,12 @@ const ControllerFactory = require('../factories/controllerFactory.js');
 
 forumRouter.get('/all', ControllerFactory.getForumController().getAllForums);
 
-forumRouter.get('/:id', ControllerFactory.getForumController().getForumById);
+forumRouter.get('/id/:id', ControllerFactory.getForumController().getForumById);
+
+forumRouter.get(
+   '/:phoneNumber',
+   ControllerFactory.getForumController().getForumsByPhoneNumber,
+);
 
 forumRouter.post('/create', ControllerFactory.getForumController().createForum);
 
