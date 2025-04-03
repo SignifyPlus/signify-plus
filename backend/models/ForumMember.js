@@ -11,7 +11,8 @@ const ForumMemberSchema = new mongoose.Schema({
       ref: 'Forum',
       required: true,
    }, // which forum id from the forums table
-   joinedAt: { type: String },
+   active: { type: Boolean, required: true, default: true },
+   joinedAt: { type: Date, required: true, default: Date.now },
    createdAt: { type: Date, required: true, default: Date.now },
 });
 

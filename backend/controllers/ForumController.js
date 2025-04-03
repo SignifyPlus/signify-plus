@@ -142,6 +142,7 @@ class ForumController {
          );
          if (createdByUserObjectValidation)
             return createdByUserObjectValidation;
+         //TODO - please add that user to the forum member table as well!
          const forum = await ServiceFactory.getForumService.saveDocument(
             {
                forumName: request.body.forumName,

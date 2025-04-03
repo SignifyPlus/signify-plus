@@ -1,9 +1,25 @@
 const express = require('express');
 const forumMemberRouter = express.Router();
-const ForumMemberController = require('../controllers/ForumMemberController.js');
+const ControllerFactory = require('../factories/controllerFactory.js');
 
-const forumMemberController = new ForumMemberController();
+forumMemberRouter.get(
+   '/all',
+   ControllerFactory.getForumMemberController().getAllForumMembers,
+);
 
-forumMemberRouter.get('/all', forumMemberController.getAllForumMembers);
+forumMemberRouter.get(
+   '/id/:id',
+   ControllerFactory.getForumMemberController().getForumMemberByUserId,
+);
+
+forumMemberRouter.get(
+   '/:phoneNumber',
+   ControllerFactory.getForumMemberController().getForumMemberByPhoneNumber,
+);
+
+forumMemberRouter.get(
+   '/forumId/:id',
+   ControllerFactory.getForumMemberController().getForumMembersByForumId,
+);
 
 module.exports = forumMemberRouter;

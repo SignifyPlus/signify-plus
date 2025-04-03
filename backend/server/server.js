@@ -11,6 +11,7 @@ const contactRoutes = require('../routes/ContactRoutes.js');
 const chatRoutes = require('../routes/ChatRoutes.js');
 const messageRoutes = require('../routes/MessageRoutes.js');
 const forumRoutes = require('../routes/ForumRoutes.js');
+const forumMemberRoutes = require('../routes/ForumMemberRoutes.js');
 const MessageEvent = require('../events/services/messageEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
@@ -73,6 +74,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/chats', chatRoutes);
       signifyPlusAppServer.use('/messages', messageRoutes);
       signifyPlusAppServer.use('/forums', forumRoutes);
+      signifyPlusAppServer.use('/forumMembers', forumMemberRoutes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,

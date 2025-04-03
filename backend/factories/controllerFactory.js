@@ -10,6 +10,7 @@ const UserController = require('../controllers/UserController.js');
 const ContactController = require('../controllers/ContactController.js');
 const UserActivityController = require('../controllers/UserActivityController.js');
 const ForumController = require('../controllers/ForumController.js');
+const ForumMember = require('../controllers/ForumMemberController.js');
 
 class ControllerFactory {
    /**
@@ -28,6 +29,12 @@ class ControllerFactory {
     * @type {ForumController | null}
     */
    static #forumController = null;
+
+   /**
+    * @private
+    * @type {ForumMember | null}
+    */
+   static #forumMember = null;
 
    /**
     * @private
@@ -89,6 +96,13 @@ class ControllerFactory {
          ControllerFactory.#forumController = new ForumController();
       }
       return ControllerFactory.#forumController;
+   }
+
+   static getForumMemberController() {
+      if (!ControllerFactory.#forumMember) {
+         ControllerFactory.#forumMember = new ForumMember();
+      }
+      return ControllerFactory.#forumMember;
    }
 }
 
