@@ -6,13 +6,13 @@ class ChatController {
    constructor() {}
 
    initializeEmptyChat = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
          //request validation
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
 
          const mainUserPhoneNumberValidation = await ExceptionHelper.validate(
@@ -70,16 +70,16 @@ class ChatController {
                   participant._id.toString(),
                ),
             },
-            moongooseSession,
+            mongooseSession,
          );
 
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          return response.json(chat);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          const signifyException = new SignifyException(
             500,

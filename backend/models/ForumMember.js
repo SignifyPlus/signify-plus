@@ -11,7 +11,8 @@ const ForumMemberSchema = new mongoose.Schema({
       ref: 'Forum',
       required: true,
    }, // which forum id from the forums table
-   active: { type: Boolean, required: true, default: true },
+   active: { type: Boolean, required: true, default: true }, //is user active
+   isOwner: { type: Boolean, required: true }, //if a user creates a forum, we need to flag that out
    joinedAt: { type: Date, required: true, default: Date.now },
    createdAt: { type: Date, required: true, default: Date.now },
 });

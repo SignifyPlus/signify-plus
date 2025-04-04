@@ -6,19 +6,19 @@ class ForumMemberController {
    constructor() {}
    //Get all ForumMembers
    getAllForumMembers = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          LoggerFactory.getApplicationLogger.info(
             `Retrieving all forum members!`,
          );
          const forumMembers =
             await ServiceFactory.getForumMemberService.getDocuments(
-               moongooseSession,
+               mongooseSession,
             );
          response.json(forumMembers);
       } catch (exception) {
@@ -32,14 +32,14 @@ class ForumMemberController {
       }
    };
 
-   //Get single ForumMember by their userId
+   //Get a single ForumMember by their userId
    getForumMemberByUserId = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          const forumMemberId = request.params.id;
          LoggerFactory.getApplicationLogger.info(
@@ -48,7 +48,7 @@ class ForumMemberController {
          const forumMember =
             await ServiceFactory.getForumMemberService.getDocumentByCustomFilters(
                { userId: forumMemberId },
-               moongooseSession,
+               mongooseSession,
             );
          response.json(forumMember);
       } catch (exception) {
@@ -63,15 +63,39 @@ class ForumMemberController {
    };
 
    //TODO
-   //Get single ForumMember by their phoneNumber
-   getForumMemberByPhoneNumber = async (request, response) => {
-      var moongooseSession = null;
+   //Get a single forum by the id
+   getForumsByPhoneNumber = async (request, response) => {
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
+         const phoneNumber = request.params.phoneNumber;
+         LoggerFactory.getApplicationLogger.info(
+            `Retrieving forums by the phone number ${phoneNumber}`,
+         );
+
+         const phoneNumberUserObject =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: phoneNumber,
+            });
+         const phoneNumberUserObjectValidation = await ExceptionHelper.validate(
+            phoneNumberUserObject,
+            400,
+            `User with the phone number ${phoneNumber} doesnt exist in the user table!`,
+            response,
+         );
+         if (phoneNumberUserObjectValidation)
+            return phoneNumberUserObjectValidation;
+
+         const forums =
+            await ServiceFactory.getForumService.getDocumentsByCustomFilters(
+               { createdBy: phoneNumberUserObject._id.toString() },
+               mongooseSession,
+            );
+         response.json(forums);
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -84,12 +108,12 @@ class ForumMemberController {
    };
 
    getForumMembersByForumId = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          const forumId = request.params.id;
          LoggerFactory.getApplicationLogger.info(
@@ -98,7 +122,7 @@ class ForumMemberController {
          const forumMember =
             await ServiceFactory.getForumMemberService.getDocumentsByCustomFilters(
                { forumId: forumId },
-               moongooseSession,
+               mongooseSession,
             );
          response.json(forumMember);
       } catch (exception) {

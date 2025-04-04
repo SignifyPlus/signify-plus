@@ -6,11 +6,6 @@ const ForumSchema = new mongoose.Schema({
       type: String,
    },
    active: { type: Boolean, default: true },
-   createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-   }, //the user who created it
    createdAt: { type: Date, required: true, default: Date.now },
 });
 

@@ -24,7 +24,7 @@ class MongooseService {
       }
    }
 
-   async getMoongooseSession() {
+   async getMongooseSession() {
       return await mongoose.startSession();
    }
 

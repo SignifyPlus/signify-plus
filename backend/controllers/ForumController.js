@@ -3,20 +3,21 @@ const SignifyException = require('../exception/SignifyException.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const ModelConstants = require('../constants/modelConstants.js');
+const ControllerConstants = require('../constants/controllerConstants.js');
 class ForumController {
    constructor() {}
    //Get all Forums
    getAllForums = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          LoggerFactory.getApplicationLogger.info(`Retrieving all forums!`);
          const forums =
-            await ServiceFactory.getForumService.getDocuments(moongooseSession);
+            await ServiceFactory.getForumService.getDocuments(mongooseSession);
          response.json(forums);
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -31,12 +32,12 @@ class ForumController {
 
    //Get a single forum by the id
    getForumById = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          const forumId = request.params.id;
          LoggerFactory.getApplicationLogger.info(
@@ -44,7 +45,7 @@ class ForumController {
          );
          const forum = await ServiceFactory.getForumService.getDocumentById(
             forumId,
-            moongooseSession,
+            mongooseSession,
          );
          response.json(forum);
       } catch (exception) {
@@ -58,58 +59,14 @@ class ForumController {
       }
    };
 
-   //Get a single forum by the id
-   getForumsByPhoneNumber = async (request, response) => {
-      var moongooseSession = null;
-      try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
-         await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
-         );
-         const phoneNumber = request.params.phoneNumber;
-         LoggerFactory.getApplicationLogger.info(
-            `Retrieving forums by the phone number ${phoneNumber}`,
-         );
-
-         const phoneNumberUserObject =
-            await ServiceFactory.getUserService.getDocumentByCustomFilters({
-               phoneNumber: phoneNumber,
-            });
-         const phoneNumberUserObjectValidation = await ExceptionHelper.validate(
-            phoneNumberUserObject,
-            400,
-            `User with the phone number ${phoneNumber} doesnt exist in the user table!`,
-            response,
-         );
-         if (phoneNumberUserObjectValidation)
-            return phoneNumberUserObjectValidation;
-
-         const forums =
-            await ServiceFactory.getForumService.getDocumentsByCustomFilters(
-               { createdBy: phoneNumberUserObject._id.toString() },
-               moongooseSession,
-            );
-         response.json(forums);
-      } catch (exception) {
-         const signifyException = new SignifyException(
-            500,
-            `Exception Occured: ${exception.message}`,
-         );
-         return response
-            .status(signifyException.status)
-            .json(signifyException.loadResult());
-      }
-   };
-
    //create a forum
    createForum = async (request, response) => {
-      var moongooseSession = null;
+      var mongooseSession = null;
       try {
-         moongooseSession =
-            await ServiceFactory.getMongooseService.getMoongooseSession();
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
          await ServiceFactory.getMongooseService.startMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          //add validations here
          const forumNameValidation = await ExceptionHelper.validate(
@@ -142,7 +99,7 @@ class ForumController {
          );
          if (createdByUserObjectValidation)
             return createdByUserObjectValidation;
-         //TODO - please add that user to the forum member table as well!
+
          const forum = await ServiceFactory.getForumService.saveDocument(
             {
                forumName: request.body.forumName,
@@ -151,17 +108,26 @@ class ForumController {
                   request.body.forumDescription == undefined
                      ? ModelConstants.FORUM_DEFAULT_DESCRIPTION
                      : request.body.forumDescription,
-               createdBy: createdByUserObject._id.toString(),
             },
-            moongooseSession,
+            mongooseSession,
          );
+         const forumMember =
+            await ServiceFactory.getForumMemberService.saveDocument(
+               {
+                  userId: createdByUserObject._id.toString(),
+                  forumId: forum[ControllerConstants.ZERO_INDEX]._id.toString(),
+                  isOwner: true,
+               },
+               mongooseSession,
+            );
+
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
-         response.json(forum);
+         response.json({ forum, forumMember });
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
-            moongooseSession,
+            mongooseSession,
          );
          const signifyException = new SignifyException(
             500,

@@ -14,7 +14,7 @@ forumMemberRouter.get(
 
 forumMemberRouter.get(
    '/:phoneNumber',
-   ControllerFactory.getForumMemberController().getForumMemberByPhoneNumber,
+   ControllerFactory.getForumMemberController().getForumsByPhoneNumber,
 );
 
 forumMemberRouter.get(
