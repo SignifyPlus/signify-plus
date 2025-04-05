@@ -53,6 +53,10 @@ class ForumMemberService extends AbstractService {
    getDocumentsByCustomFiltersQuery(filterConditions, session = null) {
       return super.getDocumentsByCustomFiltersQuery(filterConditions, session);
    }
+
+   getDocumentsQuery(session = null) {
+      return super.getDocumentsQuery(session);
+   }
 }
 
 module.exports = ForumMemberService;

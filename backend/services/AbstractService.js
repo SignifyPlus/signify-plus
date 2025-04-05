@@ -71,7 +71,7 @@ class AbstractService {
             : await this.schemaModel.findOne(filterConditions);
          return document;
       } catch (exception) {
-         throw new Error(`Error Retrieving the Documet: ${exception.message}`);
+         throw new Error(`Error Retrieving the Document: ${exception.message}`);
       }
    }
 

@@ -9,7 +9,7 @@ forumMemberRouter.get(
 
 forumMemberRouter.get(
    '/id/:id',
-   ControllerFactory.getForumMemberController().getForumMemberByUserId,
+   ControllerFactory.getForumMemberController().getForumMemberRecordsByUserId,
 );
 
 forumMemberRouter.get(
@@ -20,6 +20,11 @@ forumMemberRouter.get(
 forumMemberRouter.get(
    '/forumId/:id',
    ControllerFactory.getForumMemberController().getForumMembersByForumId,
+);
+
+forumMemberRouter.post(
+   '/create',
+   ControllerFactory.getForumMemberController().createForumMember,
 );
 
 module.exports = forumMemberRouter;
