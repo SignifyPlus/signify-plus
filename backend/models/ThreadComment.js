@@ -3,20 +3,14 @@ const mongoose = require('mongoose');
 const ThreadCommentSchema = new mongoose.Schema({
    threadId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'ForumThread',
+      ref: 'Thread',
       required: true,
-   }, // comment relating to which thread
-   mediaId: {
+   },
+   commentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Media',
-      required: false,
-   }, // comment relating to which thread
-   content: { type: String, required: true },
-   createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Comment',
       required: true,
-   }, //the user Id from users table
+   },
    createdAt: { type: Date, required: true, default: Date.now },
 });
 

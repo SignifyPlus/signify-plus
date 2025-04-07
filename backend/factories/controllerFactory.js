@@ -10,7 +10,9 @@ const UserController = require('../controllers/UserController.js');
 const ContactController = require('../controllers/ContactController.js');
 const UserActivityController = require('../controllers/UserActivityController.js');
 const ForumController = require('../controllers/ForumController.js');
-const ForumMember = require('../controllers/ForumMemberController.js');
+const ForumMemberController = require('../controllers/ForumMemberController.js');
+const ThreadController = require('../controllers/ThreadController.js');
+const CommentController = require('../controllers/CommentController.js');
 
 class ControllerFactory {
    /**
@@ -53,6 +55,19 @@ class ControllerFactory {
     * @type {UserActivityController | null}
     */
    static #userActivityController = null;
+
+   /**
+    * @private
+    * @type {ThreadController | null}
+    */
+   static #threadController = null;
+
+   /**
+    * @private
+    * @type {CommentController | null}
+    */
+   static #commentController = null;
+
    constructor() {}
 
    static getUserController() {
@@ -100,9 +115,23 @@ class ControllerFactory {
 
    static getForumMemberController() {
       if (!ControllerFactory.#forumMember) {
-         ControllerFactory.#forumMember = new ForumMember();
+         ControllerFactory.#forumMember = new ForumMemberController();
       }
       return ControllerFactory.#forumMember;
+   }
+
+   static getThreadController() {
+      if (!ControllerFactory.#threadController) {
+         ControllerFactory.#threadController = new ThreadController();
+      }
+      return ControllerFactory.#threadController;
+   }
+
+   static getCommentController() {
+      if (!ControllerFactory.#commentController) {
+         ControllerFactory.#commentController = new CommentController();
+      }
+      return ControllerFactory.#commentController;
    }
 }
 

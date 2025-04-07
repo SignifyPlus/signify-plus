@@ -25,6 +25,8 @@ const SettingsService = require('../services/SettingsService.js');
 const ThreadCommentService = require('../services/ThreadCommentService.js');
 const UserActivityService = require('../services/UserActivityService.js');
 const UserService = require('../services/UserService.js');
+const ThreadService = require('../services/ThreadService.js');
+const CommentService = require('../services/CommentService.js');
 
 //models
 const CallHistory = require('../models/CallHistory.js');
@@ -47,6 +49,8 @@ const Settings = require('../models/Settings.js');
 const ThreadComment = require('../models/ThreadComment.js');
 const User = require('../models/User.js');
 const UserActivity = require('../models/UserActivity.js');
+const Thread = require('../models/Thread.js');
+const Comment = require('../models/Comment.js');
 const MongooseService = require('../services/MongooseService.js');
 
 class ServiceFactory {
@@ -161,6 +165,18 @@ class ServiceFactory {
 
    /**
     * @private
+    * @type {ThreadService | null}
+    */
+   static #threadService = null;
+
+   /**
+    * @private
+    * @type {CommentService | null}
+    */
+   static #commentService = null;
+
+   /**
+    * @private
     * @type {UserActivityService | null}
     */
    static #userActivityService = null;
@@ -242,6 +258,20 @@ class ServiceFactory {
          );
       }
       return ServiceFactory.#forumThreadService;
+   }
+
+   static get getThreadService() {
+      if (!ServiceFactory.#threadService) {
+         ServiceFactory.#threadService = new ThreadService(Thread);
+      }
+      return ServiceFactory.#threadService;
+   }
+
+   static get getCommentService() {
+      if (!ServiceFactory.#commentService) {
+         ServiceFactory.#commentService = new CommentService(Comment);
+      }
+      return ServiceFactory.#commentService;
    }
 
    static get getGroupMemberService() {

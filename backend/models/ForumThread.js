@@ -5,13 +5,12 @@ const ForumThreadSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Forum',
       required: true,
-   }, // which forum id from the forums table
-   createdBy: {
+   },
+   threadId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Thread',
       required: true,
-   }, //the user Id from users table
-   title: { type: String },
+   },
    createdAt: { type: Date, required: true, default: Date.now },
 });
 

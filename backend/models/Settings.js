@@ -10,6 +10,11 @@ const SettingsSchema = new mongoose.Schema({
    theme: { type: String, enum: ['Light', 'Dark'], default: 'Light' },
    autoDownload: { type: Boolean, default: false },
    notificationEnabled: { type: Boolean, default: true },
+   aslTranslationLanguage: {
+      type: String,
+      enum: ['English', 'Turkish'],
+      default: 'English',
+   },
    createdAt: { type: Date, default: Date.now },
    updatedAt: { type: Date, default: Date.now },
 });
