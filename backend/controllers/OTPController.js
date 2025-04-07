@@ -1,7 +1,6 @@
-const ServiceFactory = require("../factories/serviceFactory.js");
+const ServiceFactory = require('../factories/serviceFactory.js');
 class OTPController {
-    constructor(){
-    }
+   constructor() {}
 }
 
 module.exports = OTPController;

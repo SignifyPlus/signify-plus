@@ -4,6 +4,9 @@ const ForumPermissionsController = require('../controllers/ForumPermissionsContr
 
 const forumPermissionsController = new ForumPermissionsController();
 
-forumPermissionsRouter.get('/all', forumPermissionsController.getAllForumPermissionss);
+forumPermissionsRouter.get(
+   '/all',
+   forumPermissionsController.getAllForumPermissionss,
+);
 
 module.exports = forumPermissionsRouter;

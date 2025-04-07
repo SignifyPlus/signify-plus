@@ -1,9 +1,11 @@
 const express = require('express');
 const forumRouter = express.Router();
-const ForumController = require('../controllers/ForumController.js');
+const ControllerFactory = require('../factories/controllerFactory.js');
 
-const forumController = new ForumController();
+forumRouter.get('/all', ControllerFactory.getForumController().getAllForums);
 
-forumRouter.get('/all', forumController.getAllForums);
+forumRouter.get('/id/:id', ControllerFactory.getForumController().getForumById);
+
+forumRouter.post('/create', ControllerFactory.getForumController().createForum);
 
 module.exports = forumRouter;
