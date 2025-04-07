@@ -78,7 +78,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/forums', forumRoutes);
       signifyPlusAppServer.use('/forumMembers', forumMemberRoutes);
       signifyPlusAppServer.use('/threads', threadRoutes);
-      signifyPlusAppServer.use('/comments', threadRoutes);
+      signifyPlusAppServer.use('/comments', commentRoutes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
