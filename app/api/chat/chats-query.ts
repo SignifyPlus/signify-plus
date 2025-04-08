@@ -24,7 +24,7 @@ export const chatsQueryKey = (params: { phoneNumber?: string }) => [
 ];
 
 export const useChatsQuery = (params: { phoneNumber?: string }) => {
-  const { isPending, error, data } = useQuery({
+  return useQuery({
     queryKey: chatsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
@@ -32,8 +32,5 @@ export const useChatsQuery = (params: { phoneNumber?: string }) => {
       const body = await response.json();
       return (body ?? []) as Chat[];
     },
-    enabled: !!params.phoneNumber,
   });
-
-  return { isPending, error, data };
 };

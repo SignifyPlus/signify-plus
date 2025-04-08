@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '@/constants/Colors';
 import { AlphabetList, IData } from 'react-native-section-alphabet-list';
 import { defaultStyles } from '@/constants/Styles';
@@ -30,8 +30,6 @@ const Page = () => {
   const { mutateAsync } = useCreateChatMutation();
 
   const router = useRouter();
-
-  console.log(chats);
 
   const data = useMemo(() => {
     return _data
@@ -79,40 +77,35 @@ const Page = () => {
           <TouchableOpacity
             onPress={async () => {
               if (!phoneNumber) return;
-              const exisingChat = chats?.find(
-                (chat) => chat.participants[0] === item.value
+              const exisingChat = chats?.find((chat) =>
+                chat.participants.find(
+                  (participant) => participant.phoneNumber === item.value
+                )
               );
-              if (!exisingChat) {
+              if (exisingChat) {
+                router.push(`/chats/${exisingChat._id}`);
+              } else {
                 const result = await mutateAsync({
                   mainUserPhoneNumber: phoneNumber,
                   participants: [item.value],
                 });
                 router.push(`/chats/${result._id}`);
-              } else {
-                router.push(`/chats/${exisingChat._id}`);
               }
             }}
           >
             <View style={styles.listItemContainer}>
-              {item.img ? (
-                <View
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 15,
-                    backgroundColor: Colors.lightGray,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Ionicons name="person-outline" />
-                </View>
-              ) : (
-                <Image
-                  source={{ uri: item.img }}
-                  style={styles.listItemImage}
-                />
-              )}
+              <View
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  backgroundColor: Colors.lightGray,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons name="person-outline" />
+              </View>
               <View
                 style={{
                   flex: 1,
@@ -160,12 +153,6 @@ const styles = StyleSheet.create({
     height: 50,
     paddingHorizontal: 14,
     backgroundColor: '#fff',
-  },
-
-  listItemImage: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
   },
 
   sectionHeaderContainer: {

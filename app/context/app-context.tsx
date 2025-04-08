@@ -17,7 +17,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useUpdateContacts } from '@/context/use-update-contacts';
 import { useContactsQuery } from '@/api/contacts-query';
 import { chatMessagesQueryKey } from '@/api/chat/chats-messages-query';
-import React from 'react';
 
 type IncomingCallType = {
   meetingId: string;
@@ -71,23 +70,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [isConnected]
   );
 
-  const sendMeetingIdToPython = useCallback(
-    async (meetingId: string) => {
-      try {
-        const response = await fetch('https://moving-cardinal-happily.ngrok-free.app/meeting-id', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ meetingId }),
-        });
-        const result = await response.json();
-        console.log('Meeting ID sent to Python:', result);
-      } catch (error) {
-        console.error('Error sending meeting ID to Python:', error);
-      }
-    },
-    []
-  );
-
   const sendMeetingId = useCallback(
     (meetingId: string, targetPhoneNumber: string) => {
       const socket = socketRef.current;
@@ -131,6 +113,23 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [isConnected, phoneNumber]
   );
 
+  //Function to send meeting ID via HTTP POST
+  const sendMeetingIdToPython = useCallback(async (meetingId: string) => {
+    try {
+      const response = await fetch(
+        'https://robust-hen-big.ngrok-free.app/meeting-id',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ meetingId }),
+        }
+      );
+      const result = await response.json();
+      console.log('Meeting ID sent to Python:', result);
+    } catch (error) {
+      console.error('Error sending meeting ID to Python:', error);
+    }
+  }, []);
 
   const videoCallUser = useCallback(
     async (targetPhoneNumber: string) => {
@@ -142,14 +141,13 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       console.log(`Calling user with phone number: ${sanitizedTargetPhone}`);
       const meetingId = await createMeeting();
       sendMeetingId(meetingId, sanitizedTargetPhone);
-      // Send the meeting ID to the Python server via ngrok
+      router.push(`/video-call?meetingId=${meetingId}`);
+      // Send the new meeting ID to the Python server via HTTP POST
       await sendMeetingIdToPython(meetingId);
-      // Navigate to the video call screen with the new meeting ID
       router.push(`/video-call?meetingId=${meetingId}`);
     },
     [phoneNumber, router, sendMeetingId, sendMeetingIdToPython]
   );
-  
 
   const declineVideoCall = useCallback(() => {
     const socket = socketRef.current;
@@ -209,17 +207,18 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       console.error('Meeting ID offer failed:', data.message);
     });
 
-    socket.on('message', (msg) => {
+    socket.on('message', async (msg) => {
+      console.log('Received message:', msg);
       if (msg.chatId) {
-        void queryClient.invalidateQueries({
-          queryKey: chatMessagesQueryKey(msg.chatId),
+        console.log('Invalidating chat messages query');
+        await queryClient.invalidateQueries({
+          queryKey: ['chats'],
         });
       } else {
         console.error(
           "Could not invalidate chat messages query. Missing 'chatId'"
         );
       }
-      console.log('Received message:', msg);
     });
 
     return () => {
@@ -259,6 +258,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   useUpdateContacts({ phoneNumber });
 
+  console.log(API_URL);
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );

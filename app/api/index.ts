@@ -3,10 +3,10 @@ import { QueryClient } from '@tanstack/react-query';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 5,
+      // retry: 5,
     },
     mutations: {
-      retry: 5,
+      // retry: 5,
     },
   },
 });
