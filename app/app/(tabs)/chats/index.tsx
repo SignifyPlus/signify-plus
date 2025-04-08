@@ -52,6 +52,7 @@ const Page = () => {
       } satisfies ChatRowProps;
     });
 
+  console.log(isPendingContacts);
   if (isPending || isPendingContacts)
     return (
       <ActivityIndicator

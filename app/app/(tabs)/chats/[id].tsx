@@ -24,6 +24,7 @@ import { useChatMessagesQuery } from '@/api/chat/chats-messages-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useAppContext } from '@/context/app-context';
 import { useChatsQuery } from '@/api/chat/chats-query';
+import { queryClient } from '@/api';
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -39,6 +40,8 @@ const Page = () => {
 
   const [replyMessage, setReplyMessage] = useState<IMessage | null>(null);
   const swipeableRowRef = useRef<Swipeable | null>(null);
+
+  console.log('chat messages', data?.[0]?.content);
 
   useEffect(() => {
     if (!data) return;
@@ -57,10 +60,10 @@ const Page = () => {
   }, [data]);
 
   const onSend = useCallback(
-    (messages: IMessage[] = []) => {
-      setMessages((previousMessages: any[]) =>
-        GiftedChat.append(previousMessages, messages)
-      );
+    async (messages: IMessage[] = []) => {
+      // setMessages((previousMessages: any[]) =>
+      //   GiftedChat.append(previousMessages, messages)
+      // );
       const chat = chats?.find((chat) => chat._id === id);
       console.log('sending message in chat', chat?._id);
       if (chat) {
@@ -71,6 +74,9 @@ const Page = () => {
           );
         });
       }
+      // setTimeout(() => {
+      void queryClient.invalidateQueries();
+      // }, 1000);
     },
     [chats, id, sendMessage]
   );

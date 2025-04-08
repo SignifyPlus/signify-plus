@@ -18,10 +18,6 @@ const Layout = () => {
     .map((p) => p.phoneNumber)
     ?.join(', ');
 
-  console.log('chatPhoneNumber', chatPhoneNumber);
-
-  console.log('chat', chat);
-
   const { videoCallUser } = useAppContext();
 
   return (

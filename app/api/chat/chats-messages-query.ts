@@ -18,23 +18,26 @@ export interface Message {
 }
 
 export const chatMessagesQueryKey = (chatId: string) => [
+  'chats',
   'chatMessages',
   chatId,
 ];
 
 export const useChatMessagesQuery = (chatId?: string) => {
-  const { isPending, error, data } = useQuery({
-    queryKey: chatMessagesQueryKey(chatId || ''),
+  return useQuery({
+    queryKey: [],
     queryFn: async () => {
       if (!chatId) return [];
+      console.log('fetching messages for chat', chatId);
       const response = await fetch(`${API_URL}/chats/custom/id/${chatId}`);
       if (!response.ok) throw new Error('Failed to fetch messages');
 
       const jsonResponse = await response.json();
-      return jsonResponse.messages as Message[];
+      return ((jsonResponse.messages ?? []) as Message[]).sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB.getTime() - dateA.getTime();
+      });
     },
-    enabled: !!chatId,
   });
-
-  return { isPending, error, data };
 };

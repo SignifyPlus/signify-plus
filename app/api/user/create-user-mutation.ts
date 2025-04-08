@@ -5,7 +5,6 @@ export interface CreateUserParams {
   name: string;
   phoneNumber: string;
   password: string;
-  profilePicture?: string;
 }
 
 export const useCreateUserMutation = () => {
@@ -14,7 +13,7 @@ export const useCreateUserMutation = () => {
   return useMutation({
     mutationFn: async (params: CreateUserParams) => {
       console.log('Creating user', params);
-      const response = await fetch(`${API_URL}/user/create`, {
+      const response = await fetch(`${API_URL}/users/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
