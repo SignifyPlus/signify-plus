@@ -50,6 +50,13 @@ class UserController {
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: phoneNumber,
             });
+         const userValidation = await ExceptionHelper.validate(
+            user,
+            400,
+            `User does not exist in the database`,
+            response,
+         );
+         if (userValidation) return userValidation;
          response.json(user);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
@@ -76,6 +83,13 @@ class UserController {
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: request.body.phoneNumber,
             });
+         const userValidation = await ExceptionHelper.validate(
+            user,
+            400,
+            `User does not exist in the database`,
+            response,
+         );
+         if (userValidation) return userValidation;
          const doesPasswordMatch = await Encrypt.compare(
             request.body.password,
             user.password,

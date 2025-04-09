@@ -117,8 +117,8 @@ class ChatController {
             path: 'mainUserId participants',
             select: 'phoneNumber name',
          });
-
-         response.json(await this.#getUserChats(chats));
+         const userChats = await this.#getUserChats(chats);
+         response.json(await this.#postProcessChats(userChats));
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -148,6 +148,7 @@ class ChatController {
             path: 'senderId receiverIds',
             select: 'name phoneNumber',
          });
+         //const finalPopulatedChatData = await this.#postProcessChats(populatedChatData);
          response.json({
             messages: populatedChatData,
             totalNumberOfMessages: populatedChatData.length,
@@ -196,6 +197,19 @@ class ChatController {
          chatObjects.push(chatObject);
       }
       return chatObjects;
+   }
+
+   async #postProcessChats(chats) {
+      chats.forEach((chat) => {
+         const participantChatIds = chat.participants.map((p) =>
+            p._id.toString(),
+         );
+         const mainUserId = chat.mainUserId._id.toString();
+         if (!participantChatIds.includes(mainUserId)) {
+            chat.participants.push(chat.mainUserId);
+         }
+      });
+      return chats;
    }
 
    //Helper Methods
