@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { API_URL } from '@/constants/Config';
+import { useQuery } from "@tanstack/react-query";
+import { API_URL } from "@/constants/Config";
 
 type User = {
   _id: string;
@@ -19,7 +19,7 @@ export type Chat = {
 };
 
 export const chatsQueryKey = (params: { phoneNumber?: string }) => [
-  'chats',
+  "chats",
   params.phoneNumber,
 ];
 
@@ -30,6 +30,10 @@ export const useChatsQuery = (params: { phoneNumber?: string }) => {
       if (!params.phoneNumber) return [];
       const response = await fetch(`${API_URL}/chats/${params.phoneNumber}`);
       const body = await response.json();
+      if (!Array.isArray(body)) {
+        console.error("Invalid response from server:", body);
+        return [];
+      }
       return (body ?? []) as Chat[];
     },
   });
