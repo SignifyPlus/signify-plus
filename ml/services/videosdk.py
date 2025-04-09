@@ -30,12 +30,23 @@ class VideoProcessor:
         self.frame_ready = asyncio.Event()
         self.is_processing = False
         self.processing_task = None
-    
+
+        # Adaptive frame rate control
+        self.min_interval = float(os.environ.get('MIN_FRAME_INTERVAL', 1/45))  # Max ~45 FPS
+        self.max_interval = float(os.environ.get('MAX_FRAME_INTERVAL', 1/15))  # Min ~15 FPS
+        self.device_performance_factor = 1.0  # Will be adjusted based on observed performance
+
         # Frame rate tracking
         self.frame_times = deque(maxlen=100)  # Store last 100 frame timestamps
+        self.frame_intervals = deque(maxlen=30)  # Store recent intervals
         self.average_fps = 0
-        self.fps_update_interval = 5.0  # Update FPS every 5 seconds
+        self.fps_update_interval = 3.0  # Update FPS every 3 seconds
         self.last_fps_update_time = time.time()
+        self.device_speed_assessed = False
+        
+        # Frame drop monitoring
+        self.dropped_frames = 0
+        self.total_frames = 0
 
     async def start(self):
         """Initialize and start processing"""
@@ -43,6 +54,49 @@ class VideoProcessor:
         self.processing_task = asyncio.create_task(self.process_frames())
         # Start a separate task to periodically log FPS
         self.fps_task = asyncio.create_task(self.log_fps())
+        
+        # Start adaptive frame rate controller
+        self.adaptive_task = asyncio.create_task(self.adaptive_framerate_controller())
+
+    async def adaptive_framerate_controller(self):
+        """Dynamically adjust frame rate based on device performance"""
+        # Wait for initial device performance assessment
+        await asyncio.sleep(5.0)  # Give some time to collect performance data
+        while self.is_processing:
+            try:
+                if len(self.frame_intervals) >= 10:
+                    # Calculate average processing time
+                    avg_interval = sum(self.frame_intervals) / len(self.frame_intervals)
+
+                    # Calculate frame drop rate
+                    drop_rate = self.dropped_frames / max(1, self.total_frames)
+
+                    # Adjust frame interval based on performance
+                    if drop_rate > 0.2 or avg_interval > self.frame_interval * 1.5:
+                        # Too many drops or processing too slow - reduce frame rate
+                        new_interval = min(self.frame_interval * 1.2, self.max_interval)
+                        if new_interval != self.frame_interval:
+                            self.frame_interval = new_interval
+                            print(f"⚠️ Reducing frame rate due to performance issues. New interval: {self.frame_interval:.4f}s")
+                    elif drop_rate < 0.05 and avg_interval < self.frame_interval * 0.7:
+                        # Good performance - can increase frame rate
+                        new_interval = max(self.frame_interval * 0.9, self.min_interval)
+                        if new_interval != self.frame_interval:
+                            self.frame_interval = new_interval
+                            print(f"✅ Increasing frame rate due to good performance. New interval: {self.frame_interval:.4f}s")
+                    # Mark device speed as assessed
+                    if not self.device_speed_assessed:
+                        if drop_rate < 0.1:
+                            print(f"📱 Device performance assessment: Good (drop rate: {drop_rate:.2f})")
+                        else:
+                            print(f"📱 Device performance assessment: Limited (drop rate: {drop_rate:.2f})")
+                        self.device_speed_assessed = True
+                    # Reset counters periodically
+                    self.dropped_frames = 0
+                    self.total_frames = 0
+            except Exception as e:
+                print(f"Error in adaptive framerate controller: {e}")
+            await asyncio.sleep(3.0)  # Check every 3 seconds
 
     async def log_fps(self):
         """Periodically calculate and log average FPS"""
@@ -55,7 +109,7 @@ class VideoProcessor:
                 
                 if time_span > 0:
                     self.average_fps = (num_frames - 1) / time_span
-                    print(f"Average FPS: {self.average_fps:.2f}")
+                    print(f"Average FPS: {self.average_fps:.2f}, Target interval: {self.frame_interval:.4f}s")
             elif self.frame_times:
                 print("Not enough frames to calculate FPS")
 
@@ -72,6 +126,12 @@ class VideoProcessor:
             self.fps_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self.fps_task
+
+        # Cancel adaptive controller task
+        if hasattr(self, 'adaptive_task'):
+            self.adaptive_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self.adaptive_task
     
     async def process_frames(self):
         """Continuous frame processing loop"""
@@ -86,6 +146,11 @@ class VideoProcessor:
                 # Record frame time for FPS calculation
                 current_time = time.time()
                 self.frame_times.append(current_time)
+
+                # Record processing interval if we have previous frames
+                if len(self.frame_times) > 1:
+                    interval = self.frame_times[-1] - self.frame_times[-2]
+                    self.frame_intervals.append(interval)
 
                 # Convert frame to jpg for ML processing
                 _, buffer = cv2.imencode('.jpg', self.current_frame, 
@@ -102,6 +167,7 @@ class VideoProcessor:
     
     async def process(self, frame: VideoFrame) -> VideoFrame:
         """Process incoming video frames"""
+        self.total_frames += 1
         current_time = time.time()
         if current_time - self.last_process_time >= self.frame_interval:
             try:
@@ -110,6 +176,9 @@ class VideoProcessor:
                 self.last_process_time = current_time
             except Exception as e:
                 print(f"Error processing frame: {e}")
+        else:
+            # Frame dropped due to rate limiting
+            self.dropped_frames += 1
         return frame
 
 
