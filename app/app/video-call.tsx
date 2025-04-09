@@ -227,7 +227,7 @@ const MeetingView: React.FC = () => {
       {meetingId && (
         <Text style={styles.meetingId}>Meeting Id: {meetingId}</Text>
       )}
-      <ParticipantList participants={participantsArrId} />
+      <ParticipantList participants={participantsFiltered} />
       <ControlsContainer />
     </View>
   );

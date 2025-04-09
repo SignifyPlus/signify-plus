@@ -11,6 +11,8 @@ from contextlib import suppress
 import os
 import dotenv
 from fastapi import WebSocket
+from collections import deque
+import time
 
 dotenv.load_dotenv()
 
@@ -29,11 +31,34 @@ class VideoProcessor:
         self.is_processing = False
         self.processing_task = None
     
+        # Frame rate tracking
+        self.frame_times = deque(maxlen=100)  # Store last 100 frame timestamps
+        self.average_fps = 0
+        self.fps_update_interval = 5.0  # Update FPS every 5 seconds
+        self.last_fps_update_time = time.time()
+
     async def start(self):
         """Initialize and start processing"""
         self.is_processing = True
         self.processing_task = asyncio.create_task(self.process_frames())
-    
+        # Start a separate task to periodically log FPS
+        self.fps_task = asyncio.create_task(self.log_fps())
+
+    async def log_fps(self):
+        """Periodically calculate and log average FPS"""
+        while self.is_processing:
+            await asyncio.sleep(self.fps_update_interval)
+            if len(self.frame_times) > 1:
+                # Calculate FPS based on the time between first and last frame
+                time_span = self.frame_times[-1] - self.frame_times[0]
+                num_frames = len(self.frame_times)
+                
+                if time_span > 0:
+                    self.average_fps = (num_frames - 1) / time_span
+                    print(f"Average FPS: {self.average_fps:.2f}")
+            elif self.frame_times:
+                print("Not enough frames to calculate FPS")
+
     async def cleanup(self):
         """Clean up resources"""
         self.is_processing = False
@@ -41,6 +66,12 @@ class VideoProcessor:
             self.processing_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self.processing_task
+        
+         # Cancel FPS logging task
+        if hasattr(self, 'fps_task'):
+            self.fps_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self.fps_task
     
     async def process_frames(self):
         """Continuous frame processing loop"""
@@ -52,6 +83,10 @@ class VideoProcessor:
                 continue
 
             try:
+                # Record frame time for FPS calculation
+                current_time = time.time()
+                self.frame_times.append(current_time)
+
                 # Convert frame to jpg for ML processing
                 _, buffer = cv2.imencode('.jpg', self.current_frame, 
                                         [cv2.IMWRITE_JPEG_QUALITY, 95,
@@ -67,7 +102,7 @@ class VideoProcessor:
     
     async def process(self, frame: VideoFrame) -> VideoFrame:
         """Process incoming video frames"""
-        current_time = time()
+        current_time = time.time()
         if current_time - self.last_process_time >= self.frame_interval:
             try:
                 self.current_frame = frame.to_ndarray(format="bgr24")
@@ -169,7 +204,7 @@ class VideoSDKService:
         """Process ML inference results"""
         if results.get("status") == "success":
             predictions = results.get("predictions", [])
-            current_time = time()
+            current_time = time.time()
             
             # Always broadcast empty predictions to clear UI
             if not predictions and self.last_predictions:
