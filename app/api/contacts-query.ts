@@ -28,6 +28,7 @@ export const contactsQueryKey = (params: { phoneNumber?: string }) => [
 ];
 
 export const useContactsQuery = (params: { phoneNumber?: string }) => {
+  console.log('Getting contacts for ', params.phoneNumber);
   const { isPending, error, data } = useQuery({
     queryKey: contactsQueryKey(params),
     queryFn: async () => {
@@ -35,7 +36,6 @@ export const useContactsQuery = (params: { phoneNumber?: string }) => {
       const response = await fetch(`${API_URL}/contacts/${params.phoneNumber}`);
       return (await response.json()) as UserContact[];
     },
-    enabled: !!params.phoneNumber,
   });
 
   return { isPending, error, data };

@@ -1,54 +1,54 @@
-const AbstractService = require('./AbstractService')
+const AbstractService = require('./AbstractService');
 class SettingsService extends AbstractService {
-    constructor(schemaModel) {
-        super(schemaModel);
-    }
+   constructor(schemaModel) {
+      super(schemaModel);
+   }
 
-    //result methods
-    async getDocuments() {
-        return await super.getDocuments();
-    }
-    
-    async getDocumentById(objectId) {
-        return await super.getDocumentById(objectId);
-    }
+   //result methods
+   async getDocuments() {
+      return await super.getDocuments();
+   }
 
-    async getDocumentsByCustomFilters(filterConditions) {
-        return await super.getDocumentsByCustomFilters(filterConditions);
-    }
+   async getDocumentById(objectId) {
+      return await super.getDocumentById(objectId);
+   }
 
-    async getDocumentByCustomFilters(filterConditions) {
-        return await super.getDocumentByCustomFilters(filterConditions);
-    }
+   async getDocumentsByCustomFilters(filterConditions) {
+      return await super.getDocumentsByCustomFilters(filterConditions);
+   }
 
-    async updateDocument(filterConditions, updateFields) {
-        return await super.updateDocument(filterConditions, updateFields);
-    }
+   async getDocumentByCustomFilters(filterConditions) {
+      return await super.getDocumentByCustomFilters(filterConditions);
+   }
 
-    async saveDocument(data) {
-        return await super.saveDocument(data);
-    }
+   async updateDocument(filterConditions, updateFields) {
+      return await super.updateDocument(filterConditions, updateFields);
+   }
 
-    async saveDocuments(data) {
-        return await super.saveDocuments(data);
-    }
+   async saveDocument(data) {
+      return await super.saveDocument(data);
+   }
 
-    async deleteDocument(filterConditions) {
-        return await super.deleteDocument(filterConditions);
-    }
+   async saveDocuments(data) {
+      return await super.saveDocuments(data);
+   }
 
-    async deleteDocumentById(objectId) {
-        return await super.deleteDocumentById(objectId);
-    }
+   async deleteDocument(filterConditions) {
+      return await super.deleteDocument(filterConditions);
+   }
 
-    async deleteDocuments(filterConditions) {
-        return await super.deleteDocuments(filterConditions);
-    }
+   async deleteDocumentById(objectId) {
+      return await super.deleteDocumentById(objectId);
+   }
 
-    //query methods
-    getDocumentsByCustomFiltersQuery(filterConditions) {
-        return super.getDocumentsByCustomFiltersQuery(filterConditions);
-    }
+   async deleteDocuments(filterConditions) {
+      return await super.deleteDocuments(filterConditions);
+   }
+
+   //query methods
+   getDocumentsByCustomFiltersQuery(filterConditions) {
+      return super.getDocumentsByCustomFiltersQuery(filterConditions);
+   }
 }
 
 module.exports = SettingsService;

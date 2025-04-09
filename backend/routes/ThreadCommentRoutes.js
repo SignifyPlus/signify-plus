@@ -6,5 +6,4 @@ const threadCommentController = new ThreadCommentController();
 
 threadCommentRouter.get('/all', threadCommentController.getAllThreadComments);
 
-
 module.exports = threadCommentRouter;

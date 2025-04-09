@@ -1,54 +1,58 @@
-const AbstractService = require('./AbstractService')
+const AbstractService = require('./AbstractService');
 class ForumService extends AbstractService {
-    constructor(schemaModel) {
-        super(schemaModel);
-    }
+   constructor(schemaModel) {
+      super(schemaModel);
+   }
 
-    //result methods
-    async getDocuments() {
-        return await super.getDocuments();
-    }
-    
-    async getDocumentById(objectId) {
-        return await super.getDocumentById(objectId);
-    }
+   //result methods
+   async getDocuments(session = null) {
+      return await super.getDocuments(session);
+   }
 
-    async getDocumentsByCustomFilters(filterConditions) {
-        return await super.getDocumentsByCustomFilters(filterConditions);
-    }
+   async getDocumentById(objectId, session = null) {
+      return await super.getDocumentById(objectId, session);
+   }
 
-    async getDocumentByCustomFilters(filterConditions) {
-        return await super.getDocumentByCustomFilters(filterConditions);
-    }
+   async getDocumentsByCustomFilters(filterConditions, session = null) {
+      return await super.getDocumentsByCustomFilters(filterConditions, session);
+   }
 
-    async updateDocument(filterConditions, updateFields) {
-        return await super.updateDocument(filterConditions, updateFields);
-    }
+   async getDocumentByCustomFilters(filterConditions, session = null) {
+      return await super.getDocumentByCustomFilters(filterConditions, session);
+   }
 
-    async saveDocument(data) {
-        return await super.saveDocument(data);
-    }
+   async updateDocument(filterConditions, updateFields, session = null) {
+      return await super.updateDocument(
+         filterConditions,
+         updateFields,
+         session,
+      );
+   }
 
-    async saveDocuments(data) {
-        return await super.saveDocuments(data);
-    }
+   async saveDocument(data, session = null) {
+      return await super.saveDocument(data, session);
+   }
 
-    async deleteDocument(filterConditions) {
-        return await super.deleteDocument(filterConditions);
-    }
+   async saveDocuments(data, session = null) {
+      return await super.saveDocuments(data, session);
+   }
 
-    async deleteDocumentById(objectId) {
-        return await super.deleteDocumentById(objectId);
-    }
+   async deleteDocument(filterConditions, session = null) {
+      return await super.deleteDocument(filterConditions, session);
+   }
 
-    async deleteDocuments(filterConditions) {
-        return await super.deleteDocuments(filterConditions);
-    }
+   async deleteDocumentById(objectId, session = null) {
+      return await super.deleteDocumentById(objectId, session);
+   }
 
-    //query methods
-    getDocumentsByCustomFiltersQuery(filterConditions) {
-        return super.getDocumentsByCustomFiltersQuery(filterConditions);
-    }
+   async deleteDocuments(filterConditions, session = null) {
+      return await super.deleteDocuments(filterConditions, session);
+   }
+
+   //query methods
+   getDocumentsByCustomFiltersQuery(filterConditions, session = null) {
+      return super.getDocumentsByCustomFiltersQuery(filterConditions, session);
+   }
 }
 
 module.exports = ForumService;

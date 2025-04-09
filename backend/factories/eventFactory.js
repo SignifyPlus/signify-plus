@@ -1,29 +1,29 @@
-
 /**
- * EventFactory takes on the responsibility of initializing and providing instances 
+ * EventFactory takes on the responsibility of initializing and providing instances
  * of all the event classes that are to be utilized throughout the application's runtime.
  */
 
 //controllers
-const EventDispatcher = require("../events/eventDispatcher.js");
+const MessageEvent = require('../events/services/messageEvent.js');
 
 class EventFactory {
-    //private fields
-     /**
-     * @private
-     * @type {EventDispatcher | null}
-     */
-     static #eventDispatcher = null;
+   //private fields
+   /**
+    * @private
+    * @type {MessageEvent | null}
+    */
+   static #messageEvent = null;
 
-    constructor() {
-    }
+   static get getMessageEvent() {
+      return EventFactory.#messageEvent;
+   }
 
-    static get getEventDispatcher() {
-        if (!this.#eventDispatcher) {
-            this.#eventDispatcher = new EventDispatcher();
-        }
-        return this.#eventDispatcher;
-    }
+   /**
+    * @param {(param: MessageEvent) => void} value
+    */
+   static set setMessageEvent(value) {
+      EventFactory.#messageEvent = value;
+   }
 }
 
 module.exports = EventFactory;

@@ -90,8 +90,8 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
   const { webcamStream, webcamOn } = useParticipant(participantId);
   const [predictions, setPredictions] = useState([]);
 
-  // Monitor predictions changes
-  useEffect(() => {
+   // Monitor predictions changes
+   useEffect(() => {
     console.log('Predictions updated:', predictions);
   }, [predictions]);
   // Set up WebSocket connection for predictions
@@ -127,14 +127,15 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
     };
   }, []);
 
+
   return webcamOn && webcamStream ? (
     <View style={styles.mediaContainer}>
-        <RTCView
-      streamURL={new MediaStream([webcamStream.track]).toURL()}
-      objectFit="cover"
-      style={styles.mediaView}
-      mirror={true}
-    />
+      <RTCView
+        streamURL={new MediaStream([webcamStream.track]).toURL()}
+        objectFit="cover"
+        style={styles.mediaView}
+        mirror={true}
+      />
       <GestureOverlay predictions={predictions} />
     </View>
   ) : (
@@ -167,6 +168,8 @@ const ControlsContainer: React.FC = () => {
 
   const router = useRouter();
 
+ 
+
   return (
     <View style={styles.controlsContainer}>
       <Button onPress={join} buttonText="Join" backgroundColor="#1178F8" />
@@ -181,8 +184,9 @@ const ControlsContainer: React.FC = () => {
         backgroundColor="#1178F8"
       />
       <Button
-        onPress={() => {
+        onPress={async () => {
           leave();
+          // Redirect the user to another screen (or perform another action)
           router.replace('/(tabs)/chats');
         }}
         buttonText="Leave"
@@ -197,11 +201,12 @@ const MeetingView: React.FC = () => {
   const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
 
-  // Filter out the AI_MODEL participant by name
-  const participantsFiltered = Array.from(participants.keys()).filter(participantId => {
+   // Filter out the AI_MODEL participant by name
+   const participantsFiltered = Array.from(participants.keys()).filter(participantId => {
     const participant = participants.get(participantId);
     return participant?.displayName !== 'AI_MODEL';
   });
+
 
   useEffect(() => {
     if (joinedRef.current) {
@@ -222,7 +227,7 @@ const MeetingView: React.FC = () => {
       {meetingId && (
         <Text style={styles.meetingId}>Meeting Id: {meetingId}</Text>
       )}
-      <ParticipantList participants={participantsFiltered} />
+      <ParticipantList participants={participantsArrId} />
       <ControlsContainer />
     </View>
   );

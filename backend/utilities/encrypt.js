@@ -1,13 +1,12 @@
 const bcrypt = require('bcrypt');
 class Encrypt {
-    constructor(saltround) {
-        this.saltround = saltround;
-    }
+   static async encrypt(saltRound, keyToEncrypt) {
+      return await bcrypt.hash(keyToEncrypt, saltRound);
+   }
 
-    async encrypt(keyToEncrypt) {
-        const hashedValue = await bcrypt.hash(keyToEncrypt, this.saltround);
-        return hashedValue;
-    }
+   static async compare(rawValue, hashedValue) {
+      return await bcrypt.compare(rawValue, hashedValue);
+   }
 }
 
 module.exports = Encrypt;

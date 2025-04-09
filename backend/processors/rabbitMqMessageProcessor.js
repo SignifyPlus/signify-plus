@@ -1,34 +1,49 @@
-const ManagerFactory = require("../factories/managerFactory.js");
-const EventFactory = require("../factories/eventFactory.js");
-const EventConstants = require("../constants/eventConstants.js");
-class RabbitMqMessageProcessor{
-    constructor() {}
-    async messageProcessor(queueName) {
-        var consumerTag;
-        try {
-            await ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().assertQueue(queueName, {durable: true});
-            consumerTag = ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().consume(queueName, (message) => {
-                    if (message) {
-                        ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().ack(message);
-                        const message = JSON.parse(message.content.toString());
-                        //should be good now
-                        EventFactory.getEventDispatcher.dispatchEvent(EventConstants.MESSAGE_INGEST_EVENT, message);
-                    }
-                }, {noAck: false});
+const EventDispatcher = require('../events/eventDispatcher.js');
+const LoggerFactory = require('../factories/loggerFactory.js');
+class RabbitMqMessageProcessor {
+   constructor() {
+      this.executeMessageProcessor = this.executeMessageProcessor.bind(this);
+      this.haltConsumer = this.haltConsumer.bind(this);
+   }
+   async executeMessageProcessor(
+      rabbitMqChannel,
+      messageDispatchEventName,
+      queueName,
+   ) {
+      var consumerTag;
+      try {
+         await rabbitMqChannel.assertQueue(queueName, { durable: true });
+         consumerTag = rabbitMqChannel.consume(
+            queueName,
+            (message) => {
+               if (message) {
+                  rabbitMqChannel.ack(message);
+                  const parsedMessage = JSON.parse(message.content.toString());
+                  LoggerFactory.getApplicationLogger.info(`${parsedMessage}`);
+                  //should be good now
+                  EventDispatcher.dispatchEvent(
+                     messageDispatchEventName,
+                     parsedMessage,
+                  );
+               }
+            },
+            { noAck: false },
+         );
+      } catch (exception) {
+         LoggerFactory.getApplicationLogger.error(
+            `Exception Occured: ${exception}`,
+         );
+         await this.haltConsumer(rabbitMqChannel, consumerTag);
+         throw new Error(`${exception}`);
+      }
+   }
 
-        }catch(exception) {
-            console.log(`Exception Occured: ${exception}`);
-            await this.haltConsumer(consumerTag);
-            throw new Error(`${exception}`);
-        }
-    }
-
-    async haltConsumer(consumerTag) {
-        if (consumerTag == null) {
-            throw new Error(`Tried to close a consumer tag which is null!`);
-        }
-        await ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel().cancel(consumerTag);
-    }
+   async haltConsumer(rabbitMqChannel, consumerTag) {
+      if (consumerTag == null) {
+         throw new Error(`Tried to close a consumer tag which is null!`);
+      }
+      await rabbitMqChannel.cancel(consumerTag);
+   }
 }
 
 module.exports = RabbitMqMessageProcessor;

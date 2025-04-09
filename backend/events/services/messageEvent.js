@@ -1,19 +1,26 @@
-const EventFactory = require("../../factories/eventFactory.js");
-const EventConstants = require("../../constants/eventConstants.js");
-const ControllerFactory = require("../../factories/controllerFactory.js");
+const EventConstants = require('../../constants/eventConstants.js');
+const ControllerFactory = require('../../factories/controllerFactory.js');
+const EventDispatcher = require('../eventDispatcher.js');
 class MessageEvent {
-    constructor(){
-        //registers one of the message Events!
-        EventFactory.getEventDispatcher().registerListener(EventConstants.MESSAGE_INGEST_EVENT, this.IngestMessage.bind(this));
-    }
+   constructor() {
+      //registers one of the message Events!
+      EventDispatcher.registerListener(
+         EventConstants.MESSAGE_INGEST_EVENT,
+         this.IngestMessage.bind(this),
+      );
+   }
 
-    async IngestMessage(from, to, message) {
-        //for persisting to the backend
-        const response = await ControllerFactory.getMessageController().postMessage({mainUserPhoneNumber: from , targetUserPhoneNumbers: to , message: message})
-        return response;
-    }
+   async IngestMessage(messageObject) {
+      //for persisting to the backend
+      const response =
+         await ControllerFactory.getMessageController().postMessageToDb(
+            messageObject.data.senderPhoneNumber,
+            messageObject.data.targetPhoneNumbers,
+            messageObject.data.message,
+            messageObject.chatId,
+         );
+      return response;
+   }
 }
-
-
 
 module.exports = MessageEvent;

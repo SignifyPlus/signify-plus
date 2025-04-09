@@ -5,17 +5,17 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { ChatRow, ChatRowProps } from '@/components/ChatRow';
-import { defaultStyles } from '@/constants/Styles';
-import { Fragment } from 'react';
-import { useChatsQuery } from '@/api/chat/chats-query';
-import { useAppContext } from '@/context/app-context';
-import { useUpdateContacts } from '@/context/use-update-contacts';
-import { useContactsQuery } from '@/api/contacts-query';
-import { Link } from 'expo-router';
-import Colors from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import { ChatRow, ChatRowProps } from "@/components/ChatRow";
+import { defaultStyles } from "@/constants/Styles";
+import { Fragment } from "react";
+import { useChatsQuery } from "@/api/chat/chats-query";
+import { useAppContext } from "@/context/app-context";
+import { useUpdateContacts } from "@/context/use-update-contacts";
+import { useContactsQuery } from "@/api/contacts-query";
+import { Link } from "expo-router";
+import Colors from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 
 const Page = () => {
   const { phoneNumber } = useAppContext();
@@ -28,7 +28,7 @@ const Page = () => {
 
   // const chats = data ?? [];
 
-  const chatRows: ChatRowProps[] = (data ?? [])
+  const chatRows: ChatRowProps[] = (Array.isArray(data) ? data : [])
     .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
     .map((chat) => {
       const from = chat.participants.map((p) => p.phoneNumber)[0]!;
@@ -45,22 +45,23 @@ const Page = () => {
           ? fromContact.givenName + fromContact.familyName
           : from,
         date: chat.createdAt,
-        img: fromContactQuery?.contactUserId.profilePicture ?? '',
+        img: fromContactQuery?.contactUserId.profilePicture ?? "",
         msg: chat.lastMessage,
         read: true,
         unreadCount: 0,
       } satisfies ChatRowProps;
     });
 
+  console.log(isPendingContacts);
   if (isPending || isPendingContacts)
     return (
       <ActivityIndicator
         color={Colors.primary}
         style={{
-          height: '100%',
-          width: '100%',
-          justifyContent: 'center',
-          alignItems: 'center',
+          height: "100%",
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       />
     );
@@ -69,7 +70,7 @@ const Page = () => {
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
       }}
     >
       {chatRows.length === 0 ? (
@@ -100,20 +101,20 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
     padding: 20,
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginVertical: 10,
   },
   button: {
@@ -125,8 +126,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 

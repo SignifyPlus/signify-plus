@@ -1,9 +1,15 @@
 const express = require('express');
 const messageRouter = express.Router();
-const ControllerFactory = require("../factories/controllerFactory.js");
+const ControllerFactory = require('../factories/controllerFactory.js');
 
-messageRouter.post('/create', ControllerFactory.getMessageController.postMessage);
+messageRouter.post(
+   '/create',
+   ControllerFactory.getMessageController().postMessage,
+);
 
-messageRouter.delete('/delete', ControllerFactory.getMessageController.deleteMessage)
+messageRouter.delete(
+   '/delete',
+   ControllerFactory.getMessageController().deleteMessage,
+);
 
 module.exports = messageRouter;

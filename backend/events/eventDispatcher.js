@@ -1,29 +1,26 @@
-
 class EventDispatcher {
-    #listeners = [];
-    construct() {
-    }
+   static listeners = [];
+   static async registerListener(event, listener) {
+      if (!EventDispatcher.listeners[event]) {
+         EventDispatcher.listeners[event] = [];
+      }
+      EventDispatcher.listeners[event].push(listener);
+   }
 
-    async registerListener(event, listener) {
-        if(!this.#listeners[event]) {
-            this.#listeners[event] = [];
-        }
-        
-        this.#listeners[event].push(listener);
-    }
+   static async dispatchEvent(event, data) {
+      if (EventDispatcher.listeners[event]) {
+         EventDispatcher.listeners[event].forEach((listener) => {
+            listener(data);
+         });
+      }
+   }
 
-    async dispatchEvent(event, data) {
-        if(this.#listeners[event]) {
-            this.#listeners[event].array.forEach(listener => {
-               listener(data) 
-            });
-        }
-    }
-
-    async deprovisionListener(event, listener) {
-        if(this.#listeners[event]) {
-            this.#listeners[event] = this.#listeners[event].filter(lis => lis != listener);
-        }
-    }
+   static async deprovisionListener(event, listener) {
+      if (EventDispatcher.listeners[event]) {
+         EventDispatcher.listeners[event] = EventDispatcher.listeners[
+            event
+         ].filter((lis) => lis != listener);
+      }
+   }
 }
 module.exports = EventDispatcher;
