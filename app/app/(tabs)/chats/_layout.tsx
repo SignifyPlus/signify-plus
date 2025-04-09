@@ -1,26 +1,25 @@
-import Colors from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
-import { Link, Stack, usePathname } from 'expo-router';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '@/context/app-context';
-import { useChatsQuery } from '@/api/chat/chats-query';
+import Colors from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
+import { Link, Stack, usePathname } from "expo-router";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { useAppContext } from "@/context/app-context";
+import { useChatsQuery } from "@/api/chat/chats-query";
 
 const Layout = () => {
   const path = usePathname();
-  const chatId = path.split('/').pop();
+  const chatId = path.split("/").pop();
 
   const { phoneNumber } = useAppContext();
   const { data: chats } = useChatsQuery({ phoneNumber });
 
+  console.log("Iman Testing", chats);
+
   const chat = chats?.find((chat) => chat._id === chatId);
+
   const chatPhoneNumber = chat?.participants
     .filter((p) => p.phoneNumber !== phoneNumber)
     .map((p) => p.phoneNumber)
-    ?.join(', ');
-
-  console.log('chatPhoneNumber', chatPhoneNumber);
-
-  console.log('chat', chat);
+    ?.join(", ");
 
   const { videoCallUser } = useAppContext();
 
@@ -29,7 +28,7 @@ const Layout = () => {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Chats',
+          title: "Chats",
           // headerLargeTitle: isIos,
           // headerTransparent: isIos,
           // headerBlurEffect: "regular",
@@ -43,7 +42,7 @@ const Layout = () => {
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', gap: 30 }}>
+            <View style={{ flexDirection: "row", gap: 30 }}>
               <TouchableOpacity>
                 <Ionicons
                   name="camera-outline"
@@ -63,10 +62,10 @@ const Layout = () => {
             </View>
           ),
           headerStyle: {
-            backgroundColor: '#fff',
+            backgroundColor: "#fff",
           },
           headerSearchBarOptions: {
-            placeholder: 'Search',
+            placeholder: "Search",
           },
         }}
       />
@@ -74,18 +73,18 @@ const Layout = () => {
       <Stack.Screen
         name="[id]"
         options={{
-          title: '',
+          title: "",
           headerBackTitleVisible: false,
           headerTitle: () => (
             <View
               style={{
-                flexDirection: 'row',
+                flexDirection: "row",
                 width: 220,
-                alignItems: 'center',
+                alignItems: "center",
                 gap: 10,
                 paddingBottom: 4,
-                justifyContent: 'flex-start',
-                marginLeft: Platform.OS === 'ios' ? -100 : 0,
+                justifyContent: "flex-start",
+                marginLeft: Platform.OS === "ios" ? -100 : 0,
               }}
             >
               {/*<Image*/}
@@ -100,19 +99,19 @@ const Layout = () => {
                   height: 30,
                   borderRadius: 15,
                   backgroundColor: Colors.lightGray,
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
                 <Ionicons name="person-outline" />
               </View>
-              <Text style={{ fontSize: 16, fontWeight: '500' }}>
+              <Text style={{ fontSize: 16, fontWeight: "500" }}>
                 {chatPhoneNumber}
               </Text>
             </View>
           ),
           headerRight: () => (
-            <View style={{ flexDirection: 'row', gap: 30 }}>
+            <View style={{ flexDirection: "row", gap: 30 }}>
               <TouchableOpacity
                 disabled={!chatPhoneNumber}
                 onPress={() => {

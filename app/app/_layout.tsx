@@ -54,6 +54,13 @@ const InitialLayout = () => {
           }}
         />
         <Stack.Screen
+          name="signup"
+          options={{
+            headerTitle: 'Sign Up for Signify Plus',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="verify/[phone]"
           options={{
             title: 'Verify Your Phone Number',

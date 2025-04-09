@@ -8,16 +8,15 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import io, { Socket } from 'socket.io-client';
-import { API_URL } from '@/constants/Config';
-import { useRouter } from 'expo-router';
-import { createMeeting, queryClient } from '@/api';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { useUpdateContacts } from '@/context/use-update-contacts';
-import { useContactsQuery } from '@/api/contacts-query';
-import { chatMessagesQueryKey } from '@/api/chat/chats-messages-query';
-import React from 'react';
+} from "react";
+import io, { Socket } from "socket.io-client";
+import { API_URL } from "@/constants/Config";
+import { useRouter } from "expo-router";
+import { createMeeting, queryClient } from "@/api";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { useUpdateContacts } from "@/context/use-update-contacts";
+import { useContactsQuery } from "@/api/contacts-query";
+import { chatMessagesQueryKey } from "@/api/chat/chats-messages-query";
 
 type IncomingCallType = {
   meetingId: string;
@@ -38,13 +37,13 @@ type AppContextType = {
 export const AppContext = createContext<AppContextType | null>(null);
 
 const sanitizePhoneNumber = (phoneNumber: string): string => {
-  return phoneNumber.replace(/\s+/g, '');
+  return phoneNumber.replace(/\s+/g, "");
 };
 
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
+    throw new Error("useAppContext must be used within an AppProvider");
   }
   return context;
 };
@@ -64,28 +63,11 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     (message: string) => {
       const socket = socketRef.current;
       if (socket && isConnected) {
-        socket.emit('message', message);
+        socket.emit("message", message);
         console.log(`Sent message: ${message}`);
       }
     },
     [isConnected]
-  );
-
-  const sendMeetingIdToPython = useCallback(
-    async (meetingId: string) => {
-      try {
-        const response = await fetch('https://robust-hen-big.ngrok-free.app/meeting-id', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ meetingId }),
-        });
-        const result = await response.json();
-        console.log('Meeting ID sent to Python:', result);
-      } catch (error) {
-        console.error('Error sending meeting ID to Python:', error);
-      }
-    },
-    []
   );
 
   const sendMeetingId = useCallback(
@@ -97,7 +79,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
         console.log(
           `Sending meeting ID to target user: ${sanitizedTargetPhone}`
         );
-        socket.emit('meeting-id', {
+        socket.emit("meeting-id", {
           userPhoneNumber: sanitizePhoneNumber(phoneNumber),
           meetingId,
           targetPhoneNumbers: [sanitizedTargetPhone],
@@ -109,7 +91,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   const sendMessage = useCallback(
     (message: string, targetPhoneNumbers: string[]) => {
-      console.log('sendMessage', message, targetPhoneNumbers);
+      console.log("sendMessage", message, targetPhoneNumbers);
       const socket = socketRef.current;
       if (socket && isConnected && phoneNumber) {
         const sanitizedTargetPhones = targetPhoneNumbers.map((phone) =>
@@ -117,44 +99,60 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
         );
         console.log(`Sending message to ${sanitizedTargetPhones}: ${message}`);
 
-        socket.emit('message', {
+        socket.emit("message", {
           senderPhoneNumber: sanitizePhoneNumber(phoneNumber),
           message,
           targetPhoneNumbers: sanitizedTargetPhones,
         });
       } else {
         console.error(
-          'Cannot send message. Socket is not connected or phone number is missing.'
+          "Cannot send message. Socket is not connected or phone number is missing."
         );
       }
     },
     [isConnected, phoneNumber]
   );
 
+  //Function to send meeting ID via HTTP POST
+  const sendMeetingIdToPython = useCallback(async (meetingId: string) => {
+    try {
+      const response = await fetch(
+        "https://robust-hen-big.ngrok-free.app/meeting-id",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ meetingId }),
+        }
+      );
+      const result = await response.json();
+      console.log("Meeting ID sent to Python:", result);
+    } catch (error) {
+      console.error("Error sending meeting ID to Python:", error);
+    }
+  }, []);
 
   const videoCallUser = useCallback(
     async (targetPhoneNumber: string) => {
       if (!phoneNumber) {
-        console.error('Cannot start a call without a registered phone number.');
+        console.error("Cannot start a call without a registered phone number.");
         return;
       }
       const sanitizedTargetPhone = sanitizePhoneNumber(targetPhoneNumber);
       console.log(`Calling user with phone number: ${sanitizedTargetPhone}`);
       const meetingId = await createMeeting();
       sendMeetingId(meetingId, sanitizedTargetPhone);
-      // Send the meeting ID to the Python server via ngrok
+      router.push(`/video-call?meetingId=${meetingId}`);
+      // Send the new meeting ID to the Python server via HTTP POST
       await sendMeetingIdToPython(meetingId);
-      // Navigate to the video call screen with the new meeting ID
       router.push(`/video-call?meetingId=${meetingId}`);
     },
     [phoneNumber, router, sendMeetingId, sendMeetingIdToPython]
   );
-  
 
   const declineVideoCall = useCallback(() => {
     const socket = socketRef.current;
     if (socket && isConnected && incomingCall && phoneNumber) {
-      socket.emit('meeting-id-decline', {
+      socket.emit("meeting-id-decline", {
         userPhoneNumber: sanitizePhoneNumber(phoneNumber),
         meetingId: incomingCall?.meetingId,
         targetPhoneNumber: sanitizePhoneNumber(
@@ -174,30 +172,30 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     socketRef.current = socket;
 
     console.log(
-      'Connecting to WebSocket server',
+      "Connecting to WebSocket server",
       sanitizedPhone,
       socket.connected
     );
 
-    socket.on('connect', () => {
-      console.log('Connected to WebSocket server', sanitizedPhone);
-      socket.emit('socket-registration', { userPhoneNumber: sanitizedPhone });
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server", sanitizedPhone);
+      socket.emit("socket-registration", { userPhoneNumber: sanitizedPhone });
       setIsConnected(true);
     });
 
-    socket.on('disconnect', (data) => {
-      console.log('Disconnected from WebSocket server', data);
+    socket.on("disconnect", (data) => {
+      console.log("Disconnected from WebSocket server", data);
       setIsConnected(false);
     });
 
-    socket.on('message', (data) => {
+    socket.on("message", (data) => {
       console.log(
         `Received message from ${data.senderPhoneNumber}: ${data.message}`
       );
     });
 
-    socket.on('meeting-id-offer', (data) => {
-      console.log('Received meeting ID offer:', data);
+    socket.on("meeting-id-offer", (data) => {
+      console.log("Received meeting ID offer:", data);
       // Handle incoming meeting ID offer
       setIncomingCall({
         meetingId: data.meetingId,
@@ -205,25 +203,26 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       });
     });
 
-    socket.on('meeting-id-failed', (data) => {
-      console.error('Meeting ID offer failed:', data.message);
+    socket.on("meeting-id-failed", (data) => {
+      console.error("Meeting ID offer failed:", data.message);
     });
 
-    socket.on('message', (msg) => {
+    socket.on("message", async (msg) => {
+      console.log("Received message:", msg);
       if (msg.chatId) {
-        void queryClient.invalidateQueries({
-          queryKey: chatMessagesQueryKey(msg.chatId),
+        console.log("Invalidating chat messages query");
+        await queryClient.invalidateQueries({
+          queryKey: ["chats"],
         });
       } else {
         console.error(
           "Could not invalidate chat messages query. Missing 'chatId'"
         );
       }
-      console.log('Received message:', msg);
     });
 
     return () => {
-      console.log('Cleaning up WebSocket connection');
+      console.log("Cleaning up WebSocket connection");
       socket.disconnect();
       socketRef.current = null;
     };
@@ -231,7 +230,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     if (incomingCall) {
-      router.push('/incoming-call');
+      router.push("/incoming-call");
     }
   }, [incomingCall, router]);
 
@@ -259,6 +258,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   useUpdateContacts({ phoneNumber });
 
+  console.log(API_URL);
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
