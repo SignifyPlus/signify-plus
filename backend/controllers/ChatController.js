@@ -72,11 +72,11 @@ class ChatController {
             },
             mongooseSession,
          );
-
+         const processedChatData = await this.#postProcessChats(chat);
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
-         return response.json(chat);
+         response.json(processedChatData);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
@@ -148,7 +148,6 @@ class ChatController {
             path: 'senderId receiverIds',
             select: 'name phoneNumber',
          });
-         //const finalPopulatedChatData = await this.#postProcessChats(populatedChatData);
          response.json({
             messages: populatedChatData,
             totalNumberOfMessages: populatedChatData.length,
