@@ -11,7 +11,7 @@ import Colors from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import logoImage from '@/assets/images/logo.jpeg';
 import { useLoginUserMutation } from '@/api/user/login-user-mutation';
-import { useAppContext } from '@/context/app-context';
+import { sanitizePhoneNumber, useAppContext } from '@/context/app-context';
 
 const logo_image = Image.resolveAssetSource(logoImage).uri;
 
@@ -37,13 +37,13 @@ const LoginScreen = () => {
 
   const handleLogin = () => {
     if (!validatePhoneNumber(phoneNumber)) return;
-
+    const santizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
     setLoginError('');
     mutate(
-      { phoneNumber, password },
+      { phoneNumber: santizedPhoneNumber, password },
       {
         onSuccess: () => {
-          setPhoneNumberInContext(phoneNumber);
+          setPhoneNumberInContext(santizedPhoneNumber);
           router.replace('/chats');
         },
         onError: () => {

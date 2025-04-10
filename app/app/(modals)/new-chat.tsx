@@ -40,8 +40,10 @@ const Page = () => {
         if (!savedContact) return null;
 
         return {
-          value: contact.contactUserId.phoneNumber,
-          name: 'osama',
+          // value: contact.contactUserId.phoneNumber,
+          // name: savedContact.displayName,
+          value: savedContact.displayName,
+          name: contact.contactUserId.phoneNumber,
           img: contact.contactUserId.profilePicture,
           desc: '',
           key: `${contact.contactUserId.name}-${index}`,
@@ -79,7 +81,7 @@ const Page = () => {
               if (!phoneNumber) return;
               const exisingChat = chats?.find((chat) =>
                 chat.participants.find(
-                  (participant) => participant.phoneNumber === item.value
+                  (participant) => participant.phoneNumber === item.name
                 )
               );
               if (exisingChat) {
@@ -87,7 +89,10 @@ const Page = () => {
               } else {
                 const result = await mutateAsync({
                   mainUserPhoneNumber: phoneNumber,
-                  participants: [item.value],
+                  participants: [item.name],
+                });
+                await queryClient.invalidateQueries({
+                  queryKey: ['chats'],
                 });
                 router.push(`/chats/${result._id}`);
               }
@@ -116,11 +121,9 @@ const Page = () => {
                 <Text
                   style={{ color: '#000', fontSize: 16, fontWeight: '500' }}
                 >
-                  {item.name}
-                </Text>
-                <Text style={{ color: '#000', fontSize: 12 }}>
                   {item.value}
                 </Text>
+                <Text style={{ color: '#000', fontSize: 12 }}>{item.name}</Text>
                 {/*<Text style={{ color: Colors.gray, fontSize: 12 }}>*/}
                 {/*  {item.desc.length > 40*/}
                 {/*    ? `${item.desc.substring(0, 40)}...`*/}

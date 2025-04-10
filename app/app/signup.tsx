@@ -13,7 +13,7 @@ import Colors from '@/constants/Colors';
 import { Link, useRouter } from 'expo-router';
 import welcomeImage from '@/assets/images/logo.jpeg';
 import { useCreateUserMutation } from '@/api/user/create-user-mutation';
-import { useAppContext } from '@/context/app-context';
+import { sanitizePhoneNumber, useAppContext } from '@/context/app-context';
 
 const welcome_image = Image.resolveAssetSource(welcomeImage).uri;
 
@@ -51,12 +51,13 @@ const SignupScreen = () => {
   const handleSignup = () => {
     const isPhoneValid = validatePhoneNumber(phoneNumber);
     const isPasswordMatch = validatePasswordsMatch(password, repeatPassword);
+    const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
     if (isPhoneValid && isPasswordMatch) {
       createUser(
-        { name, phoneNumber, password },
+        { name, phoneNumber: sanitizedPhoneNumber, password },
         {
           onSuccess: () => {
-            setPhoneNumberInContext(phoneNumber);
+            setPhoneNumberInContext(sanitizedPhoneNumber);
             setName('');
             setPhoneNumber('');
             setPassword('');
