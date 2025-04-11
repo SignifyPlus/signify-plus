@@ -19,6 +19,7 @@ import {
 import { createMeeting, token } from '@/api';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import GestureOverlay from '@/components/GestureOverlay';
+import { Ionicons } from '@expo/vector-icons';
 import { ML_WEBSOCKET_URL,  } from '@/constants/Config';
 register();
 
@@ -58,27 +59,6 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
         <Text style={styles.buttonText}>Join Meeting</Text>
       </TouchableOpacity>
     </SafeAreaView>
-  );
-};
-
-interface ButtonProps {
-  onPress: () => void;
-  buttonText: string;
-  backgroundColor: string;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  onPress,
-  buttonText,
-  backgroundColor,
-}) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.button, { backgroundColor }]}
-    >
-      <Text style={styles.smallButtonText}>{buttonText}</Text>
-    </TouchableOpacity>
   );
 };
 
@@ -129,11 +109,11 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
 
 
   return webcamOn && webcamStream ? (
-    <View style={styles.mediaContainer}>
+    <View style={{ position: 'relative', height: 300, marginVertical: 2 }}>
       <RTCView
         streamURL={new MediaStream([webcamStream.track]).toURL()}
         objectFit="cover"
-        style={styles.mediaView}
+        style={{ height: '100%', width: '100%' }}
         mirror={true}
       />
       <GestureOverlay predictions={predictions} />
@@ -150,6 +130,23 @@ interface ParticipantListProps {
 }
 
 const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
+  if (participants.length === 1) {
+    return (
+      <View style={{ flex: 1 }}>
+        <ParticipantView participantId={participants[0]!} />
+      </View>
+    );
+  }
+
+  if (participants.length === 2) {
+    return (
+      <View style={{ flex: 1 }}>
+        <ParticipantView participantId={participants[0]!} />
+        <ParticipantView participantId={participants[1]!} />
+      </View>
+    );
+  }
+
   return participants.length > 0 ? (
     <FlatList
       data={participants}
@@ -164,40 +161,111 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
 };
 
 const ControlsContainer: React.FC = () => {
-  const { join, leave, toggleWebcam, toggleMic } = useMeeting();
-
+  const { join, leave, toggleWebcam, toggleMic, localParticipant } =
+    useMeeting();
   const router = useRouter();
 
- 
+  const [micOn, setMicOn] = useState<boolean>(false);
+  const [webcamOn, setWebcamOn] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (localParticipant) {
+      setMicOn(localParticipant.micOn);
+      setWebcamOn(localParticipant.webcamOn);
+    }
+  }, [localParticipant]);
+
+  const handleToggleMic = () => {
+    setMicOn((prev) => !prev);
+    toggleMic();
+  };
+
+  const handleToggleWebcam = () => {
+    setWebcamOn((prev) => !prev);
+    toggleWebcam();
+  };
+
+  const clearMeetingIdOnServer = async () => {
+    try {
+      const response = await fetch(
+        'https://robust-hen-big.ngrok-free.app/meeting-id',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ meetingId: null }),
+        }
+      );
+      if (!response.ok) {
+        console.error('Failed to clear meeting ID on server:', response.status);
+      } else {
+        console.log('Meeting ID cleared on server.');
+      }
+    } catch (error) {
+      console.error('Error clearing meeting ID on server:', error);
+    }
+  };
 
   return (
-    <View style={styles.controlsContainer}>
-      <Button onPress={join} buttonText="Join" backgroundColor="#1178F8" />
-      <Button
-        onPress={toggleWebcam}
-        buttonText="Toggle Webcam"
-        backgroundColor="#1178F8"
-      />
-      <Button
-        onPress={toggleMic}
-        buttonText="Toggle Mic"
-        backgroundColor="#1178F8"
-      />
-      <Button
+    <View
+      style={{
+        padding: 24,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+    >
+      <TouchableOpacity
+        onPress={handleToggleWebcam}
+        style={{
+          backgroundColor: '#1f2937',
+          padding: 12,
+          borderRadius: 999,
+        }}
+      >
+        <Ionicons
+          name={webcamOn ? 'videocam-outline' : 'videocam-off-outline'}
+          size={24}
+          color="#fff"
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={handleToggleMic}
+        style={{
+          backgroundColor: '#1f2937',
+          padding: 12,
+          borderRadius: 999,
+        }}
+      >
+        <Ionicons
+          name={micOn ? 'mic-outline' : 'mic-off-outline'}
+          size={24}
+          color="#fff"
+        />
+      </TouchableOpacity>
+
+      <TouchableOpacity
         onPress={async () => {
+          await clearMeetingIdOnServer();
           leave();
-          // Redirect the user to another screen (or perform another action)
           router.replace('/(tabs)/chats');
         }}
-        buttonText="Leave"
-        backgroundColor="#FF0000"
-      />
+        style={{
+          backgroundColor: '#dc2626',
+          padding: 12,
+          borderRadius: 999,
+        }}
+      >
+        <Ionicons name="call" size={24} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const MeetingView: React.FC = () => {
-  const { participants, meetingId, localParticipant, join } = useMeeting();
+  const { participants, localParticipant, join } = useMeeting();
   const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
 
@@ -223,11 +291,12 @@ const MeetingView: React.FC = () => {
   }, [join, localParticipant?.id, participantsFiltered]);
 
   return (
-    <View style={styles.meetingContainer}>
-      {meetingId && (
-        <Text style={styles.meetingId}>Meeting Id: {meetingId}</Text>
-      )}
-      <ParticipantList participants={participantsFiltered} />
+    <View
+      style={{
+        flex: 1,
+      }}
+    >
+      <ParticipantList participants={participantsArrId} />
       <ControlsContainer />
     </View>
   );
@@ -324,28 +393,11 @@ const styles = StyleSheet.create({
     marginTop: 14,
     borderRadius: 6,
   },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 4,
-  },
-  smallButtonText: {
-    color: 'white',
-    fontSize: 12,
-  },
-  mediaView: {
-    height: 300,
-    marginVertical: 8,
-    marginHorizontal: 8,
-  },
   noMediaView: {
     backgroundColor: 'grey',
     height: 300,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 8,
-    marginHorizontal: 8,
   },
   noMediaText: {
     fontSize: 16,
@@ -359,27 +411,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
   },
-  controlsContainer: {
-    padding: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  meetingContainer: {
-    flex: 1,
-  },
-  meetingId: {
-    fontSize: 18,
-    padding: 12,
-  },
+
   appContainer: {
     flex: 1,
     backgroundColor: '#F6F6FF',
-  },
-  mediaContainer: {
-    position: 'relative',
-    height: 300,
-    marginVertical: 8,
-    marginHorizontal: 8,
   },
 });
 

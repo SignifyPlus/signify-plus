@@ -1,8 +1,5 @@
-const ManagerFactory = require('../factories/managerFactory.js');
 const RabbitMqConstants = require('../constants/rabbitMqConstants.js');
-const CommonConstants = require('../constants/commonConstants.js');
 const EventConstants = require('../constants/eventConstants.js');
-const CommonUtils = require('../utilities/commonUtils.js');
 const MessageSocketUtils = require('./utils/messageSocketUtils.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
@@ -74,17 +71,32 @@ class MessageSocket {
 
          if (pingWasSuccesful) {
             //aww this worked!! - blocks the execution
-            await CommonUtils.waitForVariableToBecomeNonNull(
-               ManagerFactory.getRabbitMqQueueManager,
-            );
+            //comment this out for now and directly ping - via an event - the message controller to add the record directly to the database (to test the delays with rabbitMQ)
+
+            //await CommonUtils.waitForVariableToBecomeNonNull(
+            //ManagerFactory.getRabbitMqQueueManager,
+            //);
+
             //send stringified data - otherwise causes issue
-            await ManagerFactory.getRabbitMqQueueManager().queueMessage(
-               this.#messageQueueName,
-               RabbitMqConstants.APPLICATION_JSON_CONTENT_TYPE,
-               CommonConstants.BUFFER_ENCODING,
-               JSON.stringify(
-                  await MessageSocketUtils.prepareChatQueueData(data, chatId),
-               ),
+
+            //await ManagerFactory.getRabbitMqQueueManager().queueMessage(
+            //this.#messageQueueName,
+            //RabbitMqConstants.APPLICATION_JSON_CONTENT_TYPE,
+            //CommonConstants.BUFFER_ENCODING,
+            //JSON.stringify(
+            //await MessageSocketUtils.prepareChatQueueData(data, chatId),
+            ///),
+            //);
+
+            const preparedData = await MessageSocketUtils.prepareChatQueueData(
+               data,
+               chatId,
+            );
+            LoggerFactory.getApplicationLogger.info(`${preparedData}`);
+            //for now replace with this
+            EventDispatcher.dispatchEvent(
+               EventConstants.MESSAGE_INGEST_EVENT,
+               preparedData,
             );
          }
       });

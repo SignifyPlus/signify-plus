@@ -72,11 +72,11 @@ class ChatController {
             },
             mongooseSession,
          );
-
+         const processedChatData = await this.#postProcessChats(chat);
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
-         return response.json(chat);
+         response.json(processedChatData);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
@@ -117,8 +117,8 @@ class ChatController {
             path: 'mainUserId participants',
             select: 'phoneNumber name',
          });
-
-         response.json(await this.#getUserChats(chats));
+         const userChats = await this.#getUserChats(chats);
+         response.json(await this.#postProcessChats(userChats));
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -196,6 +196,19 @@ class ChatController {
          chatObjects.push(chatObject);
       }
       return chatObjects;
+   }
+
+   async #postProcessChats(chats) {
+      chats.forEach((chat) => {
+         const participantChatIds = chat.participants.map((p) =>
+            p._id.toString(),
+         );
+         const mainUserId = chat.mainUserId._id.toString();
+         if (!participantChatIds.includes(mainUserId)) {
+            chat.participants.push(chat.mainUserId);
+         }
+      });
+      return chats;
    }
 
    //Helper Methods
