@@ -13,6 +13,13 @@ class ExceptionHelper {
 
       return null;
    }
+
+   static async validate(fieldToCheck, failStatusCode, message) {
+      if (fieldToCheck === undefined || fieldToCheck === null) {
+         return new SignifyException(failStatusCode, `${message}`);
+      }
+      return null;
+   }
 }
 
 module.exports = ExceptionHelper;

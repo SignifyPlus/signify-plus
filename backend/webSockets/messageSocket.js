@@ -3,6 +3,7 @@ const EventConstants = require('../constants/eventConstants.js');
 const MessageSocketUtils = require('./utils/messageSocketUtils.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
+const CommonConstants = require('../constants/commonConstants.js');
 class MessageSocket {
    #messageQueueName = null;
    #cachedChats = null;
@@ -46,6 +47,16 @@ class MessageSocket {
                data.targetPhoneNumbers,
                data.senderPhoneNumber,
             );
+
+            //if a chat is null, initialize an empty chat
+            chatId =
+               chatId == null
+                  ? await this.createNewChat(
+                       data.senderPhoneNumber,
+                       data.targetPhoneNumbers,
+                    )
+                  : chatId;
+
             ///use event driven approach
             data.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                if (userSocketMap[targetPhoneNumber] == null) {
@@ -105,6 +116,19 @@ class MessageSocket {
    async chatCreatedListener() {
       //cache upon creation - (better approach since we are not monitoring database constantly + neither querying in each message socket event)
       this.#cachedChats = await MessageSocketUtils.cacheChats();
+   }
+
+   async createNewChat(senderPhoneNumber, targetPhoneNumbers) {
+      const chatData = await MessageSocketUtils.createNewChat(
+         senderPhoneNumber,
+         targetPhoneNumbers,
+      );
+      if (chatData.exception) {
+         LoggerFactory.getApplicationLogger.error(
+            `Exception Occured when creating a new Chat: ${chatData.exception}`,
+         );
+      }
+      return chatData.data[CommonConstants.FIRST_ENTRY]._id.toString();
    }
 }
 

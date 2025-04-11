@@ -17,6 +17,13 @@ class MessageSocketUtils {
          [...targetPhoneNumbers, senderPhoneNumber],
       );
    }
+
+   static async createNewChat(mainUserPhoneNumber, participants) {
+      return await ControllerFactory.getChatController().createAndPostProcessChats(
+         mainUserPhoneNumber,
+         participants,
+      );
+   }
 }
 
 module.exports = MessageSocketUtils;
