@@ -67,13 +67,18 @@ interface ParticipantViewProps {
 }
 
 const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
-  const { webcamStream, webcamOn } = useParticipant(participantId);
+  const { webcamStream, webcamOn, displayName} = useParticipant(participantId);
   const [predictions, setPredictions] = useState([]);
 
+    // Skip rendering AI_MODEL participants
+   if (displayName === 'AI_MODEL') {
+    return null;
+  }
    // Monitor predictions changes
    useEffect(() => {
     console.log('Predictions updated:', predictions);
   }, [predictions]);
+ 
   // Set up WebSocket connection for predictions
   useEffect(() => {
     console.log('Setting up WebSocket connection...');
@@ -106,7 +111,6 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
       ws.close();
     };
   }, []);
-
 
   return webcamOn && webcamStream ? (
     <View style={{ position: 'relative', height: 300, marginVertical: 2 }}>
@@ -266,15 +270,13 @@ const ControlsContainer: React.FC = () => {
 
 const MeetingView: React.FC = () => {
   const { participants, localParticipant, join } = useMeeting();
-  const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
 
-   // Filter out the AI_MODEL participant by name
-   const participantsFiltered = Array.from(participants.keys()).filter(participantId => {
+  // Filter out the AI_MODEL participant by name
+  const visibleParticipants = Array.from(participants.keys()).filter(participantId => {
     const participant = participants.get(participantId);
     return participant?.displayName !== 'AI_MODEL';
   });
-
 
   useEffect(() => {
     if (joinedRef.current) {
@@ -288,7 +290,7 @@ const MeetingView: React.FC = () => {
         join();
       }, 200);
     }
-  }, [join, localParticipant?.id, participantsFiltered]);
+  }, [join, localParticipant?.id]);
 
   return (
     <View
@@ -296,7 +298,7 @@ const MeetingView: React.FC = () => {
         flex: 1,
       }}
     >
-      <ParticipantList participants={participantsArrId} />
+      <ParticipantList participants={visibleParticipants} />
       <ControlsContainer />
     </View>
   );
