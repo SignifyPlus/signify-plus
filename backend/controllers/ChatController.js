@@ -1,86 +1,24 @@
 const ServiceFactory = require('../factories/serviceFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyException = require('../exception/SignifyException.js');
+const SignifyResult = require('../dtos/SignifyResult.js');
 const mongoose = require('mongoose');
 class ChatController {
    constructor() {}
 
    initializeEmptyChat = async (request, response) => {
-      var mongooseSession = null;
       try {
-         //request validation
-         mongooseSession =
-            await ServiceFactory.getMongooseService.getMongooseSession();
-         await ServiceFactory.getMongooseService.startMongooseTransaction(
-            mongooseSession,
-         );
-
-         const mainUserPhoneNumberValidation = await ExceptionHelper.validate(
+         const result = await this.createAndPostProcessChats(
             request.body.mainUserPhoneNumber,
-            400,
-            `mainUserPhoneNumber is not provided.`,
-            response,
-         );
-         if (mainUserPhoneNumberValidation)
-            return mainUserPhoneNumberValidation;
-
-         const participants = await ExceptionHelper.validate(
             request.body.participants,
-            400,
-            `participants array not provided. Please add the participants that will be participate in a chat - participants : [+905232314, +9023132145]`,
-            response,
          );
-         if (participants) return participants;
-
-         //main User table validation
-         const mainUserPhoneNumberUserObject =
-            await ServiceFactory.getUserService.getDocumentByCustomFilters({
-               phoneNumber: request.body.mainUserPhoneNumber,
-            });
-         const mainUserObjectValidation = await ExceptionHelper.validate(
-            mainUserPhoneNumberUserObject,
-            400,
-            `mainUserPhoneNumber doesnt Exist in the user table!`,
-            response,
-         );
-         if (mainUserObjectValidation) return mainUserObjectValidation;
-
-         //participants validation
-         const particpantsUserObjects =
-            await ServiceFactory.getUserService.getDocumentsByCustomFilters({
-               phoneNumber: { $in: request.body.participants },
-            });
-         if (
-            particpantsUserObjects.length != request.body.participants.length
-         ) {
-            const signifyException = new SignifyException(
-               400,
-               `Not all phoneNumbers are registered to the User table - can't create a chat`,
-            );
+         if (result.exception)
             return response
-               .status(signifyException.status)
-               .json(signifyException.loadResult());
-         }
-         //create chat document/object
-         //when using session, we must pass documents as an array, be it a single doc, or multiple
-         const chat = await ServiceFactory.getChatService.saveDocument(
-            {
-               mainUserId: mainUserPhoneNumberUserObject._id.toString(),
-               participants: particpantsUserObjects.map((participant) =>
-                  participant._id.toString(),
-               ),
-            },
-            mongooseSession,
-         );
-         const processedChatData = await this.#postProcessChats(chat);
-         await ServiceFactory.getMongooseService.commitMongooseTransaction(
-            mongooseSession,
-         );
-         response.json(processedChatData);
+               .status(result.exception.status)
+               .json(result.exception.loadResult());
+
+         response.json(result.data);
       } catch (exception) {
-         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
-            mongooseSession,
-         );
          const signifyException = new SignifyException(
             500,
             `Exception Occured: ${exception.message}`,
@@ -209,6 +147,81 @@ class ChatController {
          }
       });
       return chats;
+   }
+
+   async createAndPostProcessChats(mainUserPhoneNumber, participants) {
+      var mongooseSession =
+         await ServiceFactory.getMongooseService.getMongooseSession();
+      await ServiceFactory.getMongooseService.startMongooseTransaction(
+         mongooseSession,
+      );
+
+      const mainUserPhoneNumberValidation = await ExceptionHelper.validate(
+         mainUserPhoneNumber,
+         400,
+         `mainUserPhoneNumber is not provided.`,
+      );
+      if (mainUserPhoneNumberValidation)
+         return new SignifyResult(null, mainUserPhoneNumberValidation);
+
+      const participantsValidation = await ExceptionHelper.validate(
+         participants,
+         400,
+         `participants array not provided. Please add the participants that will be participate in a chat - participants : [+905232314, +9023132145]`,
+      );
+      if (participantsValidation)
+         return new SignifyResult(null, participantsValidation);
+
+      const mainUserPhoneNumberUserObject =
+         await ServiceFactory.getUserService.getDocumentByCustomFilters({
+            phoneNumber: mainUserPhoneNumber,
+         });
+      const mainUserObjectValidation = await ExceptionHelper.validate(
+         mainUserPhoneNumberUserObject,
+         400,
+         `mainUserPhoneNumber doesnt Exist in the user table!`,
+      );
+      if (mainUserObjectValidation)
+         return new SignifyResult(null, mainUserObjectValidation);
+
+      //participants validation
+      const particpantsUserObjects =
+         await ServiceFactory.getUserService.getDocumentsByCustomFilters({
+            phoneNumber: { $in: participants },
+         });
+      if (particpantsUserObjects.length != participants.length) {
+         return new SignifyResult(
+            null,
+            new SignifyException(
+               400,
+               `Not all phoneNumbers are registered to the User table - can't create a chat`,
+            ),
+         );
+      }
+      try {
+         const chat = await ServiceFactory.getChatService.saveDocument(
+            {
+               mainUserId: mainUserPhoneNumberUserObject._id.toString(),
+               participants: particpantsUserObjects.map((participant) =>
+                  participant._id.toString(),
+               ),
+            },
+            mongooseSession,
+         );
+         const preprocessedChats = await this.#postProcessChats(chat);
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return new SignifyResult(preprocessedChats, null);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         return new SignifyResult(
+            null,
+            new SignifyException(400, `Database Exception: ${exception}`),
+         );
+      }
    }
 
    //Helper Methods
