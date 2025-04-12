@@ -12,7 +12,6 @@ export const useCreateChatMutation = () => {
 
   return useMutation({
     mutationFn: async (params: CreateChatParams) => {
-      console.log('Creating chat', params);
       const response = await fetch(`${API_URL}/chats/create`, {
         method: 'POST',
         headers: {
@@ -22,12 +21,10 @@ export const useCreateChatMutation = () => {
       });
 
       if (!response.ok) {
-        console.error(response);
         throw new Error('Failed to create chat');
       }
 
       const data = await response.json();
-      console.log('Chat created', data);
       return data;
     },
     onSuccess: (_data, variables) => {

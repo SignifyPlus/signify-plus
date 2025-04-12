@@ -25,10 +25,10 @@ export const chatMessagesQueryKey = (chatId: string) => [
 
 export const useChatMessagesQuery = (chatId?: string) => {
   return useQuery({
-    queryKey: [],
+    queryKey: chatMessagesQueryKey(chatId ?? ''),
+    refetchInterval: 500,
     queryFn: async () => {
       if (!chatId) return [];
-      console.log('fetching messages for chat', chatId);
       const response = await fetch(`${API_URL}/chats/custom/id/${chatId}`);
       if (!response.ok) throw new Error('Failed to fetch messages');
 

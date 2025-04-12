@@ -16,11 +16,9 @@ export const useUpdateContacts = ({
   useEffect(() => {
     if (!phoneNumber) return;
     const getContacts = () => {
-      console.log('Attempting to get contacts');
       Contacts.getAll()
         .then((contacts) => {
           setContacts(contacts);
-          console.log(`Got ${contacts.length} contacts`);
           setContacts(contacts);
           mutate(
             {
@@ -33,18 +31,12 @@ export const useUpdateContacts = ({
                 .filter((contact) => contact) as string[],
             },
             {
-              onError: (error) => {
-                console.error(error);
-              },
-              onSuccess: () => {
-                console.log('Contacts updated');
-              },
+              onError: (error) => {},
+              onSuccess: () => {},
             }
           );
         })
-        .catch((e) => {
-          console.log(e);
-        });
+        .catch((e) => {});
     };
 
     if (Platform.OS === 'android') {
@@ -57,12 +49,9 @@ export const useUpdateContacts = ({
         }
       )
         .then((res) => {
-          console.log('Permission: ', res);
           getContacts();
         })
-        .catch((error) => {
-          console.error('Permission error: ', error);
-        });
+        .catch((error) => {});
     } else {
       getContacts();
     }
@@ -73,7 +62,6 @@ export const useUpdateContacts = ({
   //     try {
   //       await mutate(contacts);
   //     } catch (err) {
-  //       console.error(err);
   //     }
   //   },
   //   [mutate],

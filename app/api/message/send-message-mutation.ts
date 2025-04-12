@@ -15,7 +15,6 @@ export const useSendMessageMutation = () => {
 
   return useMutation({
     mutationFn: async (params: SendMessageParams) => {
-      console.log('Sending message', params);
       const response = await fetch(`${API_URL}/messages/create`, {
         method: 'POST',
         headers: {
@@ -25,12 +24,10 @@ export const useSendMessageMutation = () => {
       });
 
       if (!response.ok) {
-        console.error(response);
         throw new Error('Failed to send message');
       }
 
       const data = await response.json();
-      console.log('Message sent', data);
       return data;
     },
     onSuccess: (_data, variables) => {

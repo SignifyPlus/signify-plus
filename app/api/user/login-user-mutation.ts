@@ -17,11 +17,6 @@ export const loginUser = async ({
   phoneNumber,
   password,
 }: LoginPayload): Promise<User> => {
-  console.log(
-    'Logging in with phone number:',
-    phoneNumber,
-    `${API_URL}/users/phone`
-  );
   try {
     const response = await fetch(`${API_URL}/users/phone`, {
       method: 'POST',
@@ -30,8 +25,6 @@ export const loginUser = async ({
       },
       body: JSON.stringify({ phoneNumber, password }),
     });
-
-    console.log(response);
 
     // if (!response.ok) {
     //   throw new Error('Login failed. Please check your credentials.');
@@ -46,7 +39,6 @@ export const loginUser = async ({
       createdAt: rawData.createdAt,
     };
   } catch (error) {
-    console.error('Error logging in:', error);
     throw new Error('Login failed. Please check your credentials.');
   }
 };

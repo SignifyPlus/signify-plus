@@ -47,21 +47,16 @@ const Page = () => {
   };
 
   const sendOTP = async () => {
-    // console.log("sendOTP", phoneNumber);
     setLoading(true);
 
     try {
       await signUpWithPhoneNumber(phoneNumber);
-      // console.log("After create");
 
       await preparePhoneVerification();
 
-      // console.log("After prepare");
       router.push(`/verify/${phoneNumber}`);
     } catch (error) {
       const err = error as Error;
-      // console.log("error", JSON.stringify(err, null, 2));
-
       // Check if the error is a "user already signed up" case
       if (err.message.includes('form_identifier_exists')) {
         // console.log("User signed up before, trying sign-in.");

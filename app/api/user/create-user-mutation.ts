@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
+import { User } from '@/api/user/login-user-mutation';
 
 export interface CreateUserParams {
   name: string;
@@ -12,7 +13,6 @@ export const useCreateUserMutation = () => {
 
   return useMutation({
     mutationFn: async (params: CreateUserParams) => {
-      console.log('Creating user', params);
       const response = await fetch(`${API_URL}/users/create`, {
         method: 'POST',
         headers: {
@@ -22,19 +22,15 @@ export const useCreateUserMutation = () => {
       });
 
       if (!response.ok) {
-        console.error(response);
         throw new Error('Failed to create user');
       }
 
-      const data = await response.json();
-      console.log('User created', data);
+      const data = (await response.json()) as User[];
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
-    onError: (error) => {
-      console.error('Failed to create user', error);
-    },
+    onError: (_error) => {},
   });
 };
