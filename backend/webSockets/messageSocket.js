@@ -69,12 +69,10 @@ class MessageSocket {
                   );
                   return;
                }
-               socket
-                  .to(userSocketMap[targetPhoneNumber])
-                  .emit('message', {
-                     message: messageDto.message,
-                     chatId: messageDto.chatId,
-                  });
+               socket.to(userSocketMap[targetPhoneNumber]).emit('message', {
+                  message: messageDto.message,
+                  chatId: messageDto.chatId,
+               });
             });
          } catch (exception) {
             LoggerFactory.getApplicationLogger.error(

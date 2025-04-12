@@ -3,6 +3,7 @@ const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyException = require('../exception/SignifyException.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const mongoose = require('mongoose');
+const ControllerConstants = require('../constants/controllerConstants.js');
 class ChatController {
    constructor() {}
 
@@ -198,13 +199,32 @@ class ChatController {
             ),
          );
       }
+
+      //check if a chat exists
+      const participantsIdMap = particpantsUserObjects.map((participant) =>
+         participant._id.toString(),
+      );
+
+      const existingChat = await this.#getExistingChats(
+         mainUserPhoneNumberUserObject._id.toString(),
+         participantsIdMap,
+      );
+
+      if (existingChat.length > 0) {
+         return new SignifyResult(
+            existingChat,
+            new SignifyException(
+               400,
+               `A chat already exists between ${mainUserPhoneNumber} and ${participants} - chatId: ${existingChat[ControllerConstants.ZERO_INDEX]._id.toString()}`,
+            ),
+         );
+      }
+
       try {
          const chat = await ServiceFactory.getChatService.saveDocument(
             {
                mainUserId: mainUserPhoneNumberUserObject._id.toString(),
-               participants: particpantsUserObjects.map((participant) =>
-                  participant._id.toString(),
-               ),
+               participants: participantsIdMap,
             },
             mongooseSession,
          );
@@ -251,6 +271,16 @@ class ChatController {
          }
       }
       return chatId;
+   }
+
+   async #getExistingChats(mainUserPhoneNumberId, participantsIdMap) {
+      return await ServiceFactory.getChatService.getDocumentsByCustomFilters({
+         mainUserId: mainUserPhoneNumberId,
+         participants: {
+            $all: participantsIdMap,
+            $size: participantsIdMap.length,
+         },
+      });
    }
 }
 module.exports = ChatController;
