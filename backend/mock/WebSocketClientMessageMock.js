@@ -17,7 +17,7 @@ mockSocketUser1.on('connect', () => {
 });
 
 mockSocketUser1.on('message', (message) => {
-   console.log(`Incoming Message from Mock2: ${message}`);
+   console.log(message);
    // mockSocketUser1.emit('message', {
    //     message: "Damn sexyyyy gay boi!!",
    //     senderPhoneNumber: "868578654",
@@ -42,11 +42,12 @@ mockSocketUser2.on('connect', () => {
 });
 
 mockSocketUser2.on('message', (message) => {
-   console.log(`Incoming Message from Mock1: ${message}`);
+   console.log(message);
    mockSocketUser2.emit('message', {
       message: "I'm Good!, How are you!!",
       senderPhoneNumber: '+49123456789',
       targetPhoneNumbers: ['+90123456789'],
+      chatId: message.chatId,
    });
 });
 

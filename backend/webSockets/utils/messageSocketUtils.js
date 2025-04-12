@@ -1,12 +1,5 @@
 const ControllerFactory = require('../../factories/controllerFactory.js');
 class MessageSocketUtils {
-   static async prepareChatQueueData(data, chatId) {
-      return {
-         data: data,
-         chatId: chatId,
-      };
-   }
-
    static async cacheChats() {
       return await ControllerFactory.getChatController().getAllChats();
    }
