@@ -3,12 +3,7 @@ import { ReplyMessageBar } from '@/components/ReplyMessageBar';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ImageBackground,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ImageBackground, StyleSheet, View, Text } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import {
   Bubble,
@@ -32,7 +27,7 @@ const Page = () => {
 
   const { id } = useLocalSearchParams();
 
-  const { data, isPending } = useChatMessagesQuery(id as string | undefined);
+  const { data } = useChatMessagesQuery(id as string | undefined);
 
   const { sendMessage, phoneNumber, user } = useAppContext();
   const { data: chats } = useChatsQuery({ phoneNumber });
@@ -62,12 +57,12 @@ const Page = () => {
         GiftedChat.append(previousMessages, messages)
       );
       const chat = chats?.find((chat) => chat._id === id);
-      console.log('chat', JSON.stringify(chat, null, 2));
       if (chat) {
         messages.forEach((message) => {
           sendMessage(
             message.text,
-            chat.participants.map((p) => p.phoneNumber)
+            chat.participants.map((p) => p.phoneNumber),
+            chat._id
           );
         });
       }
@@ -116,19 +111,6 @@ const Page = () => {
     }
   }, [replyMessage]);
 
-  if (isPending)
-    return (
-      <ActivityIndicator
-        color={Colors.primary}
-        style={{
-          height: '100%',
-          width: '100%',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      />
-    );
-
   return (
     <ImageBackground
       source={require('@/assets/images/pattern.png')}
@@ -158,7 +140,7 @@ const Page = () => {
               {...props}
               textStyle={{
                 right: {
-                  color: '#000',
+                  color: '#fff',
                 },
               }}
               wrapperStyle={{
@@ -166,7 +148,7 @@ const Page = () => {
                   backgroundColor: '#fff',
                 },
                 right: {
-                  backgroundColor: Colors.lightGreen,
+                  backgroundColor: Colors.primary,
                 },
               }}
             />

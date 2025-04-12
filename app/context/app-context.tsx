@@ -31,7 +31,11 @@ type AppContextType = {
   isConnected: boolean;
   incomingCall: IncomingCallType | null;
   declineVideoCall: () => void;
-  sendMessage: (message: string, targetPhoneNumbers: string[]) => void;
+  sendMessage: (
+    message: string,
+    targetPhoneNumbers: string[],
+    chatId: string
+  ) => void;
   user: User | undefined;
   setUser: (user: User) => void;
 };
@@ -89,7 +93,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   const sendMessage = useCallback(
-    (message: string, targetPhoneNumbers: string[]) => {
+    (message: string, targetPhoneNumbers: string[], chatId: string) => {
       const socket = socketRef.current;
       if (socket && isConnected && phoneNumber) {
         const sanitizedTargetPhones = targetPhoneNumbers.map((phone) =>
@@ -100,6 +104,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
           senderPhoneNumber: sanitizePhoneNumber(phoneNumber),
           message,
           targetPhoneNumbers: sanitizedTargetPhones,
+          chatId,
         });
         setTimeout(() => {
           console.log('Invalidating query');
