@@ -20,15 +20,12 @@ const AcceptCallScreen = () => {
 
   const onAccept = () => {
     if (!incomingCall) {
-      console.log('No incoming call found');
       return;
     }
-    console.log('Call accepted');
     router.push(`/video-call?meetingId=${incomingCall.meetingId}`);
   };
 
   const onDecline = () => {
-    console.log('Call declined');
     declineVideoCall();
     router.replace('/(tabs)/chats');
   };

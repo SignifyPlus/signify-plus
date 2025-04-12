@@ -24,80 +24,65 @@ export const createMeeting = async () => {
     body: JSON.stringify({}),
   });
   const { roomId } = await res.json();
-  console.log('room id', roomId);
   return roomId;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const signUpWithPhoneNumber = async (
-  phoneNumber: string
+  _phoneNumber: string
 ): Promise<void> => {
   // await sleep(300); // Simulates the network delay
-  console.log(`SignUp created for: ${phoneNumber}`);
 };
 
 export const preparePhoneVerification = async (): Promise<void> => {
   // await sleep(300); // Simulates the network delay
-  console.log('Phone number verification prepared.');
 };
 
 export const createSignInSession = async (
-  identifier: string
+  _identifier: string
 ): Promise<{ supportedFirstFactors: any[] }> => {
   // await sleep(300); // Simulates the network delay
-  console.log(`SignIn created for: ${identifier}`);
   return {
     supportedFirstFactors: [{ strategy: 'phone_code', phoneNumberId: '12345' }],
   };
 };
 
-export const prepareFirstFactorVerification = async (options: {
+export const prepareFirstFactorVerification = async (_options: {
   strategy: string;
   phoneNumberId: string;
 }): Promise<void> => {
   // await sleep(300); // Simulates the network delay
-  console.log('First factor prepared for:', options.phoneNumberId);
 };
 
 export const attemptPhoneNumberVerificationForSignUp = async (
-  code: string
+  _code: string
 ): Promise<void> => {
   await sleep(300);
-  console.log(
-    `Attempted phone number verification for sign-up with code: ${code}`
-  );
 };
 
 export const activateUserSessionAfterSignUp = async (): Promise<void> => {
   await sleep(300);
-  console.log(`Activated user session after sign-up.`);
 };
 
 export const attemptFirstFactorVerificationForSignIn = async (
-  code: string
+  _code: string
 ): Promise<void> => {
   await sleep(300);
-  console.log(
-    `Attempted first factor verification for sign-in with code: ${code}`
-  );
 };
 
 export const activateUserSessionAfterSignIn = async (): Promise<void> => {
   await sleep(300);
-  console.log(`Activated user session after sign-in.`);
 };
 
 export const resendSignUpVerificationCode = async (
-  phone: string
+  _phone: string
 ): Promise<void> => {
   await sleep(300);
-  console.log(`Resent sign-up verification code to phone: ${phone}`);
 };
 
 export const resendSignInVerificationCode = async (
-  phone: string
+  _phone: string
 ): Promise<void> => {
   await sleep(300);
-  console.log(`Resent sign-in verification code to phone: ${phone}`);
 };
