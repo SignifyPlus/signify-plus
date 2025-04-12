@@ -89,22 +89,15 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
       const server = response.headers.get('server');
       const ngrokAgentIps = response.headers.get('ngrok-agent-ips');
 
-      console.log('Fetched JSON data:', data);
-      console.log('Content-Type:', contentType);
-      console.log('Date:', date);
-      console.log('Server:', server);
-      console.log('ngrok-agent-ips:', ngrokAgentIps);
-
       return { data, contentType, date, server, ngrokAgentIps };
     } catch (error) {
-      console.error('Error fetching local IP:', error);
       return null;
     }
   }
 
   // Monitor predictions changes
   useEffect(() => {
-    console.log('Predictions updated:', predictions);
+    // console.log('Predictions updated:', predictions);
   }, [predictions]);
 
   // Updated WebSocket connection setup using ngrokAgentIps from fetchLocalIPAndHeaders
@@ -113,44 +106,44 @@ const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
     async function setupWebSocket() {
       const result = await fetchLocalIPAndHeaders();
       if (!result) {
-        console.error('Could not fetch local IP and headers');
+        // console.error('Could not fetch local IP and headers');
         return;
       }
       const { ngrokAgentIps } = result;
       if (!ngrokAgentIps) {
-        console.error('ngrokAgentIps not found');
+        // console.error('ngrokAgentIps not found');
         return;
       }
-      console.log('Using ngrokAgentIps:', ngrokAgentIps);
+      // console.log('Using ngrokAgentIps:', ngrokAgentIps);
       // Use the fetched ngrokAgentIps in the WebSocket URL
       ws = new WebSocket(`ws://${ngrokAgentIps}:8888`);
 
       ws.onopen = () => {
-        console.log('WebSocket Connected!');
+        // console.log('WebSocket Connected!');
       };
       ws.onmessage = (event) => {
-        console.log('Received message:', event.data);
+        // console.log('Received message:', event.data);
         try {
           const response = JSON.parse(event.data);
-          console.log('Parsed response:', response);
+          // console.log('Parsed response:', response);
           if (response.status === 'success') {
-            console.log('Setting predictions:', response.predictions);
+            // console.log('Setting predictions:', response.predictions);
             setPredictions(response.predictions);
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          // console.error('Error parsing WebSocket message:', error);
         }
       };
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      ws.onerror = (_error) => {
+        // console.error('WebSocket error:', error);
       };
-      ws.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason);
+      ws.onclose = (_event) => {
+        // console.log('WebSocket closed:', event.code, event.reason);
       };
     }
     setupWebSocket();
     return () => {
-      console.log('Cleaning up WebSocket connection...');
+      // console.log('Cleaning up WebSocket connection...');
       ws?.close();
     };
   }, []);
@@ -207,8 +200,7 @@ const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
 };
 
 const ControlsContainer: React.FC = () => {
-  const { join, leave, toggleWebcam, toggleMic, localParticipant } =
-    useMeeting();
+  const { leave, toggleWebcam, toggleMic, localParticipant } = useMeeting();
   const router = useRouter();
 
   const [micOn, setMicOn] = useState<boolean>(false);
@@ -244,12 +236,12 @@ const ControlsContainer: React.FC = () => {
         }
       );
       if (!response.ok) {
-        console.error('Failed to clear meeting ID on server:', response.status);
+        // console.error('Failed to clear meeting ID on server:', response.status);
       } else {
-        console.log('Meeting ID cleared on server.');
+        // console.log('Meeting ID cleared on server.');
       }
     } catch (error) {
-      console.error('Error clearing meeting ID on server:', error);
+      // console.error('Error clearing meeting ID on server:', error);
     }
   };
 
@@ -320,7 +312,6 @@ const MeetingView: React.FC = () => {
       return;
     }
 
-    console.log('Joining meeting...', localParticipant?.id);
     if (!localParticipant?.id) {
       joinedRef.current = true;
       setTimeout(() => {
@@ -379,8 +370,6 @@ const App: React.FC = () => {
     const newMeetingId = id == null ? await createMeeting() : id;
     setMeetingId(newMeetingId);
   };
-
-  console.log('meetingId isssss', meetingId);
 
   useEffect(() => {
     setMeetingId(meetingIdQueryParam);

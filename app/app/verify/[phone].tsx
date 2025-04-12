@@ -50,7 +50,6 @@ const Page = () => {
       await attemptPhoneNumberVerificationForSignUp(code);
       await activateUserSessionAfterSignUp();
     } catch (err) {
-      console.log('error', JSON.stringify(err, null, 2));
       Alert.alert(
         'Error',
         'An error occurred during verification. Please try again.'
@@ -62,9 +61,7 @@ const Page = () => {
     try {
       await attemptFirstFactorVerificationForSignIn(code);
       await activateUserSessionAfterSignIn();
-      console.log('signin comeplete', code);
     } catch (err) {
-      console.log('error', JSON.stringify(err, null, 2));
       Alert.alert(
         'Error',
         'An error occurred during verification. Please try again.'
@@ -85,7 +82,6 @@ const Page = () => {
         // });
       }
     } catch (err) {
-      console.log('error', JSON.stringify(err, null, 2));
       Alert.alert(
         'Error',
         'An error occurred while resending the verification code. Please try again.'
@@ -115,7 +111,6 @@ const Page = () => {
   ]);
 
   useEffect(() => {
-    console.log('phoneneee', phone);
     setPhoneNumber(phone);
   }, [setPhoneNumber, phone]);
 

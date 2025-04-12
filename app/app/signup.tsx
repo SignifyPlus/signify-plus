@@ -25,7 +25,7 @@ const SignupScreen = () => {
   const [phoneError, setPhoneError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  const { setPhoneNumber: setPhoneNumberInContext } = useAppContext();
+  const { setPhoneNumber: setPhoneNumberInContext, setUser } = useAppContext();
   const router = useRouter();
   const { mutate: createUser, isPending } = useCreateUserMutation();
 
@@ -56,7 +56,8 @@ const SignupScreen = () => {
       createUser(
         { name, phoneNumber: sanitizedPhoneNumber, password },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            setUser(data[0]!);
             setPhoneNumberInContext(sanitizedPhoneNumber);
             setName('');
             setPhoneNumber('');
@@ -141,7 +142,7 @@ const SignupScreen = () => {
         )}
       </TouchableOpacity>
 
-      <Link href={'/login'} replace asChild>
+      <Link href={'/'} replace asChild>
         <TouchableOpacity>
           <Text style={styles.linkText}>Already have an account? Log In</Text>
         </TouchableOpacity>

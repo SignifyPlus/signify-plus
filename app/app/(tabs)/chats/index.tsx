@@ -52,7 +52,6 @@ const Page = () => {
       } satisfies ChatRowProps;
     });
 
-  console.log(isPendingContacts);
   if (isPending || isPendingContacts)
     return (
       <ActivityIndicator
@@ -71,6 +70,8 @@ const Page = () => {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{
         backgroundColor: '#fff',
+        height: '100%',
+        width: '100%',
       }}
     >
       {chatRows.length === 0 ? (
@@ -101,10 +102,12 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
     padding: 20,
+    height: '100%',
+    width: '100%',
   },
   title: {
     fontSize: 22,

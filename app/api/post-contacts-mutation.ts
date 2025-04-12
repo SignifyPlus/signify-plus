@@ -12,7 +12,6 @@ export const usePostContactsMutation = () => {
 
   return useMutation({
     mutationFn: async (params: PostContactsParams) => {
-      console.log('Posting contacts', params);
       const response = await fetch(`${API_URL}/contacts/create`, {
         method: 'POST',
         headers: {
@@ -22,12 +21,10 @@ export const usePostContactsMutation = () => {
       });
 
       if (!response.ok) {
-        console.error(response);
         throw new Error('Failed to add contacts');
       }
 
       const data = await response.json();
-      console.log('Contacts added', data);
       return data;
     },
     onSuccess: (_data, variables) => {
