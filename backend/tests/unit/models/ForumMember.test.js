@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ForumMember = require('../../models/ForumMember');
+const ForumMember = require('../../../models/ForumMember');
 
 describe("ForumMember Model", () => {
 

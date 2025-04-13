@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Settings = require('../../models/Settings');
+const Settings = require('../../../models/Settings');
 
 describe("Settings Model", () => {
 

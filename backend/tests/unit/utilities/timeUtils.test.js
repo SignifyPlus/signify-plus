@@ -1,4 +1,4 @@
-const TimeUtils = require("../../utilities/timeUtils");
+const TimeUtils = require("../../../utilities/timeUtils");
 
 describe("TimeUtils", () => {
     test("getCurrentTimeInMilliSeconds should return a number greater than 0", () => {

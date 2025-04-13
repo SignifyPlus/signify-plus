@@ -1,4 +1,4 @@
-const CommonUtils = require("../../utilities/commonUtils");
+const CommonUtils = require("../../../utilities/commonUtils");
 
 describe("CommonUtils.waitForVariableToBecomeNonNull", () => {
     it("should return immediately if the getter returns a non-null value", async () => {

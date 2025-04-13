@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Chat = require("../../models/Chat");
+const Chat = require("../../../models/Chat");
 
 describe("Chat Model", () => {
     it("should create a valid Chat document with default createdAt", () => {

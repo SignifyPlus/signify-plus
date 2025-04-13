@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ForumPermissions = require('../../models/ForumPermissions');
+const ForumPermissions = require('../../../models/ForumPermissions');
 
 describe("ForumPermissions Model", () => {
 

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Report = require('../../models/Report');
+const Report = require('../../../models/Report');
 
 describe("Report Model", () => {
 

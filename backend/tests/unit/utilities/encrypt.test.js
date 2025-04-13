@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const Encrypt = require("../../utilities/encrypt"); 
+const Encrypt = require("../../../utilities/encrypt"); 
 
 describe("Encrypt class", () => {
     const SALT_ROUNDS = 5; 

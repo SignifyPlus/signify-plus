@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ChannelSubscriber = require("../../models/ChannelSubscriber");
+const ChannelSubscriber = require("../../../models/ChannelSubscriber");
 
 describe("ChannelSubscriber Model", () => {
 

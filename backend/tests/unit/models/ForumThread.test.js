@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ForumThread = require('../../models/ForumThread');
+const ForumThread = require('../../../models/ForumThread');
 
 describe("ForumThread Model", () => {
 

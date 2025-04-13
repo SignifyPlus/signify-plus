@@ -1,14 +1,13 @@
-const CallHistoryService = require("../../services/CallHistoryService");
+const ChannelService = require("../../../services/ChannelService");
 
-describe("CallHistoryService", () => {
+describe("ChannelService", () => {
     let service;
     let mockModel;
 
     beforeEach(() => {
         mockModel = {};
-        service = new CallHistoryService(mockModel);
+        service = new ChannelService(mockModel);
 
-        service.schemaModel = {};
         service.__proto__.getDocuments = jest.fn(() => Promise.resolve("all docs"));
         service.__proto__.getDocumentById = jest.fn(() => Promise.resolve("doc by id"));
         service.__proto__.getDocumentsByCustomFilters = jest.fn(() => Promise.resolve("filtered docs"));
@@ -35,43 +34,43 @@ describe("CallHistoryService", () => {
     });
 
     test("getDocumentsByCustomFilters calls super.getDocumentsByCustomFilters", async () => {
-        const filters = { type: "video" };
+        const filters = { name: "test" };
         const result = await service.getDocumentsByCustomFilters(filters);
         expect(result).toBe("filtered docs");
         expect(service.__proto__.getDocumentsByCustomFilters).toHaveBeenCalledWith(filters);
     });
 
     test("getDocumentByCustomFilters calls super.getDocumentByCustomFilters", async () => {
-        const filters = { status: "missed" };
+        const filters = { name: "single" };
         const result = await service.getDocumentByCustomFilters(filters);
         expect(result).toBe("single filtered doc");
         expect(service.__proto__.getDocumentByCustomFilters).toHaveBeenCalledWith(filters);
     });
 
     test("updateDocument calls super.updateDocument", async () => {
-        const result = await service.updateDocument({ id: "1" }, { status: "done" });
+        const result = await service.updateDocument({ id: "1" }, { name: "updated" });
         expect(result).toBe("updated doc");
-        expect(service.__proto__.updateDocument).toHaveBeenCalledWith({ id: "1" }, { status: "done" });
+        expect(service.__proto__.updateDocument).toHaveBeenCalledWith({ id: "1" }, { name: "updated" });
     });
 
     test("saveDocument calls super.saveDocument", async () => {
-        const data = { caller: "user1" };
+        const data = { name: "channel" };
         const result = await service.saveDocument(data);
         expect(result).toBe("saved doc");
         expect(service.__proto__.saveDocument).toHaveBeenCalledWith(data);
     });
 
     test("saveDocuments calls super.saveDocuments", async () => {
-        const docs = [{}, {}];
-        const result = await service.saveDocuments(docs);
+        const data = [{}, {}];
+        const result = await service.saveDocuments(data);
         expect(result).toEqual(["doc1", "doc2"]);
-        expect(service.__proto__.saveDocuments).toHaveBeenCalledWith(docs);
+        expect(service.__proto__.saveDocuments).toHaveBeenCalledWith(data);
     });
 
     test("deleteDocument calls super.deleteDocument", async () => {
-        const result = await service.deleteDocument({ status: "missed" });
+        const result = await service.deleteDocument({ id: "del" });
         expect(result).toBe("deleted doc");
-        expect(service.__proto__.deleteDocument).toHaveBeenCalledWith({ status: "missed" });
+        expect(service.__proto__.deleteDocument).toHaveBeenCalledWith({ id: "del" });
     });
 
     test("deleteDocumentById calls super.deleteDocumentById", async () => {
@@ -81,14 +80,14 @@ describe("CallHistoryService", () => {
     });
 
     test("deleteDocuments calls super.deleteDocuments", async () => {
-        const result = await service.deleteDocuments({ type: "video" });
+        const result = await service.deleteDocuments({ name: "bulk" });
         expect(result).toEqual({ deletedCount: 2 });
-        expect(service.__proto__.deleteDocuments).toHaveBeenCalledWith({ type: "video" });
+        expect(service.__proto__.deleteDocuments).toHaveBeenCalledWith({ name: "bulk" });
     });
 
     test("getDocumentsByCustomFiltersQuery calls super.getDocumentsByCustomFiltersQuery", () => {
-        const query = service.getDocumentsByCustomFiltersQuery({ active: true });
+        const query = service.getDocumentsByCustomFiltersQuery({ name: "query" });
         expect(query).toBe("query object");
-        expect(service.__proto__.getDocumentsByCustomFiltersQuery).toHaveBeenCalledWith({ active: true });
+        expect(service.__proto__.getDocumentsByCustomFiltersQuery).toHaveBeenCalledWith({ name: "query" });
     });
 });

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Media = require('../../models/Media');
+const Media = require('../../../models/Media');
 
 describe("Media Model", () => {
 

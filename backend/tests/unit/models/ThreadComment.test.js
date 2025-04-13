@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ThreadComment = require('../../models/ThreadComment');
+const ThreadComment = require('../../../models/ThreadComment');
 
 describe("ThreadComment Model", () => {
 

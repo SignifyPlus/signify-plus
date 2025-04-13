@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Forum = require('../../models/Forum');
+const Forum = require('../../../models/Forum');
 
 describe("Forum Model", () => {
     it("should create a valid Forum document", () => {

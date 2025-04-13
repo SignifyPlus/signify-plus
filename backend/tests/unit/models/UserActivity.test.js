@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const UserActivity = require("../../models/UserActivity");
+const UserActivity = require("../../../models/UserActivity");
 
 describe("UserActivity Model", () => {
 

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const CallHistory = require("../../models/CallHistory");
+const CallHistory = require("../../../models/CallHistory");
 
 describe("CallHistory Model", () => {
     it("should create a valid CallHistory document with default values", () => {

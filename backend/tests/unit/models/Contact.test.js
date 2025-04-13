@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Contact = require("../../models/Contact");
+const Contact = require("../../../models/Contact");
 
 describe("Contact Model", () => {
     it("should create a valid Contact document with default createdAt", () => {

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Reaction = require('../../models/Reaction');
+const Reaction = require('../../../models/Reaction');
 
 describe("Reaction Model", () => {
 

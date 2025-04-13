@@ -1,4 +1,4 @@
-const AbstractService = require("../../services/AbstractService");
+const AbstractService = require("../../../services/AbstractService");
 const mongoose = require("mongoose");
 
 describe("AbstractService", () => {
