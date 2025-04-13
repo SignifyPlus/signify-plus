@@ -47,6 +47,8 @@ class MessageSocket {
                );
             }
 
+            //TODO -- an edge case - where both the sender and receiver register at the same time - chat id for both the cases will be null
+            //think about how to deal with it. Maybe a temp chat id, and use that in mongodb later? not sure if possible, but mull/think over it
             //find the chat now
             messageDto.chatId =
                (messageDto.chatId == null

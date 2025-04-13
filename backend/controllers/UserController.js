@@ -139,6 +139,7 @@ class UserController {
             this.#saltRoundForEncryption,
             newUser.password,
          );
+         //use event-driven approach to also create user settings (via an event)
          const userObject =
             await ServiceFactory.getUserService.saveDocument(newUser);
          response.json(userObject);

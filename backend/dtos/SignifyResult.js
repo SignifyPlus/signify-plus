@@ -1,5 +1,5 @@
 class SignifyResult {
-   constructor(data, exception) {
+   constructor(data = null, exception = null) {
       this.data = data;
       this.exception = exception;
    }
