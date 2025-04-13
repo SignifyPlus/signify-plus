@@ -16,27 +16,24 @@ export const useUpdateContacts = ({
   useEffect(() => {
     if (!phoneNumber) return;
     const getContacts = () => {
-      Contacts.getAll()
-        .then((contacts) => {
-          setContacts(contacts);
-          setContacts(contacts);
-          mutate(
-            {
-              userPhoneNumber: phoneNumber,
-              contacts: contacts
-                .map((contact) => {
-                  if (!contact.phoneNumbers.length) return null;
-                  return contact.phoneNumbers[0]?.number || null;
-                })
-                .filter((contact) => contact) as string[],
-            },
-            {
-              onError: (error) => {},
-              onSuccess: () => {},
-            }
-          );
-        })
-        .catch((e) => {});
+      Contacts.getAll().then((contacts) => {
+        setContacts(contacts);
+        setContacts(contacts);
+        mutate(
+          {
+            userPhoneNumber: phoneNumber,
+            contacts: contacts
+              .map((contact) => {
+                if (!contact.phoneNumbers.length) return null;
+                return contact.phoneNumbers[0]?.number || null;
+              })
+              .filter((contact) => contact) as string[],
+          },
+          {
+            onSuccess: () => {},
+          }
+        );
+      });
     };
 
     if (Platform.OS === 'android') {
@@ -48,10 +45,10 @@ export const useUpdateContacts = ({
           buttonPositive: 'Please accept bare mortal',
         }
       )
-        .then((res) => {
+        .then((_res) => {
           getContacts();
         })
-        .catch((error) => {});
+        .catch((_error) => {});
     } else {
       getContacts();
     }
