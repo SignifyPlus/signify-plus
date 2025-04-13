@@ -4,9 +4,10 @@ const MessageSocketUtils = require('./utils/messageSocketUtils.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const CommonConstants = require('../constants/commonConstants.js');
+const WebSocketMessageDto = require('../dtos/WebSocketMessageDto.js');
 class MessageSocket {
    #messageQueueName = null;
-   #cachedChats = null;
+   #databaseCachedChats = null;
    constructor(socket, userSocketMap) {
       //setup rabbitMq
       this.#messageQueueName = RabbitMqConstants.MESSAGES_QUEUE;
@@ -16,22 +17,27 @@ class MessageSocket {
          this.chatCreatedListener.bind(this),
       );
       //on db update (via an event), update the map/list
-      this.#cachedChats = MessageSocketUtils.cacheChats();
+      this.#databaseCachedChats = MessageSocketUtils.cacheChats();
       this.messageEvent(socket, userSocketMap);
    }
 
    async messageEvent(socket, userSocketMap) {
       socket.on('message', async (data) => {
-         this.#cachedChats = await this.#cachedChats;
+         this.#databaseCachedChats = await this.#databaseCachedChats;
          var pingWasSuccesful = true;
-         var chatId = null;
+         const messageDto = new WebSocketMessageDto(
+            data?.chatId,
+            data?.senderPhoneNumber,
+            data?.targetPhoneNumbers,
+            data?.message,
+         );
          try {
             if (
-               data.targetPhoneNumbers == null ||
-               data.targetPhoneNumbers.length == 0
+               messageDto.targetPhoneNumbers == null ||
+               messageDto.targetPhoneNumbers.length == 0
             ) {
                socket.emit('message-failure', {
-                  error: `targetPhoneNumber is not provided - receiver info: Number:${data.senderPhoneNumber} SocketId:${userSocketMap[data.senderPhoneNumber]}`,
+                  error: `targetPhoneNumber is not provided - receiver info: Number:${messageDto.senderPhoneNumber} SocketId:${userSocketMap[messageDto.senderPhoneNumber]}`,
                });
                return;
             }
@@ -42,36 +48,31 @@ class MessageSocket {
             }
 
             //find the chat now
-            chatId = await MessageSocketUtils.filterChat(
-               this.#cachedChats,
-               data.targetPhoneNumbers,
-               data.senderPhoneNumber,
-            );
-
-            //if a chat is null, initialize an empty chat
-            chatId =
-               chatId == null
-                  ? await this.createNewChat(
-                       data.senderPhoneNumber,
-                       data.targetPhoneNumbers,
+            messageDto.chatId =
+               (messageDto.chatId == null
+                  ? await MessageSocketUtils.filterChat(
+                       this.#databaseCachedChats,
+                       messageDto.targetPhoneNumbers,
+                       messageDto.senderPhoneNumber,
                     )
-                  : chatId;
-
+                  : messageDto.chatId) == null
+                  ? await this.createNewChat(
+                       messageDto.senderPhoneNumber,
+                       messageDto.targetPhoneNumbers,
+                    )
+                  : messageDto.chatId;
             ///use event driven approach
-            data.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
+            messageDto.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                if (userSocketMap[targetPhoneNumber] == null) {
                   LoggerFactory.getApplicationLogger.info(
                      `targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`,
                   );
                   return;
                }
-               LoggerFactory.getApplicationLogger.info(
-                  `Incoming Message ${data.message} for the targetPhoneNumber ${targetPhoneNumber} chatId: ${chatId}`,
-               );
-
-               socket
-                  .to(userSocketMap[targetPhoneNumber])
-                  .emit('message', { message: data.message, chatId: chatId });
+               socket.to(userSocketMap[targetPhoneNumber]).emit('message', {
+                  message: messageDto.message,
+                  chatId: messageDto.chatId,
+               });
             });
          } catch (exception) {
             LoggerFactory.getApplicationLogger.error(
@@ -98,16 +99,13 @@ class MessageSocket {
             //await MessageSocketUtils.prepareChatQueueData(data, chatId),
             ///),
             //);
-
-            const preparedData = await MessageSocketUtils.prepareChatQueueData(
-               data,
-               chatId,
+            LoggerFactory.getApplicationLogger.info(
+               `MessageDTO: ${JSON.stringify(messageDto)}`,
             );
-            LoggerFactory.getApplicationLogger.info(`${preparedData}`);
             //for now replace with this
             EventDispatcher.dispatchEvent(
                EventConstants.MESSAGE_INGEST_EVENT,
-               preparedData,
+               messageDto,
             );
          }
       });
@@ -115,7 +113,7 @@ class MessageSocket {
 
    async chatCreatedListener() {
       //cache upon creation - (better approach since we are not monitoring database constantly + neither querying in each message socket event)
-      this.#cachedChats = await MessageSocketUtils.cacheChats();
+      this.#databaseCachedChats = await MessageSocketUtils.cacheChats();
    }
 
    async createNewChat(senderPhoneNumber, targetPhoneNumbers) {

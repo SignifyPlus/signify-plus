@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FlatList,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -9,17 +8,14 @@ import {
   View,
 } from 'react-native';
 import {
-  MediaStream,
   MeetingProvider,
   register,
-  RTCView,
   useMeeting,
-  useParticipant,
 } from '@videosdk.live/react-native-sdk';
 import { createMeeting, token } from '@/api';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import GestureOverlay from '@/components/GestureOverlay';
-import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
+import { ParticipantList } from '@/components/ParticipantList';
+import { ControlsContainer } from '@/components/ControlsContainer';
 
 register();
 
@@ -62,246 +58,6 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
   );
 };
 
-interface ParticipantViewProps {
-  participantId: string;
-}
-
-const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
-  const { webcamStream, webcamOn } = useParticipant(participantId);
-  const [predictions, setPredictions] = useState([]);
-
-  // Function to fetch the local IP from the Python server
-  async function fetchLocalIPAndHeaders() {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/local-ip'
-      );
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' + response.statusText);
-      }
-
-      // Get the JSON body
-      const data = await response.json();
-
-      // Get specific headers
-      const contentType = response.headers.get('content-type');
-      const date = response.headers.get('date');
-      const server = response.headers.get('server');
-      const ngrokAgentIps = response.headers.get('ngrok-agent-ips');
-
-      return { data, contentType, date, server, ngrokAgentIps };
-    } catch (error) {
-      return null;
-    }
-  }
-
-  // Monitor predictions changes
-  useEffect(() => {
-    // console.log('Predictions updated:', predictions);
-  }, [predictions]);
-
-  // Updated WebSocket connection setup using ngrokAgentIps from fetchLocalIPAndHeaders
-  useEffect(() => {
-    let ws: WebSocket | null = null;
-    async function setupWebSocket() {
-      const result = await fetchLocalIPAndHeaders();
-      if (!result) {
-        // console.error('Could not fetch local IP and headers');
-        return;
-      }
-      const { ngrokAgentIps } = result;
-      if (!ngrokAgentIps) {
-        // console.error('ngrokAgentIps not found');
-        return;
-      }
-      // console.log('Using ngrokAgentIps:', ngrokAgentIps);
-      // Use the fetched ngrokAgentIps in the WebSocket URL
-      ws = new WebSocket(`ws://${ngrokAgentIps}:8888`);
-
-      ws.onopen = () => {
-        // console.log('WebSocket Connected!');
-      };
-      ws.onmessage = (event) => {
-        // console.log('Received message:', event.data);
-        try {
-          const response = JSON.parse(event.data);
-          // console.log('Parsed response:', response);
-          if (response.status === 'success') {
-            // console.log('Setting predictions:', response.predictions);
-            setPredictions(response.predictions);
-          }
-        } catch (error) {
-          // console.error('Error parsing WebSocket message:', error);
-        }
-      };
-      ws.onerror = (_error) => {
-        // console.error('WebSocket error:', error);
-      };
-      ws.onclose = (_event) => {
-        // console.log('WebSocket closed:', event.code, event.reason);
-      };
-    }
-    setupWebSocket();
-    return () => {
-      // console.log('Cleaning up WebSocket connection...');
-      ws?.close();
-    };
-  }, []);
-
-  return webcamOn && webcamStream ? (
-    <View style={{ position: 'relative', height: 300, marginVertical: 2 }}>
-      <RTCView
-        streamURL={new MediaStream([webcamStream.track]).toURL()}
-        objectFit="cover"
-        style={{ height: '100%', width: '100%' }}
-      />
-      <GestureOverlay predictions={predictions} />
-    </View>
-  ) : (
-    <View style={styles.noMediaView}>
-      <Text style={styles.noMediaText}>NO MEDIA</Text>
-    </View>
-  );
-};
-
-interface ParticipantListProps {
-  participants: string[];
-}
-
-const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
-  if (participants.length === 1) {
-    return (
-      <View style={{ flex: 1 }}>
-        <ParticipantView participantId={participants[0]!} />
-      </View>
-    );
-  }
-
-  if (participants.length === 2) {
-    return (
-      <View style={{ flex: 1 }}>
-        <ParticipantView participantId={participants[0]!} />
-        <ParticipantView participantId={participants[1]!} />
-      </View>
-    );
-  }
-
-  return participants.length > 0 ? (
-    <FlatList
-      data={participants}
-      renderItem={({ item }) => <ParticipantView participantId={item} />}
-      keyExtractor={(item) => item}
-    />
-  ) : (
-    <View style={styles.emptyView}>
-      <Text style={styles.emptyText}>Press Join button to enter meeting.</Text>
-    </View>
-  );
-};
-
-const ControlsContainer: React.FC = () => {
-  const { leave, toggleWebcam, toggleMic, localParticipant } = useMeeting();
-  const router = useRouter();
-
-  const [micOn, setMicOn] = useState<boolean>(false);
-  const [webcamOn, setWebcamOn] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (localParticipant) {
-      setMicOn(localParticipant.micOn);
-      setWebcamOn(localParticipant.webcamOn);
-    }
-  }, [localParticipant]);
-
-  const handleToggleMic = () => {
-    setMicOn((prev) => !prev);
-    toggleMic();
-  };
-
-  const handleToggleWebcam = () => {
-    setWebcamOn((prev) => !prev);
-    toggleWebcam();
-  };
-
-  const clearMeetingIdOnServer = async () => {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/meeting-id',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ meetingId: null }),
-        }
-      );
-      if (!response.ok) {
-        // console.error('Failed to clear meeting ID on server:', response.status);
-      } else {
-        // console.log('Meeting ID cleared on server.');
-      }
-    } catch (error) {
-      // console.error('Error clearing meeting ID on server:', error);
-    }
-  };
-
-  return (
-    <View
-      style={{
-        padding: 24,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
-    >
-      <TouchableOpacity
-        onPress={handleToggleWebcam}
-        style={{
-          backgroundColor: '#1f2937',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons
-          name={webcamOn ? 'videocam-outline' : 'videocam-off-outline'}
-          size={24}
-          color="#fff"
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={handleToggleMic}
-        style={{
-          backgroundColor: '#1f2937',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons
-          name={micOn ? 'mic-outline' : 'mic-off-outline'}
-          size={24}
-          color="#fff"
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={async () => {
-          await clearMeetingIdOnServer();
-          leave();
-          router.replace('/(tabs)/chats');
-        }}
-        style={{
-          backgroundColor: '#dc2626',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons name="call" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  );
-};
-
 const MeetingView: React.FC = () => {
   const { participants, localParticipant, join } = useMeeting();
   const participantsArrId = Array.from(participants.keys());
@@ -324,6 +80,7 @@ const MeetingView: React.FC = () => {
     <View
       style={{
         flex: 1,
+        position: 'relative',
       }}
     >
       <ParticipantList participants={participantsArrId} />
@@ -420,24 +177,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 14,
     borderRadius: 6,
-  },
-  noMediaView: {
-    backgroundColor: 'grey',
-    height: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noMediaText: {
-    fontSize: 16,
-  },
-  emptyView: {
-    flex: 1,
-    backgroundColor: '#F6F6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 20,
   },
 
   appContainer: {
