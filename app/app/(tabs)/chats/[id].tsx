@@ -3,7 +3,7 @@ import { ReplyMessageBar } from '@/components/ReplyMessageBar';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ImageBackground, StyleSheet, View, Text } from 'react-native';
+import { ImageBackground, StyleSheet, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import {
   Bubble,
