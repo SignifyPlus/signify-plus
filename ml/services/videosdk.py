@@ -13,6 +13,8 @@ import dotenv
 from fastapi import WebSocket
 from collections import deque
 import time
+import tempfile
+import subprocess
 
 dotenv.load_dotenv()
 
@@ -23,6 +25,7 @@ BROADCAST_INTERVAL = float(os.environ.get('BROADCAST_INTERVAL', 0.05))  # Defaul
 
 class VideoProcessor:
     def __init__(self, videosdk_service) -> None:
+
         self.videosdk_service = videosdk_service
         self.last_process_time = 0
         self.frame_interval = FRAME_INTERVAL
@@ -43,10 +46,146 @@ class VideoProcessor:
         self.fps_update_interval = 3.0  # Update FPS every 3 seconds
         self.last_fps_update_time = time.time()
         self.device_speed_assessed = False
-        
+         
         # Frame drop monitoring
         self.dropped_frames = 0
         self.total_frames = 0
+        
+        # Recording properties
+        self.recording = False
+        self.video_writer = None
+        self.record_start_time = None
+        self.record_duration = None
+        self.record_filename = None
+        self.recorded_frames = []        # List to store captured frames
+        self.recorded_timestamps = []    # List to store precise timestamps
+        
+    def start_recording(self, filename: str, duration: float):
+        """Start recording frames to the specified file for a given duration (in seconds)."""
+        self.recording = True
+        self.record_filename = filename
+        self.record_start_time = time.time()
+        self.record_duration = duration
+        # Create a new list to store recorded frames with their timestamps
+        self.recorded_frames = []
+        self.recorded_timestamps = []
+        print(f"Recording started: {filename} for {duration} seconds")
+
+    def save_recording_with_ffmpeg(self):
+        """Save the recorded frames using FFmpeg to maintain variable framerate."""
+        if not self.recorded_frames:
+            print("No frames to save")
+            return
+        
+        try:
+            # Check if ffmpeg is available using subprocess
+            try:
+                # Just test if ffmpeg is available
+                subprocess.run(['ffmpeg', '-version'], 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE, 
+                            check=True)
+                ffmpeg_available = True
+            except (subprocess.SubprocessError, FileNotFoundError):
+                print("FFmpeg command not found in PATH. Using OpenCV fallback.")
+                ffmpeg_available = False
+            
+            if ffmpeg_available:
+                # Create temp directory to store individual frames
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    # Save frames as individual images
+                    frame_files = []
+                    timestamps_file = os.path.join(temp_dir, "timestamps.txt")
+                    
+                    with open(timestamps_file, 'w') as f:
+                        for i, (frame, timestamp) in enumerate(zip(self.recorded_frames, self.recorded_timestamps)):
+                            # Save frame as image
+                            frame_path = os.path.join(temp_dir, f"frame_{i:06d}.png")
+                            cv2.imwrite(frame_path, frame)
+                            frame_files.append(frame_path)
+                            
+                            # Write timestamp (relative to start) for ffmpeg concat
+                            f.write(f"file 'frame_{i:06d}.png'\n")
+                            if i > 0:
+                                duration = self.recorded_timestamps[i] - self.recorded_timestamps[i-1]
+                                f.write(f"duration {duration}\n")
+                            else:
+                                # First frame needs a duration too
+                                f.write(f"duration 0.033\n")  # Arbitrary small duration for first frame
+                    
+                    # Make sure the last frame has a duration to match full recording time
+                    with open(timestamps_file, 'a') as f:
+                        # Calculate remaining time to reach exact recording duration
+                        last_timestamp = self.recorded_timestamps[-1]
+                        target_duration = self.record_duration
+                        elapsed_time = last_timestamp - self.recorded_timestamps[0]
+                        remaining_time = max(0.1, target_duration - elapsed_time)
+                        
+                        f.write(f"file 'frame_{len(self.recorded_frames)-1:06d}.png'\n")
+                        f.write(f"duration {remaining_time}\n")
+                    
+                    # Use FFmpeg to create video with variable framerate
+                    cmd = [
+                        'ffmpeg',
+                        '-y',  # Overwrite output files
+                        '-f', 'concat',
+                        '-safe', '0',
+                        '-i', timestamps_file,
+                        '-c:v', 'libx264',
+                        '-pix_fmt', 'yuv420p',
+                        '-preset', 'fast',
+                        '-crf', '22',  # Quality setting (lower = better)
+                        self.record_filename
+                    ]
+                    
+                    process = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                    stdout, stderr = process.communicate()
+                    
+                    if process.returncode != 0:
+                        print(f"FFmpeg error: {stderr.decode()}")
+                        # Fallback to OpenCV if FFmpeg fails
+                        self._save_recording_with_opencv()
+                    else:
+                        print(f"Recording saved to {self.record_filename} using FFmpeg with variable framerate")
+            else:
+                # Use OpenCV fallback if FFmpeg not available
+                self._save_recording_with_opencv()
+                    
+        except Exception as e:
+            print(f"Error using FFmpeg: {e}")
+            # Fallback to OpenCV if FFmpeg fails
+            self._save_recording_with_opencv()
+
+    def _save_recording_with_opencv(self):
+        """Fallback method to save recording using OpenCV if FFmpeg fails."""
+        num_frames = len(self.recorded_frames)
+        start_time = self.recorded_timestamps[0]
+        end_time = self.recorded_timestamps[-1]
+        
+        # Calculate the framerate needed to make the video exactly 30 seconds
+        target_duration = self.record_duration  # Should be 30 seconds
+        # We use target_duration here rather than actual elapsed time to ensure 30-second playback
+        target_fps = num_frames / target_duration
+        
+        print(f"Setting output FPS to {target_fps:.2f} to achieve {target_duration} second playback")
+        
+        # Get frame dimensions
+        h, w = self.recorded_frames[0].shape[:2]
+        
+        # Create video writer
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(self.record_filename, fourcc, target_fps, (w, h))
+        
+        for frame_img in self.recorded_frames:
+            writer.write(frame_img)
+        
+        writer.release()
+        print(f"Fallback: Recording saved to {self.record_filename} using OpenCV at {target_fps:.2f} FPS for {target_duration}s playback")
+
 
     async def start(self):
         """Initialize and start processing"""
@@ -166,21 +305,42 @@ class VideoProcessor:
                 await asyncio.sleep(0.1)
     
     async def process(self, frame: VideoFrame) -> VideoFrame:
-        """Process incoming video frames"""
         self.total_frames += 1
+
+        # Always convert the incoming frame.
+        current_img = frame.to_ndarray(format="bgr24")
+        
+        # Always record the frame if we're in recording mode.
+        if self.recording:
+            current_time = time.time()
+            # Store both the frame and its precise timestamp
+            self.recorded_frames.append(current_img)
+            self.recorded_timestamps.append(current_time)
+            
+            # Check if the recording duration has passed.
+            if current_time - self.record_start_time >= self.record_duration:
+                self.recording = False
+                print(f"Recording finished. Captured {len(self.recorded_frames)} frames over {current_time - self.record_start_time:.2f} seconds.")
+                
+                # Save the recording using FFmpeg for variable framerate
+                self.save_recording_with_ffmpeg()
+                
+                # Clear the recording buffer
+                self.recorded_frames = []
+                self.recorded_timestamps = []
+        
+        # Now handle the normal inference-related frame processing using rate limiting.
         current_time = time.time()
         if current_time - self.last_process_time >= self.frame_interval:
             try:
-                self.current_frame = frame.to_ndarray(format="bgr24")
+                self.current_frame = current_img
                 self.frame_ready.set()
                 self.last_process_time = current_time
             except Exception as e:
                 print(f"Error processing frame: {e}")
         else:
-            # Frame dropped due to rate limiting
             self.dropped_frames += 1
         return frame
-
 
 class ProcessedVideoTrack(CustomVideoTrack):
     def __init__(self, track, videosdk_service):
@@ -189,6 +349,8 @@ class ProcessedVideoTrack(CustomVideoTrack):
         self.processor = VideoProcessor(videosdk_service)
         # Start the processor
         asyncio.create_task(self.processor.start())
+        # NEW: Register this processor for possible recording.
+        videosdk_service.active_processors.add(self.processor)
 
     async def recv(self):
         frame = await self.track.recv()
