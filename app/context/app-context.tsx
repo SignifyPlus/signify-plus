@@ -7,15 +7,15 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
-} from "react";
-import io, { Socket } from "socket.io-client";
-import { API_URL, NGROK_URL } from "@/constants/Config";
-import { useRouter } from "expo-router";
-import { createMeeting, queryClient } from "@/api";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { useUpdateContacts } from "@/context/use-update-contacts";
-import { useContactsQuery } from "@/api/contacts-query";
+  useState,} from "react";
+  import io, { Socket } from "socket.io-client";
+  import { API_URL, NGROK_URL } from "@/constants/Config";
+  import { useRouter } from "expo-router";
+  import { createMeeting, queryClient } from "@/api";
+  import { QueryClientProvider } from "@tanstack/react-query";
+  import { useUpdateContacts } from "@/context/use-update-contacts";
+  import { useContactsQuery } from "@/api/contacts-query";
+  import { User } from '@/api/user/login-user-mutation';
 
 type IncomingCallType = {
   meetingId: string;
@@ -30,7 +30,13 @@ type AppContextType = {
   isConnected: boolean;
   incomingCall: IncomingCallType | null;
   declineVideoCall: () => void;
-  sendMessage: (message: string, targetPhoneNumbers: string[]) => void;
+  sendMessage: (
+    message: string,
+    targetPhoneNumbers: string[],
+    chatId: string
+  ) => void;
+  user: User | undefined;
+  setUser: (user: User) => void;
 };
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -55,6 +61,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     null
   );
   const router = useRouter();
+  const [user, setUser] = useState<User | undefined>();
   // means to fetch earlier than required so we can see the list instantly
   useContactsQuery({ phoneNumber });
 
@@ -63,7 +70,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       const socket = socketRef.current;
       if (socket && isConnected) {
         socket.emit('message', message);
-        console.log(`Sent message: ${message}`);
       }
     },
     [isConnected]
@@ -92,9 +98,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       if (socket && phoneNumber) {
         socket.connect();
         const sanitizedTargetPhone = sanitizePhoneNumber(targetPhoneNumber);
-        console.log(
-          `Sending meeting ID to target user: ${sanitizedTargetPhone}`
-        );
         socket.emit('meeting-id', {
           userPhoneNumber: sanitizePhoneNumber(phoneNumber),
           meetingId,
@@ -106,24 +109,23 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   const sendMessage = useCallback(
-    (message: string, targetPhoneNumbers: string[]) => {
-      console.log('sendMessage', message, targetPhoneNumbers);
+    (message: string, targetPhoneNumbers: string[], chatId: string) => {
       const socket = socketRef.current;
       if (socket && isConnected && phoneNumber) {
         const sanitizedTargetPhones = targetPhoneNumbers.map((phone) =>
           sanitizePhoneNumber(phone)
         );
-        console.log(`Sending message to ${sanitizedTargetPhones}: ${message}`);
 
         socket.emit('message', {
           senderPhoneNumber: sanitizePhoneNumber(phoneNumber),
           message,
           targetPhoneNumbers: sanitizedTargetPhones,
+          chatId,
         });
-      } else {
-        console.error(
-          'Cannot send message. Socket is not connected or phone number is missing.'
-        );
+        setTimeout(() => {
+          console.log('Invalidating query');
+          void queryClient.invalidateQueries({ queryKey: ['chats'] });
+        }, 100);
       }
     },
     [isConnected, phoneNumber]
@@ -132,11 +134,9 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const videoCallUser = useCallback(
     async (targetPhoneNumber: string) => {
       if (!phoneNumber) {
-        console.error('Cannot start a call without a registered phone number.');
         return;
       }
       const sanitizedTargetPhone = sanitizePhoneNumber(targetPhoneNumber);
-      console.log(`Calling user with phone number: ${sanitizedTargetPhone}`);
       const meetingId = await createMeeting();
       sendMeetingId(meetingId, sanitizedTargetPhone);
       router.push(`/video-call?meetingId=${meetingId}`);
@@ -168,31 +168,22 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     socket.connect();
     socketRef.current = socket;
 
-    console.log(
-      'Connecting to WebSocket server',
-      sanitizedPhone,
-      socket.connected
-    );
-
     socket.on('connect', () => {
-      console.log('Connected to WebSocket server', sanitizedPhone);
       socket.emit('socket-registration', { userPhoneNumber: sanitizedPhone });
       setIsConnected(true);
     });
 
-    socket.on('disconnect', (data) => {
-      console.log('Disconnected from WebSocket server', data);
+    socket.on('disconnect', (_data) => {
       setIsConnected(false);
     });
 
-    socket.on('message', (data) => {
-      console.log(
-        `Received message from ${data.senderPhoneNumber}: ${data.message}`
-      );
-    });
+    // socket.on('message', (data) => {
+    //   console.log(
+    //     `Received message from ${data.senderPhoneNumber}: ${data.message}`
+    //   );
+    // });
 
     socket.on('meeting-id-offer', (data) => {
-      console.log('Received meeting ID offer:', data);
       // Handle incoming meeting ID offer
       setIncomingCall({
         meetingId: data.meetingId,
@@ -200,26 +191,19 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       });
     });
 
-    socket.on('meeting-id-failed', (data) => {
-      console.error('Meeting ID offer failed:', data.message);
+    socket.on('meeting-id-failed', (_data) => {
+      // console.error('Meeting ID offer failed:', data.message);
     });
 
     socket.on('message', async (msg) => {
-      console.log('Received message:', msg);
       if (msg.chatId) {
-        console.log('Invalidating chat messages query');
         await queryClient.invalidateQueries({
           queryKey: ['chats'],
         });
-      } else {
-        console.error(
-          "Could not invalidate chat messages query. Missing 'chatId'"
-        );
       }
     });
 
     return () => {
-      console.log('Cleaning up WebSocket connection');
       socket.disconnect();
       socketRef.current = null;
     };
@@ -241,21 +225,23 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       incomingCall,
       declineVideoCall,
       sendMessage,
+      setUser,
+      user,
     }),
     [
-      sendMessage,
       phoneNumber,
       videoCallUser,
       emitMessage,
       isConnected,
       incomingCall,
       declineVideoCall,
+      sendMessage,
+      user,
     ]
   );
 
   useUpdateContacts({ phoneNumber });
 
-  console.log(API_URL);
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );

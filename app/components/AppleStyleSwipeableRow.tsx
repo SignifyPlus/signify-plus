@@ -77,12 +77,6 @@ export class AppleStyleSwipeableRow extends Component<
         enableTrackpadTwoFingerGesture
         rightThreshold={40}
         renderRightActions={this.renderRightActions}
-        onSwipeableOpen={(direction) => {
-          console.log(`Opening swipeable from the ${direction}`);
-        }}
-        onSwipeableClose={(direction) => {
-          console.log(`Closing swipeable to the ${direction}`);
-        }}
       >
         {children}
       </Swipeable>

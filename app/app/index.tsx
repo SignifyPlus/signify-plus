@@ -23,7 +23,7 @@ const LoginScreen = () => {
 
   const { mutate, isPending } = useLoginUserMutation();
 
-  const { setPhoneNumber: setPhoneNumberInContext } = useAppContext();
+  const { setPhoneNumber: setPhoneNumberInContext, setUser } = useAppContext();
 
   const validatePhoneNumber = (number: string) => {
     const phoneRegex = /^\+(?:[0-9] ?){6,14}[0-9]$/;
@@ -42,7 +42,8 @@ const LoginScreen = () => {
     mutate(
       { phoneNumber: santizedPhoneNumber, password },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          setUser(data);
           setPhoneNumberInContext(santizedPhoneNumber);
           router.replace('/chats');
         },

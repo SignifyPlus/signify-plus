@@ -3,12 +3,7 @@ import { ReplyMessageBar } from '@/components/ReplyMessageBar';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ImageBackground,
-  StyleSheet,
-  View,
-  ActivityIndicator,
-} from 'react-native';
+import { ImageBackground, StyleSheet, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import {
   Bubble,
@@ -24,7 +19,6 @@ import { useChatMessagesQuery } from '@/api/chat/chats-messages-query';
 import { useLocalSearchParams } from 'expo-router';
 import { useAppContext } from '@/context/app-context';
 import { useChatsQuery } from '@/api/chat/chats-query';
-import { queryClient } from '@/api';
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -33,15 +27,13 @@ const Page = () => {
 
   const { id } = useLocalSearchParams();
 
-  const { data, isPending } = useChatMessagesQuery(id as string | undefined);
+  const { data } = useChatMessagesQuery(id as string | undefined);
 
-  const { sendMessage, phoneNumber } = useAppContext();
+  const { sendMessage, phoneNumber, user } = useAppContext();
   const { data: chats } = useChatsQuery({ phoneNumber });
 
   const [replyMessage, setReplyMessage] = useState<IMessage | null>(null);
   const swipeableRowRef = useRef<Swipeable | null>(null);
-
-  console.log('chat messages', data?.[0]?.content);
 
   useEffect(() => {
     if (!data) return;
@@ -61,22 +53,19 @@ const Page = () => {
 
   const onSend = useCallback(
     async (messages: IMessage[] = []) => {
-      // setMessages((previousMessages: any[]) =>
-      //   GiftedChat.append(previousMessages, messages)
-      // );
+      setMessages((previousMessages: any[]) =>
+        GiftedChat.append(previousMessages, messages)
+      );
       const chat = chats?.find((chat) => chat._id === id);
-      console.log('sending message in chat', chat?._id);
       if (chat) {
         messages.forEach((message) => {
           sendMessage(
             message.text,
-            chat.participants.map((p) => p.phoneNumber)
+            chat.participants.map((p) => p.phoneNumber),
+            chat._id
           );
         });
       }
-      // setTimeout(() => {
-      void queryClient.invalidateQueries();
-      // }, 1000);
     },
     [chats, id, sendMessage]
   );
@@ -122,19 +111,6 @@ const Page = () => {
     }
   }, [replyMessage]);
 
-  if (isPending)
-    return (
-      <ActivityIndicator
-        color={Colors.primary}
-        style={{
-          height: '100%',
-          width: '100%',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      />
-    );
-
   return (
     <ImageBackground
       source={require('@/assets/images/pattern.png')}
@@ -149,7 +125,7 @@ const Page = () => {
         onSend={(messages: any) => onSend(messages)}
         onInputTextChanged={setText}
         user={{
-          _id: 1,
+          _id: user?.id ?? '',
         }}
         renderSystemMessage={(props) => (
           <SystemMessage {...props} textStyle={{ color: Colors.gray }} />
@@ -164,7 +140,7 @@ const Page = () => {
               {...props}
               textStyle={{
                 right: {
-                  color: '#000',
+                  color: '#fff',
                 },
               }}
               wrapperStyle={{
@@ -172,7 +148,7 @@ const Page = () => {
                   backgroundColor: '#fff',
                 },
                 right: {
-                  backgroundColor: Colors.lightGreen,
+                  backgroundColor: Colors.primary,
                 },
               }}
             />

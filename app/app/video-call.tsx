@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FlatList,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -9,12 +8,9 @@ import {
   View,
 } from 'react-native';
 import {
-  MediaStream,
   MeetingProvider,
   register,
-  RTCView,
   useMeeting,
-  useParticipant,
 } from '@videosdk.live/react-native-sdk';
 import { createMeeting, token } from '@/api';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -283,7 +279,6 @@ const MeetingView: React.FC = () => {
       return;
     }
 
-    console.log('Joining meeting...', localParticipant?.id);
     if (!localParticipant?.id) {
       joinedRef.current = true;
       setTimeout(() => {
@@ -296,6 +291,7 @@ const MeetingView: React.FC = () => {
     <View
       style={{
         flex: 1,
+        position: 'relative',
       }}
     >
       <ParticipantList participants={visibleParticipants} />
@@ -342,8 +338,6 @@ const App: React.FC = () => {
     const newMeetingId = id == null ? await createMeeting() : id;
     setMeetingId(newMeetingId);
   };
-
-  console.log('meetingId isssss', meetingId);
 
   useEffect(() => {
     setMeetingId(meetingIdQueryParam);
@@ -394,24 +388,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 14,
     borderRadius: 6,
-  },
-  noMediaView: {
-    backgroundColor: 'grey',
-    height: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noMediaText: {
-    fontSize: 16,
-  },
-  emptyView: {
-    flex: 1,
-    backgroundColor: '#F6F6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 20,
   },
 
   appContainer: {

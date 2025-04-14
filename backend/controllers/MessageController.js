@@ -96,7 +96,7 @@ class MessageController {
          const message = await ServiceFactory.getMessageService.saveDocument({
             senderId: mappedMainUserId,
             receiverIds: mappedTargetUserPhoneNumbersToId,
-            chatId: chat._id.toString(),
+            chatId: chat[ControllerConstants.ZERO_INDEX]._id.toString(),
             content: request.body.message,
          });
          return response.json(message);

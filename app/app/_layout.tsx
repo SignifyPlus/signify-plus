@@ -107,9 +107,9 @@ const InitialLayout = () => {
         <Stack.Screen
           name="video-call"
           options={{
-            headerTitle: 'Video Call',
-            headerBackTitle: 'Back',
-            headerShown: true,
+            // headerTitle: 'Video Call',
+            // headerBackTitle: 'Back',
+            headerShown: false,
           }}
         />
       </Stack>

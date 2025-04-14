@@ -14,9 +14,9 @@ class MessageEvent {
       //for persisting to the backend
       const response =
          await ControllerFactory.getMessageController().postMessageToDb(
-            messageObject.data.senderPhoneNumber,
-            messageObject.data.targetPhoneNumbers,
-            messageObject.data.message,
+            messageObject.senderPhoneNumber,
+            messageObject.targetPhoneNumbers,
+            messageObject.message,
             messageObject.chatId,
          );
       return response;
