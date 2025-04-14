@@ -14,6 +14,14 @@ class SettingsController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
+         const settingsIdValidation = await ExceptionHelper.validate(
+            request.params.id,
+            400,
+            `settingsId is not provided.`,
+         );
+         if (settingsIdValidation)
+            return new SignifyResult(null, userIdValidation);
+
          const settingsId = request.params.id;
          LoggerFactory.getApplicationLogger.info(
             `Get settings by the id: ${settingsId}!`,
@@ -24,6 +32,69 @@ class SettingsController {
                mongooseSession,
             );
          response.json(settings);
+      } catch (exception) {
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
+   //get Settings by Phone Number
+   getSettingsByPhoneNumber = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         const phoneNumberValidation = await ExceptionHelper.validate(
+            request.params.phoneNumber,
+            400,
+            `phoneNumber is not provided.`,
+            response,
+         );
+         if (phoneNumberValidation) return phoneNumberValidation;
+
+         const userPhoneNumber = request.params.phoneNumber;
+         LoggerFactory.getApplicationLogger.info(
+            `Getting settings by the phoneNumber: ${userPhoneNumber}!`,
+         );
+         const userObject =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.params.phoneNumber,
+            });
+
+         const userObjectValidation = await ExceptionHelper.validate(
+            userObject,
+            400,
+            `No such exists with the phoneNumber: ${userPhoneNumber}`,
+            response,
+         );
+         if (userObjectValidation) return userObjectValidation;
+
+         //fix this later - query was already executed!!!!
+         // const settingsQuery = ServiceFactory.getSettingsService.getDocumentsByCustomFiltersQuery(
+         //       {userId: userObject._id.toString()},
+         //       mongooseSession,
+         //    );
+
+         // const settingsQueryValidation = await ExceptionHelper.validate(
+         //       await settingsQuery,
+         //       400,
+         //       `Settings dont exist as of yet - create first!`,
+         //       response
+         //    );
+         if (settingsQueryValidation) return settingsQueryValidation;
+
+         const settingsData = await settingsQuery.populate({
+            path: 'userId',
+         });
+         response.json(settingsData);
       } catch (exception) {
          const signifyException = new SignifyException(
             500,

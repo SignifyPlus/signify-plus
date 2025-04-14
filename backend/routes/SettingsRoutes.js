@@ -12,4 +12,9 @@ settingsRouter.post(
    ControllerFactory.getSettingsController().createDefaultAccessibilitySettings,
 );
 
+settingsRouter.get(
+   '/:phoneNumber',
+   ControllerFactory.getSettingsController().getSettingsByPhoneNumber,
+);
+
 module.exports = settingsRouter;
