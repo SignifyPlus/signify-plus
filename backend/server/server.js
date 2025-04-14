@@ -5,6 +5,13 @@ const http = require('http');
 const WebSocketManager = require('../managers/websocketManager.js');
 const EventFactory = require('../factories/eventFactory.js');
 const ManagerFactory = require('../factories/managerFactory.js');
+const MessageEvent = require('../events/services/messageEvent.js');
+const ServiceFactory = require('../factories/serviceFactory.js');
+const CommonUtils = require('../utilities/commonUtils.js');
+const ServerConstants = require('../constants/serverConstants.js');
+const LoggerFactory = require('../factories/loggerFactory.js');
+
+//routes
 const userRoutes = require('../routes/UserRoutes.js');
 const homeRoutes = require('../routes/HomeRoute.js');
 const contactRoutes = require('../routes/ContactRoutes.js');
@@ -14,11 +21,7 @@ const forumRoutes = require('../routes/ForumRoutes.js');
 const forumMemberRoutes = require('../routes/ForumMemberRoutes.js');
 const threadRoutes = require('../routes/ThreadRoutes.js');
 const commentRoutes = require('../routes/CommentRoutes.js');
-const MessageEvent = require('../events/services/messageEvent.js');
-const ServiceFactory = require('../factories/serviceFactory.js');
-const CommonUtils = require('../utilities/commonUtils.js');
-const ServerConstants = require('../constants/serverConstants.js');
-const LoggerFactory = require('../factories/loggerFactory.js');
+const settingsRoutes = require('../routes/SettingsRoutes.js');
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -79,6 +82,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/forumMembers', forumMemberRoutes);
       signifyPlusAppServer.use('/threads', threadRoutes);
       signifyPlusAppServer.use('/comments', commentRoutes);
+      signifyPlusAppServer.use('/settings', settingsRoutes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,

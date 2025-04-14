@@ -13,6 +13,7 @@ const ForumController = require('../controllers/ForumController.js');
 const ForumMemberController = require('../controllers/ForumMemberController.js');
 const ThreadController = require('../controllers/ThreadController.js');
 const CommentController = require('../controllers/CommentController.js');
+const SettingsController = require('../controllers/SettingsController.js');
 
 class ControllerFactory {
    /**
@@ -67,6 +68,12 @@ class ControllerFactory {
     * @type {CommentController | null}
     */
    static #commentController = null;
+
+   /**
+    * @private
+    * @type {SettingsController | null}
+    */
+   static #settingsController = null;
 
    constructor() {}
 
@@ -132,6 +139,13 @@ class ControllerFactory {
          ControllerFactory.#commentController = new CommentController();
       }
       return ControllerFactory.#commentController;
+   }
+
+   static getSettingsController() {
+      if (!ControllerFactory.#settingsController) {
+         ControllerFactory.#settingsController = new SettingsController();
+      }
+      return ControllerFactory.#settingsController;
    }
 }
 

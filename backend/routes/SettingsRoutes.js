@@ -1,9 +1,15 @@
 const express = require('express');
 const settingsRouter = express.Router();
-const SettingsController = require('../controllers/SettingsController.js');
+const ControllerFactory = require('../factories/controllerFactory.js');
 
-const settingsController = new SettingsController();
+settingsRouter.get(
+   '/id/:id',
+   ControllerFactory.getSettingsController().getSettingsById,
+);
 
-settingsRouter.get('/all', settingsController.getAllSettings);
+settingsRouter.post(
+   '/default/create',
+   ControllerFactory.getSettingsController().createDefaultAccessibilitySettings,
+);
 
 module.exports = settingsRouter;
