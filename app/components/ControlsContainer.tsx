@@ -28,28 +28,6 @@ export const ControlsContainer: React.FC = () => {
     toggleWebcam();
   };
 
-  const clearMeetingIdOnServer = async () => {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/meeting-id',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ meetingId: null }),
-        }
-      );
-      if (!response.ok) {
-        // console.error('Failed to clear meeting ID on server:', response.status);
-      } else {
-        // console.log('Meeting ID cleared on server.');
-      }
-    } catch (error) {
-      // console.error('Error clearing meeting ID on server:', error);
-    }
-  };
-
   return (
     <View
       style={{
@@ -102,7 +80,7 @@ export const ControlsContainer: React.FC = () => {
 
       <TouchableOpacity
         onPress={async () => {
-          await clearMeetingIdOnServer();
+          // await clearMeetingIdOnServer();
           leave();
           router.replace('/(tabs)/chats');
         }}

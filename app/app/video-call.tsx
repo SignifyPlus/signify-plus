@@ -13,10 +13,10 @@ import {
   useMeeting,
 } from '@videosdk.live/react-native-sdk';
 import { createMeeting, token } from '@/api';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import GestureOverlay from '@/components/GestureOverlay';
-import { Ionicons } from '@expo/vector-icons';
-import { ML_WEBSOCKET_URL,  } from '@/constants/Config';
+import { useLocalSearchParams } from 'expo-router';
+import { ParticipantList } from '@/components/ParticipantList';
+import { ControlsContainer } from '@/components/ControlsContainer';
+
 register();
 
 interface JoinScreenProps {
@@ -58,221 +58,16 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
   );
 };
 
-interface ParticipantViewProps {
-  participantId: string;
-}
-
-const ParticipantView: React.FC<ParticipantViewProps> = ({ participantId }) => {
-  const { webcamStream, webcamOn, displayName} = useParticipant(participantId);
-  const [predictions, setPredictions] = useState([]);
-
-    // Skip rendering AI_MODEL participants
-   if (displayName === 'AI_MODEL') {
-    return null;
-  }
-   // Monitor predictions changes
-   useEffect(() => {
-    console.log('Predictions updated:', predictions);
-  }, [predictions]);
- 
-  // Set up WebSocket connection for predictions
-  useEffect(() => {
-    console.log('Setting up WebSocket connection...');
-    const ws = new WebSocket(ML_WEBSOCKET_URL);
-
-    ws.onopen = () => {
-      console.log('WebSocket Connected!');
-    };
-    ws.onmessage = (event) => {
-      console.log('Received message:', event.data);
-      try {
-        const response = JSON.parse(event.data);
-        console.log('Parsed response:', response);
-        if (response.status === 'success') {
-          console.log('Setting predictions:', response.predictions);
-          setPredictions(response.predictions);
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    ws.onclose = (event) => {
-      console.log('WebSocket closed:', event.code, event.reason);
-    };
-    return () => {
-      console.log('Cleaning up WebSocket connection...');
-      ws.close();
-    };
-  }, []);
-
-  return webcamOn && webcamStream ? (
-    <View style={{ position: 'relative', height: 300, marginVertical: 2 }}>
-      <RTCView
-        streamURL={new MediaStream([webcamStream.track]).toURL()}
-        objectFit="cover"
-        style={{ height: '100%', width: '100%' }}
-        mirror={true}
-      />
-      <GestureOverlay predictions={predictions} />
-    </View>
-  ) : (
-    <View style={styles.noMediaView}>
-      <Text style={styles.noMediaText}>NO MEDIA</Text>
-    </View>
-  );
-};
-
-interface ParticipantListProps {
-  participants: string[];
-}
-
-const ParticipantList: React.FC<ParticipantListProps> = ({ participants }) => {
-  if (participants.length === 1) {
-    return (
-      <View style={{ flex: 1 }}>
-        <ParticipantView participantId={participants[0]!} />
-      </View>
-    );
-  }
-
-  if (participants.length === 2) {
-    return (
-      <View style={{ flex: 1 }}>
-        <ParticipantView participantId={participants[0]!} />
-        <ParticipantView participantId={participants[1]!} />
-      </View>
-    );
-  }
-
-  return participants.length > 0 ? (
-    <FlatList
-      data={participants}
-      renderItem={({ item }) => <ParticipantView participantId={item} />}
-      keyExtractor={(item) => item}
-    />
-  ) : (
-    <View style={styles.emptyView}>
-      <Text style={styles.emptyText}>Press Join button to enter meeting.</Text>
-    </View>
-  );
-};
-
-const ControlsContainer: React.FC = () => {
-  const { join, leave, toggleWebcam, toggleMic, localParticipant } =
-    useMeeting();
-  const router = useRouter();
-
-  const [micOn, setMicOn] = useState<boolean>(false);
-  const [webcamOn, setWebcamOn] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (localParticipant) {
-      setMicOn(localParticipant.micOn);
-      setWebcamOn(localParticipant.webcamOn);
-    }
-  }, [localParticipant]);
-
-  const handleToggleMic = () => {
-    setMicOn((prev) => !prev);
-    toggleMic();
-  };
-
-  const handleToggleWebcam = () => {
-    setWebcamOn((prev) => !prev);
-    toggleWebcam();
-  };
-
-  const clearMeetingIdOnServer = async () => {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/meeting-id',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ meetingId: null }),
-        }
-      );
-      if (!response.ok) {
-        console.error('Failed to clear meeting ID on server:', response.status);
-      } else {
-        console.log('Meeting ID cleared on server.');
-      }
-    } catch (error) {
-      console.error('Error clearing meeting ID on server:', error);
-    }
-  };
-
-  return (
-    <View
-      style={{
-        padding: 24,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}
-    >
-      <TouchableOpacity
-        onPress={handleToggleWebcam}
-        style={{
-          backgroundColor: '#1f2937',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons
-          name={webcamOn ? 'videocam-outline' : 'videocam-off-outline'}
-          size={24}
-          color="#fff"
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={handleToggleMic}
-        style={{
-          backgroundColor: '#1f2937',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons
-          name={micOn ? 'mic-outline' : 'mic-off-outline'}
-          size={24}
-          color="#fff"
-        />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={async () => {
-          await clearMeetingIdOnServer();
-          leave();
-          router.replace('/(tabs)/chats');
-        }}
-        style={{
-          backgroundColor: '#dc2626',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons name="call" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  );
-};
-
 const MeetingView: React.FC = () => {
   const { participants, localParticipant, join } = useMeeting();
+  const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
 
   // Filter out the AI_MODEL participant by name
   const visibleParticipants = Array.from(participants.keys()).filter(participantId => {
-    const participant = participants.get(participantId);
-    return participant?.displayName !== 'AI_MODEL';
-  });
+      const participant = participants.get(participantId);
+      return participant?.displayName !== 'AI_MODEL';
+    });
 
   useEffect(() => {
     if (joinedRef.current) {
@@ -285,7 +80,7 @@ const MeetingView: React.FC = () => {
         join();
       }, 200);
     }
-  }, [join, localParticipant?.id]);
+  }, [join, localParticipant?.id, participantsArrId]);
 
   return (
     <View
