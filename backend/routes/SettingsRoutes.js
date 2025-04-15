@@ -17,4 +17,9 @@ settingsRouter.get(
    ControllerFactory.getSettingsController().getSettingsByPhoneNumber,
 );
 
+settingsRouter.put(
+   '/update/',
+   ControllerFactory.getSettingsController().updateAccessibilitySettings,
+);
+
 module.exports = settingsRouter;

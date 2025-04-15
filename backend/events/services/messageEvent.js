@@ -6,11 +6,11 @@ class MessageEvent {
       //registers one of the message Events!
       EventDispatcher.registerListener(
          EventConstants.MESSAGE_INGEST_EVENT,
-         this.IngestMessage.bind(this),
+         this.ingestMessage.bind(this),
       );
    }
 
-   async IngestMessage(messageObject) {
+   async ingestMessage(messageObject) {
       //for persisting to the backend
       const response =
          await ControllerFactory.getMessageController().postMessageToDb(

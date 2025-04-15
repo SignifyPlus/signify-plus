@@ -77,22 +77,17 @@ class SettingsController {
          );
          if (userObjectValidation) return userObjectValidation;
 
-         //fix this later - query was already executed!!!!
-         // const settingsQuery = ServiceFactory.getSettingsService.getDocumentsByCustomFiltersQuery(
-         //       {userId: userObject._id.toString()},
-         //       mongooseSession,
-         //    );
-
-         // const settingsQueryValidation = await ExceptionHelper.validate(
-         //       await settingsQuery,
-         //       400,
-         //       `Settings dont exist as of yet - create first!`,
-         //       response
-         //    );
-         if (settingsQueryValidation) return settingsQueryValidation;
+         //since we are using find in the service, it always returns a moongose query which resolves into an array of mongoose documents, so never null!!
+         //and we can safely use populate on it
+         const settingsQuery =
+            ServiceFactory.getSettingsService.getDocumentsByCustomFiltersQuery(
+               { userId: userObject._id.toString() },
+               mongooseSession,
+            );
 
          const settingsData = await settingsQuery.populate({
             path: 'userId',
+            select: 'name phoneNumber',
          });
          response.json(settingsData);
       } catch (exception) {
@@ -108,8 +103,9 @@ class SettingsController {
 
    //create default accessibility settings
    createDefaultAccessibilitySettings = async (request, response) => {
-      const defaultAccessibilitySettings =
-         await this.#createDefaultAccessibilitySettings(request.body.userId);
+      const defaultAccessibilitySettings = await this.createSettings(
+         request.body.userId,
+      );
       if (defaultAccessibilitySettings.exception) {
          return response
             .status(defaultAccessibilitySettings.exception.status)
@@ -119,7 +115,33 @@ class SettingsController {
       response.json(defaultAccessibilitySettings.data);
    };
 
-   async #createDefaultAccessibilitySettings(userId) {
+   updateAccessibilitySettings = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         response.json(settingsData);
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
+   async createSettings(userId) {
       var mongooseSession = null;
       try {
          mongooseSession =
@@ -128,7 +150,7 @@ class SettingsController {
             mongooseSession,
          );
          LoggerFactory.getApplicationLogger.info(
-            `Creating accessibility settings!`,
+            `Creating accessibility settings...`,
          );
          const userIdValidation = await ExceptionHelper.validate(
             userId,
