@@ -7,6 +7,7 @@ describe("CallHistoryService", () => {
     beforeEach(() => {
         mockModel = {};
         service = new CallHistoryService(mockModel);
+        jest.clearAllMocks();
 
         service.schemaModel = {};
         service.__proto__.getDocuments = jest.fn(() => Promise.resolve("all docs"));

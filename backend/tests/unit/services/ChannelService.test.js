@@ -7,6 +7,7 @@ describe("ChannelService", () => {
     beforeEach(() => {
         mockModel = {};
         service = new ChannelService(mockModel);
+        jest.clearAllMocks();
 
         service.__proto__.getDocuments = jest.fn(() => Promise.resolve("all docs"));
         service.__proto__.getDocumentById = jest.fn(() => Promise.resolve("doc by id"));
