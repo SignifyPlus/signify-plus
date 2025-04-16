@@ -20,9 +20,12 @@ class ForumMemberController {
             ServiceFactory.getForumMemberService.getDocumentsQuery(
                mongooseSession,
             );
-         const forumMembersData = await forumMembersQuery.populate({
-            path: 'forumId userId',
-         });
+         const forumMembersData = await forumMembersQuery
+            .populate({
+               path: 'forumId userId',
+               select: 'name phoneNumber',
+            })
+            .lean();
          response.json(forumMembersData);
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -53,9 +56,12 @@ class ForumMemberController {
                { userId: forumMemberId },
                mongooseSession,
             );
-         const forumMembersData = await forumMembersQuery.populate({
-            path: 'forumId userId',
-         });
+         const forumMembersData = await forumMembersQuery
+            .populate({
+               path: 'forumId userId',
+               select: 'name phoneNumber',
+            })
+            .lean();
          response.json(forumMembersData);
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -99,9 +105,12 @@ class ForumMemberController {
                { userId: phoneNumberUserObject._id.toString() },
                mongooseSession,
             );
-         const forumMembersData = await forumMembersQuery.populate({
-            path: 'forumId userId',
-         });
+         const forumMembersData = await forumMembersQuery
+            .populate({
+               path: 'forumId userId',
+               select: 'name phoneNumber',
+            })
+            .lean();
          response.json(forumMembersData);
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -131,9 +140,12 @@ class ForumMemberController {
                { forumId: forumId },
                mongooseSession,
             );
-         const forumMembersData = await forumMembersQuery.populate({
-            path: 'forumId userId',
-         });
+         const forumMembersData = await forumMembersQuery
+            .populate({
+               path: 'forumId userId',
+               select: 'name phoneNumber',
+            })
+            .lean();
          response.json(forumMembersData);
       } catch (exception) {
          const signifyException = new SignifyException(

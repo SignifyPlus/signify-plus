@@ -2,12 +2,17 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyException = require('../exception/SignifyException.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
+const EventDispatcher = require('../events/eventDispatcher.js');
+const UpdateProfileDto = require('../dtos/UpdateProfileDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
+const EventConstants = require('../constants/eventConstants.js');
+const ControllerConstants = require('../constants/controllerConstants.js');
 class SettingsController {
    constructor() {}
 
    //Get single Settings
    getSettingsById = async (request, response) => {
+      var mongooseSession = null;
       try {
          mongooseSession =
             await ServiceFactory.getMongooseService.getMongooseSession();
@@ -31,7 +36,7 @@ class SettingsController {
                settingsId,
                mongooseSession,
             );
-         response.json(settings);
+         response.json(await this.#updateEnumValue(settings));
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -85,11 +90,13 @@ class SettingsController {
                mongooseSession,
             );
 
-         const settingsData = await settingsQuery.populate({
-            path: 'userId',
-            select: 'name phoneNumber',
-         });
-         response.json(settingsData);
+         const settingsData = await settingsQuery
+            .populate({
+               path: 'userId',
+               select: 'name phoneNumber',
+            })
+            .lean();
+         response.json(await this.#preprocessSettingsData(settingsData));
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -115,6 +122,7 @@ class SettingsController {
       response.json(defaultAccessibilitySettings.data);
    };
 
+   //continue working on this
    updateAccessibilitySettings = async (request, response) => {
       var mongooseSession = null;
       try {
@@ -123,10 +131,24 @@ class SettingsController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
-         response.json(settingsData);
+         const updateProfileData = new UpdateProfileDto(
+            request.body?.phoneNumber,
+            request.body?.theme,
+            request.body?.autoDownload,
+            request.body?.notificationEnabled,
+            request.body?.aslTranslationLanguage,
+            request.body?.profilePicturePath,
+         );
+         console.log(updateProfileData);
+
+         // EventDispatcher.dispatchEvent(
+         //          EventConstants.UPDATE_USER_EVENT,
+         //          {id: userObject._id.toString(), profilePicture: updateProfileData.profilePicturePath}
+         //       );
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
+         response.json(updateProfileData);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
@@ -178,6 +200,21 @@ class SettingsController {
          );
          return new SignifyResult(null, signifyException);
       }
+   }
+
+   async #preprocessSettingsData(settingsData) {
+      settingsData.forEach((data) => {
+         this.#updateEnumValue(data);
+      });
+      return settingsData;
+   }
+
+   async #updateEnumValue(data) {
+      data[ControllerConstants.ASL_TRANSLATION_LANGUAGE_KEY] =
+         ControllerConstants.ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT[
+            data[ControllerConstants.ASL_TRANSLATION_LANGUAGE_KEY]
+         ];
+      return data;
    }
 }
 

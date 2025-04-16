@@ -8,15 +8,29 @@ class VoiceCallSocket {
    async callEvent(socket, userSocketMap) {
       socket.on('voice-call', async (voiceCallData) => {
          const voiceCallDto = new VoiceCallDto(
+            voiceCallData?.senderPhoneNumber,
             voiceCallData?.targetPhoneNumbers,
-            voiceCallData?.isCalling,
          );
          try {
-            voiceCallDto.targetPhoneNumbers.forEach((targetPhoneNumber) => {});
+            voiceCallDto.targetPhoneNumbers.forEach((targetPhoneNumber) => {
+               if (userSocketMap[targetPhoneNumber] == null) {
+                  LoggerFactory.getApplicationLogger.info(
+                     `targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`,
+                  );
+                  return;
+               }
+               socket
+                  .to(userSocketMap[targetPhoneNumber])
+                  .emit('incoming-call', {
+                     senderPhoneNumber: voiceCallData.senderPhoneNumber,
+                     incomingCall: true,
+                  });
+            });
          } catch (exception) {
             LoggerFactory.getApplicationLogger.error(
                `Exception Occured: ${exception}`,
             );
+            this.voiceCallFailureEvent(socket, exception);
          }
       });
    }

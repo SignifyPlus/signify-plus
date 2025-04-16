@@ -52,7 +52,7 @@ class ContactController {
                path: 'contactUserId',
                select: 'name phoneNumber profilePicture',
             })
-            .exec();
+            .lean();
          response.json(populatedContacts);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
@@ -168,7 +168,7 @@ class ContactController {
                path: 'contactUserId',
                select: 'phoneNumber',
             })
-            .exec();
+            .lean();
          const existingUserIds = populatedContacts.map((contact) =>
             contact.contactUserId._id.toString(),
          );

@@ -1,7 +1,7 @@
 class VoiceCallDto {
-   constructor(targetPhoneNumbers, isCalling) {
+   constructor(senderPhoneNumber, targetPhoneNumbers) {
+      this.senderPhoneNumber = senderPhoneNumber;
       this.targetPhoneNumbers = targetPhoneNumbers;
-      this.isCalling = isCalling;
    }
 }
 

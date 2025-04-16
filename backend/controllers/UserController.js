@@ -5,6 +5,7 @@ const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const SignifyException = require('../exception/SignifyException.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
+const SignifyResult = require('../dtos/SignifyResult.js');
 const EventConstants = require('../constants/eventConstants.js');
 class UserController {
    #saltRoundForEncryption = null;
@@ -203,6 +204,37 @@ class UserController {
          response.status(500).json({ error: exception.message });
       }
    };
+
+   //updates user data
+   async updateUserData(userData) {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         const updatedUserData =
+            await ServiceFactory.getUserService.updateDocument(
+               userData._id.toString(),
+               userData,
+               mongooseSession,
+            );
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return new SignifyResult(updatedUserData, null);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
+   }
 }
 
 module.exports = UserController;
