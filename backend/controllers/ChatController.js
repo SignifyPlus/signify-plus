@@ -52,10 +52,12 @@ class ChatController {
                   { participants: userObject._id.toString() },
                ],
             });
-         const chats = await chatsQuery.populate({
-            path: 'mainUserId participants',
-            select: 'phoneNumber name',
-         });
+         const chats = await chatsQuery
+            .populate({
+               path: 'mainUserId participants',
+               select: 'phoneNumber name',
+            })
+            .lean();
          const userChats = await this.#getUserChats(chats);
          response.json(await this.#postProcessChats(userChats));
       } catch (exception) {
@@ -83,10 +85,12 @@ class ChatController {
             ServiceFactory.getMessageService.getDocumentsByCustomFiltersQuery({
                chatId: new mongoose.Types.ObjectId(request.params.chatId),
             });
-         const populatedChatData = await retrievedChat.populate({
-            path: 'senderId receiverIds',
-            select: 'name phoneNumber',
-         });
+         const populatedChatData = await retrievedChat
+            .populate({
+               path: 'senderId receiverIds',
+               select: 'name phoneNumber',
+            })
+            .lean();
          response.json({
             messages: populatedChatData,
             totalNumberOfMessages: populatedChatData.length,
@@ -105,10 +109,12 @@ class ChatController {
    async getAllChats() {
       try {
          const chatsQuery = ServiceFactory.getChatService.getDocumentsQuery();
-         return await chatsQuery.populate({
-            path: 'mainUserId participants',
-            select: 'phoneNumber',
-         });
+         return await chatsQuery
+            .populate({
+               path: 'mainUserId participants',
+               select: 'phoneNumber',
+            })
+            .lean();
       } catch (exception) {
          return new SignifyException(
             500,
@@ -125,14 +131,13 @@ class ChatController {
             await ServiceFactory.getMessageService.getDocumentsByCustomFiltersAndSortByCreatedAt(
                { chatId: chat._id.toString() },
             );
-         const chatObject = chat.toObject();
-         chatObject.lastMessage =
+         chat.lastMessage =
             messages == null || messages.length == ZERO_INDEX
                ? 'Chat is Empty - No last Message available!'
                : messages[ZERO_INDEX].content;
-         chatObject.totalNumberOfMessagesInChat =
+         chat.totalNumberOfMessagesInChat =
             messages == null ? 0 : messages.length;
-         chatObjects.push(chatObject);
+         chatObjects.push(chat);
       }
       return chatObjects;
    }

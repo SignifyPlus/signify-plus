@@ -2,8 +2,11 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const Encrypt = require('../utilities/encrypt.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
+const EventDispatcher = require('../events/eventDispatcher.js');
 const SignifyException = require('../exception/SignifyException.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
+const SignifyResult = require('../dtos/SignifyResult.js');
+const EventConstants = require('../constants/eventConstants.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -111,7 +114,13 @@ class UserController {
 
    //Creates a user
    createUser = async (request, response) => {
+      var mongooseSession = null;
       try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
          const newUser = request.body;
          const nameValidation = await ExceptionHelper.validate(
             newUser.name,
@@ -139,12 +148,33 @@ class UserController {
             this.#saltRoundForEncryption,
             newUser.password,
          );
+         const userObject = await ServiceFactory.getUserService.saveDocument(
+            newUser,
+            mongooseSession,
+         );
+
          //use event-driven approach to also create user settings (via an event)
-         const userObject =
-            await ServiceFactory.getUserService.saveDocument(newUser);
+         EventDispatcher.dispatchEvent(
+            EventConstants.ACCESSIBILITY_SETTINGS_EVENT,
+            userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
+         );
+
+         //commit the transaction
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
          response.json(userObject);
       } catch (exception) {
-         response.status(500).json({ error: exception.message });
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
       }
    };
 
@@ -174,6 +204,37 @@ class UserController {
          response.status(500).json({ error: exception.message });
       }
    };
+
+   //updates user data
+   async updateUserData(userData) {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         const updatedUserData =
+            await ServiceFactory.getUserService.updateDocument(
+               userData._id.toString(),
+               userData,
+               mongooseSession,
+            );
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return new SignifyResult(updatedUserData, null);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
+   }
 }
 
 module.exports = UserController;

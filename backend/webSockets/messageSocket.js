@@ -37,7 +37,7 @@ class MessageSocket {
                messageDto.targetPhoneNumbers.length == 0
             ) {
                socket.emit('message-failure', {
-                  error: `targetPhoneNumber is not provided - receiver info: Number:${messageDto.senderPhoneNumber} SocketId:${userSocketMap[messageDto.senderPhoneNumber]}`,
+                  error: `targetPhoneNumbers is not provided - receiver info: Number:${messageDto.senderPhoneNumber} SocketId:${userSocketMap[messageDto.senderPhoneNumber]}`,
                });
                return;
             }

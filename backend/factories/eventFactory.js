@@ -3,8 +3,9 @@
  * of all the event classes that are to be utilized throughout the application's runtime.
  */
 
-//controllers
+const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
 const MessageEvent = require('../events/services/messageEvent.js');
+const UserEvent = require('../events/services/userEvent.js');
 
 class EventFactory {
    //private fields
@@ -14,8 +15,28 @@ class EventFactory {
     */
    static #messageEvent = null;
 
+   /**
+    * @private
+    * @type {AccessibilitySettingsEvent | null}
+    */
+   static #accessibilitySettingsEvent = null;
+
+   /**
+    * @private
+    * @type {UserEvent | null}
+    */
+   static #userEvent = null;
+
    static get getMessageEvent() {
       return EventFactory.#messageEvent;
+   }
+
+   static get getAccessibilitySettingsEvent() {
+      return EventFactory.#accessibilitySettingsEvent;
+   }
+
+   static get getUserEvent() {
+      return EventFactory.#userEvent;
    }
 
    /**
@@ -23,6 +44,20 @@ class EventFactory {
     */
    static set setMessageEvent(value) {
       EventFactory.#messageEvent = value;
+   }
+
+   /**
+    * @param {(param: AccessibilitySettingsEvent) => void} value
+    */
+   static set setAccessibilitySettingsEvent(value) {
+      EventFactory.#accessibilitySettingsEvent = value;
+   }
+
+   /**
+    * @param {(param: UserEvent) => void} value
+    */
+   static set setUserEvent(value) {
+      EventFactory.#userEvent = value;
    }
 }
 
