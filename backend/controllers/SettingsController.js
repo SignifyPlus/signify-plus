@@ -77,7 +77,7 @@ class SettingsController {
          const userObjectValidation = await ExceptionHelper.validate(
             userObject,
             400,
-            `No such exists with the phoneNumber: ${userPhoneNumber}`,
+            `No such user exists with the phoneNumber: ${userPhoneNumber}`,
             response,
          );
          if (userObjectValidation) return userObjectValidation;
@@ -131,24 +131,95 @@ class SettingsController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
+
+         const phoneNumberValidation = await ExceptionHelper.validate(
+            request.body.phoneNumber,
+            400,
+            `phoneNumber is not provided.`,
+            response,
+         );
+         if (phoneNumberValidation) return phoneNumberValidation;
+
+         const userObject =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.phoneNumber,
+            });
+
+         const userObjectValidation = await ExceptionHelper.validate(
+            userObject,
+            400,
+            `No such user exists with the phoneNumber: ${request.body.phoneNumber}`,
+            response,
+         );
+
+         if (userObjectValidation) return userObjectValidation;
+
          const updateProfileData = new UpdateProfileDto(
-            request.body?.phoneNumber,
+            userObject._id.toString(),
             request.body?.theme,
             request.body?.autoDownload,
             request.body?.notificationEnabled,
             request.body?.aslTranslationLanguage,
-            request.body?.profilePicturePath,
+            request.body?.profilePicture,
          );
-         console.log(updateProfileData);
 
-         // EventDispatcher.dispatchEvent(
-         //          EventConstants.UPDATE_USER_EVENT,
-         //          {id: userObject._id.toString(), profilePicture: updateProfileData.profilePicturePath}
-         //       );
-         await ServiceFactory.getMongooseService.commitMongooseTransaction(
-            mongooseSession,
+         const existingAccessibilitySettingsObject =
+            await ServiceFactory.getSettingsService.getDocumentByCustomFilters({
+               userId: updateProfileData.userId,
+            });
+
+         const accessibilitySettingsObjectValidation =
+            await ExceptionHelper.validate(
+               existingAccessibilitySettingsObject,
+               400,
+               `No such accessibilitySettings record exists for the user: ${request.body.phoneNumber}`,
+               response,
+            );
+
+         if (accessibilitySettingsObjectValidation)
+            return accessibilitySettingsObjectValidation;
+
+         const updatedAccessibilitySettings =
+            await ServiceFactory.getSettingsService.updateDocument(
+               {
+                  userId: updateProfileData.userId,
+               },
+               {
+                  theme:
+                     updateProfileData.theme == null
+                        ? existingAccessibilitySettingsObject.theme
+                        : updateProfileData.theme,
+                  autoDownload:
+                     updateProfileData.autoDownload == null
+                        ? existingAccessibilitySettingsObject.autoDownload
+                        : updateProfileData.autoDownload,
+                  notificationEnabled:
+                     updateProfileData.notificationEnabled == null
+                        ? existingAccessibilitySettingsObject.notificationEnabled
+                        : updateProfileData.notificationEnabled,
+                  aslTranslationLanguage:
+                     updateProfileData.aslTranslationLanguage == null
+                        ? existingAccessibilitySettingsObject.aslTranslationLanguage
+                        : ControllerConstants
+                             .ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT_REVERSE[
+                             updateProfileData.aslTranslationLanguage
+                          ],
+                  notificationEnabled: updateProfileData.notificationEnabled,
+                  updatedAt: Date.now(),
+               },
+               mongooseSession,
+            );
+
+         LoggerFactory.getApplicationLogger.info(
+            `Dispatching an event to update the user's table for the userID : ${updateProfileData.userId}!`,
          );
-         response.json(updateProfileData);
+         //the other controller will commit the final changes
+         EventDispatcher.dispatchEvent(EventConstants.UPDATE_USER_EVENT, {
+            id: userObject._id.toString(),
+            profilePicture: updateProfileData.profilePicture,
+            mongooseSession: mongooseSession,
+         });
+         response.json(updatedAccessibilitySettings);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,

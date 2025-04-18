@@ -7,6 +7,7 @@ const SignifyException = require('../exception/SignifyException.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const EventConstants = require('../constants/eventConstants.js');
+const { profile } = require('console');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -207,17 +208,19 @@ class UserController {
 
    //updates user data
    async updateUserData(userData) {
-      var mongooseSession = null;
+      var mongooseSession = userData?.mongooseSession;
       try {
-         mongooseSession =
-            await ServiceFactory.getMongooseService.getMongooseSession();
-         await ServiceFactory.getMongooseService.startMongooseTransaction(
-            mongooseSession,
-         );
+         if (mongooseSession == null) {
+            mongooseSession =
+               await ServiceFactory.getMongooseService.getMongooseSession();
+            await ServiceFactory.getMongooseService.startMongooseTransaction(
+               mongooseSession,
+            );
+         }
          const updatedUserData =
             await ServiceFactory.getUserService.updateDocument(
-               userData._id.toString(),
-               userData,
+               { _id: userData.id },
+               { profilePicture: userData.profilePicture },
                mongooseSession,
             );
          await ServiceFactory.getMongooseService.commitMongooseTransaction(

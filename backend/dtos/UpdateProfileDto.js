@@ -1,18 +1,18 @@
 class UpdateProfileDto {
    constructor(
-      phoneNumber,
+      userId,
       theme,
       autoDownload,
       notificationEnabled,
       aslTranslationLanguage,
-      profilePicturePath,
+      profilePicture,
    ) {
-      this.phoneNumber = phoneNumber;
+      this.userId = userId;
       this.theme = theme;
       this.autoDownload = autoDownload;
       this.notificationEnabled = notificationEnabled;
       this.aslTranslationLanguage = aslTranslationLanguage;
-      this.profilePicturePath = profilePicturePath;
+      this.profilePicture = profilePicture;
    }
 }
 
