@@ -65,6 +65,11 @@ async function setupServer() {
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),
       );
+
+      //setup Amazon S3 Manager
+      //dont await, let it run on a separate thread
+      //as it wont be needed immediately
+      ManagerFactory.getAwsS3Manager().initiateS3Connection();
       //TODO Later
       //initiliaze firebase admin (for now not needed)
       //await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);

@@ -179,6 +179,37 @@ class UserController {
       }
    };
 
+   //updates a user
+   updateUser = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         //please use: updateUserData function from below
+
+         //commit the transaction
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         response.json(userObject);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
    //Deletes a user
    deleteUser = async (request, response) => {
       try {
