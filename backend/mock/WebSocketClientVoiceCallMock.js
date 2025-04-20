@@ -9,15 +9,19 @@ mockSocketUser1.on('connect', () => {
    mockSocketUser1.emit('socket-registration', {
       userPhoneNumber: '+90123456789',
    });
-   mockSocketUser1.emit('voice-call', {
+   mockSocketUser1.emit('voice-call-initiated', {
       senderPhoneNumber: '+90123456789',
       targetPhoneNumbers: ['+49123456789'],
    });
 });
 
-mockSocketUser1.on('incoming-call', (data) => {});
+mockSocketUser1.on('incoming-call', (data) => {
+   console.log(data);
+});
 
-mockSocketUser1.on('decline', (data) => {});
+mockSocketUser1.on('incoming-call-resolution', (data) => {
+   console.log(data);
+});
 
 mockSocketUser1.on('disconnect', () => {
    console.log('Disconnected from server');
@@ -31,9 +35,19 @@ mockSocketUser2.on('connect', () => {
    });
 });
 
-mockSocketUser2.on('incoming-call', (data) => {});
+mockSocketUser2.on('incoming-call', (data) => {
+   console.log(data);
+   //if for example, user presses on the green button,
+   //we want to inform the other user of the resolution of the call: accepted/declined
+   mockSocketUser2.emit('incoming-call-resolution', {
+      targetPhoneNumber: data.senderPhoneNumber,
+      accepted: false, //call accepted in case of true bool value; if false, call declined
+   });
+});
 
-mockSocketUser2.on('decline', (data) => {});
+mockSocketUser2.on('incoming-call-resolution', (data) => {
+   console.log(data);
+});
 
 mockSocketUser2.on('disconnect', () => {
    console.log('Disconnected from server');
