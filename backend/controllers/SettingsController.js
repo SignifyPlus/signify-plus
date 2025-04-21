@@ -2,10 +2,8 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyException = require('../exception/SignifyException.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
-const EventDispatcher = require('../events/eventDispatcher.js');
-const UpdateProfileDto = require('../dtos/UpdateProfileDto.js');
+const UpdateSettingsDto = require('../dtos/UpdateSettingsDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
-const EventConstants = require('../constants/eventConstants.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
 class SettingsController {
    constructor() {}
@@ -154,18 +152,17 @@ class SettingsController {
 
          if (userObjectValidation) return userObjectValidation;
 
-         const updateProfileData = new UpdateProfileDto(
+         const updateSettingsDto = new UpdateSettingsDto(
             userObject._id.toString(),
             request.body?.theme,
             request.body?.autoDownload,
             request.body?.notificationEnabled,
             request.body?.aslTranslationLanguage,
-            request.body?.profilePicture,
          );
 
          const existingAccessibilitySettingsObject =
             await ServiceFactory.getSettingsService.getDocumentByCustomFilters({
-               userId: updateProfileData.userId,
+               userId: updateSettingsDto.userId,
             });
 
          const accessibilitySettingsObjectValidation =
@@ -182,43 +179,38 @@ class SettingsController {
          const updatedAccessibilitySettings =
             await ServiceFactory.getSettingsService.updateDocument(
                {
-                  userId: updateProfileData.userId,
+                  userId: updateSettingsDto.userId,
                },
                {
                   theme:
-                     updateProfileData.theme == null
+                     updateSettingsDto.theme == null
                         ? existingAccessibilitySettingsObject.theme
-                        : updateProfileData.theme,
+                        : updateSettingsDto.theme,
                   autoDownload:
-                     updateProfileData.autoDownload == null
+                     updateSettingsDto.autoDownload == null
                         ? existingAccessibilitySettingsObject.autoDownload
-                        : updateProfileData.autoDownload,
+                        : updateSettingsDto.autoDownload,
                   notificationEnabled:
-                     updateProfileData.notificationEnabled == null
+                     updateSettingsDto.notificationEnabled == null
                         ? existingAccessibilitySettingsObject.notificationEnabled
-                        : updateProfileData.notificationEnabled,
+                        : updateSettingsDto.notificationEnabled,
                   aslTranslationLanguage:
-                     updateProfileData.aslTranslationLanguage == null
+                     updateSettingsDto.aslTranslationLanguage == null
                         ? existingAccessibilitySettingsObject.aslTranslationLanguage
                         : ControllerConstants
                              .ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT_REVERSE[
-                             updateProfileData.aslTranslationLanguage
+                             updateSettingsDto.aslTranslationLanguage
                           ],
-                  notificationEnabled: updateProfileData.notificationEnabled,
+                  notificationEnabled: updateSettingsDto.notificationEnabled,
                   updatedAt: Date.now(),
                },
                mongooseSession,
             );
 
-         LoggerFactory.getApplicationLogger.info(
-            `Dispatching an event to update the user's table for the userID : ${updateProfileData.userId}!`,
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
          );
-         //the other controller will commit the final changes
-         EventDispatcher.dispatchEvent(EventConstants.UPDATE_USER_EVENT, {
-            id: userObject._id.toString(),
-            profilePicture: updateProfileData.profilePicture,
-            mongooseSession: mongooseSession,
-         });
+
          response.json(updatedAccessibilitySettings);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(

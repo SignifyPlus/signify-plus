@@ -28,6 +28,6 @@ userRouter.post(
    ControllerFactory.getUserController().getUserByPhoneNumberForLogin,
 );
 
-userRouter.post('/update/', ControllerFactory.getUserController().updateUser);
+userRouter.put('/update/', ControllerFactory.getUserController().updateUser);
 
 module.exports = userRouter;
