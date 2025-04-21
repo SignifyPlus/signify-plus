@@ -30,6 +30,9 @@ export const useChatsQuery = (params: { phoneNumber?: string }) => {
     queryFn: async () => {
       if (!params.phoneNumber) return [];
       const response = await fetch(`${API_URL}/chats/${params.phoneNumber}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch chats');
+      }
       const body = await response.json();
       if (!Array.isArray(body)) {
         return [];

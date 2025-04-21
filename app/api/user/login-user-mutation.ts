@@ -26,10 +26,9 @@ export const loginUser = async ({
       body: JSON.stringify({ phoneNumber, password }),
     });
 
-    // if (!response.ok) {
-    //   throw new Error('Login failed. Please check your credentials.');
-    // }
-
+    if (!response.ok) {
+      throw new Error('Login failed. Please check your credentials.');
+    }
     const rawData = await response.json();
 
     return {
