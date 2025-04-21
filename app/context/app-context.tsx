@@ -18,7 +18,7 @@ import { useUpdateContacts } from '@/context/use-update-contacts';
 import { useContactsQuery } from '@/api/contacts-query';
 import { User } from '@/api/user/login-user-mutation';
 
-type IncomingCallType = {
+type IncomingVideoCallType = {
   meetingId: string;
   incomingCallNumber: string;
 };
@@ -27,9 +27,10 @@ type AppContextType = {
   phoneNumber?: string;
   setPhoneNumber: (phoneNumber: string) => void;
   videoCallUser: (targetPhoneNumber: string) => void;
+  voiceCallUser: (targetPhoneNumbers: string[]) => void;
   emitMessage: (message: string) => void;
   isConnected: boolean;
-  incomingCall: IncomingCallType | null;
+  incomingCall: IncomingVideoCallType | null;
   declineVideoCall: () => void;
   sendMessage: (
     message: string,
@@ -58,9 +59,11 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const [incomingCall, setIncomingCall] = useState<IncomingCallType | null>(
-    null
-  );
+  const [incomingVideoCall, setIncomingVideoCall] =
+    useState<IncomingVideoCallType | null>(null);
+  const [incomingVoiceCall, setIncomingVoiceCall] = useState<{
+    senderPhoneNumber: string;
+  } | null>(null);
   const router = useRouter();
   const [user, setUser] = useState<User | undefined>();
   // means to fetch earlier than required so we can see the list instantly
@@ -146,19 +149,36 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [phoneNumber, router, sendMeetingId, sendMeetingIdToPython]
   );
 
+  const voiceCallUser = useCallback(
+    (targetPhoneNumbers: string[]) => {
+      const socket = socketRef.current;
+
+      if (!socket || !isConnected || !phoneNumber) return;
+
+      const sanitizedSender = sanitizePhoneNumber(phoneNumber);
+      const sanitizedTargets = targetPhoneNumbers.map(sanitizePhoneNumber);
+
+      socket.emit('voice-call-initiated', {
+        senderPhoneNumber: sanitizedSender,
+        targetPhoneNumbers: sanitizedTargets,
+      });
+    },
+    [isConnected, phoneNumber]
+  );
+
   const declineVideoCall = useCallback(() => {
     const socket = socketRef.current;
-    if (socket && isConnected && incomingCall && phoneNumber) {
+    if (socket && isConnected && incomingVideoCall && phoneNumber) {
       socket.emit('meeting-id-decline', {
         userPhoneNumber: sanitizePhoneNumber(phoneNumber),
-        meetingId: incomingCall?.meetingId,
+        meetingId: incomingVideoCall?.meetingId,
         targetPhoneNumber: sanitizePhoneNumber(
-          incomingCall?.incomingCallNumber
+          incomingVideoCall?.incomingCallNumber
         ),
       });
     }
-    setIncomingCall(null);
-  }, [incomingCall, isConnected, phoneNumber]);
+    setIncomingVideoCall(null);
+  }, [incomingVideoCall, isConnected, phoneNumber]);
 
   useEffect(() => {
     if (!phoneNumber) return;
@@ -177,6 +197,19 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       setIsConnected(false);
     });
 
+    socket.on('incoming-call', (data) => {
+      setIncomingVoiceCall({
+        senderPhoneNumber: data.senderPhoneNumber,
+      });
+    });
+
+    // when the caller gets notified whether the call was accepted or declined
+    socket.on('incoming-call-resolution', (data) => {
+      // data = { targetPhoneNumber: string, accepted: boolean }
+      console.log('Voice call was', data.accepted ? 'accepted' : 'declined');
+      // optionally: navigate or update UI here
+    });
+
     // socket.on('message', (data) => {
     //   console.log(
     //     `Received message from ${data.senderPhoneNumber}: ${data.message}`
@@ -185,7 +218,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
     socket.on('meeting-id-offer', (data) => {
       // Handle incoming meeting ID offer
-      setIncomingCall({
+      setIncomingVideoCall({
         meetingId: data.meetingId,
         incomingCallNumber: data.senderPhoneNumber,
       });
@@ -210,19 +243,22 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   }, [phoneNumber]);
 
   useEffect(() => {
-    if (incomingCall) {
+    if (incomingVideoCall) {
       router.push('/incoming-call');
     }
-  }, [incomingCall, router]);
+  }, [incomingVideoCall, router]);
+
+  console.log('Incoming voice call data:', incomingVoiceCall);
 
   const contextValue = useMemo(
     () => ({
       phoneNumber,
       setPhoneNumber,
       videoCallUser,
+      voiceCallUser,
       emitMessage,
       isConnected,
-      incomingCall,
+      incomingCall: incomingVideoCall,
       declineVideoCall,
       sendMessage,
       setUser,
@@ -231,9 +267,10 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [
       phoneNumber,
       videoCallUser,
+      voiceCallUser,
       emitMessage,
       isConnected,
-      incomingCall,
+      incomingVideoCall,
       declineVideoCall,
       sendMessage,
       user,

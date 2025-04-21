@@ -58,6 +58,7 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAvoidingView style={styles.container}>
+      {/*<PhoneSignIn />*/}
       <Image source={{ uri: logo_image }} style={styles.welcome} />
       <Text style={styles.headline}>Login to Signify Plus</Text>
 
