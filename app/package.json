@@ -1,5 +1,5 @@
 {
-  "name": "videosdk-expo-app",
+  "name": "signifyplus",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@config-plugins/react-native-webrtc": "^9.0.0",
+    "@react-native-firebase/app": "^21.14.0",
+    "@react-native-firebase/auth": "^21.14.0",
+    "@react-native-firebase/crashlytics": "^21.14.0",
     "@react-native-picker/picker": "^2.11.0",
     "@tanstack/react-query": "^5.66.0",
     "@videosdk.live/expo-config-plugin": "^0.0.2",
