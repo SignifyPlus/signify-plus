@@ -94,7 +94,7 @@ const Page = () => {
                 await queryClient.invalidateQueries({
                   queryKey: ['chats'],
                 });
-                router.push(`/chats/${result._id}`);
+                router.push(`/chats/${result[0]._id}`);
               }
             }}
           >

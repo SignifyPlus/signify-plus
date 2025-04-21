@@ -28,6 +28,9 @@ export const useSettingsQuery = (params: { phoneNumber?: string }) => {
     enabled: !!params.phoneNumber,
     queryFn: async () => {
       const response = await fetch(`${API_URL}/settings/${params.phoneNumber}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch settings');
+      }
       const body = await response.json();
 
       if (!Array.isArray(body) || body.length === 0) {

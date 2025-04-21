@@ -123,7 +123,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
           chatId,
         });
         setTimeout(() => {
-          console.log('Invalidating query');
           void queryClient.invalidateQueries({ queryKey: ['chats'] });
         }, 100);
       }
