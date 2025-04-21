@@ -2,12 +2,15 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyException = require('../exception/SignifyException.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
+const UpdateSettingsDto = require('../dtos/UpdateSettingsDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
+const ControllerConstants = require('../constants/controllerConstants.js');
 class SettingsController {
    constructor() {}
 
    //Get single Settings
    getSettingsById = async (request, response) => {
+      var mongooseSession = null;
       try {
          mongooseSession =
             await ServiceFactory.getMongooseService.getMongooseSession();
@@ -31,7 +34,7 @@ class SettingsController {
                settingsId,
                mongooseSession,
             );
-         response.json(settings);
+         response.json(await this.#updateEnumValue(settings));
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -72,7 +75,7 @@ class SettingsController {
          const userObjectValidation = await ExceptionHelper.validate(
             userObject,
             400,
-            `No such exists with the phoneNumber: ${userPhoneNumber}`,
+            `No such user exists with the phoneNumber: ${userPhoneNumber}`,
             response,
          );
          if (userObjectValidation) return userObjectValidation;
@@ -85,11 +88,13 @@ class SettingsController {
                mongooseSession,
             );
 
-         const settingsData = await settingsQuery.populate({
-            path: 'userId',
-            select: 'name phoneNumber',
-         });
-         response.json(settingsData);
+         const settingsData = await settingsQuery
+            .populate({
+               path: 'userId',
+               select: 'name phoneNumber',
+            })
+            .lean();
+         response.json(await this.#preprocessSettingsData(settingsData));
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -115,6 +120,7 @@ class SettingsController {
       response.json(defaultAccessibilitySettings.data);
    };
 
+   //continue working on this
    updateAccessibilitySettings = async (request, response) => {
       var mongooseSession = null;
       try {
@@ -123,10 +129,89 @@ class SettingsController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
-         response.json(settingsData);
+
+         const phoneNumberValidation = await ExceptionHelper.validate(
+            request.body.phoneNumber,
+            400,
+            `phoneNumber is not provided.`,
+            response,
+         );
+         if (phoneNumberValidation) return phoneNumberValidation;
+
+         const userObject =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.phoneNumber,
+            });
+
+         const userObjectValidation = await ExceptionHelper.validate(
+            userObject,
+            400,
+            `No such user exists with the phoneNumber: ${request.body.phoneNumber}`,
+            response,
+         );
+
+         if (userObjectValidation) return userObjectValidation;
+
+         const updateSettingsDto = new UpdateSettingsDto(
+            userObject._id.toString(),
+            request.body?.theme,
+            request.body?.autoDownload,
+            request.body?.notificationEnabled,
+            request.body?.aslTranslationLanguage,
+         );
+
+         const existingAccessibilitySettingsObject =
+            await ServiceFactory.getSettingsService.getDocumentByCustomFilters({
+               userId: updateSettingsDto.userId,
+            });
+
+         const accessibilitySettingsObjectValidation =
+            await ExceptionHelper.validate(
+               existingAccessibilitySettingsObject,
+               400,
+               `No such accessibilitySettings record exists for the user: ${request.body.phoneNumber}`,
+               response,
+            );
+
+         if (accessibilitySettingsObjectValidation)
+            return accessibilitySettingsObjectValidation;
+
+         const updatedAccessibilitySettings =
+            await ServiceFactory.getSettingsService.updateDocument(
+               {
+                  userId: updateSettingsDto.userId,
+               },
+               {
+                  theme:
+                     updateSettingsDto.theme == null
+                        ? existingAccessibilitySettingsObject.theme
+                        : updateSettingsDto.theme,
+                  autoDownload:
+                     updateSettingsDto.autoDownload == null
+                        ? existingAccessibilitySettingsObject.autoDownload
+                        : updateSettingsDto.autoDownload,
+                  notificationEnabled:
+                     updateSettingsDto.notificationEnabled == null
+                        ? existingAccessibilitySettingsObject.notificationEnabled
+                        : updateSettingsDto.notificationEnabled,
+                  aslTranslationLanguage:
+                     updateSettingsDto.aslTranslationLanguage == null
+                        ? existingAccessibilitySettingsObject.aslTranslationLanguage
+                        : ControllerConstants
+                             .ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT_REVERSE[
+                             updateSettingsDto.aslTranslationLanguage
+                          ],
+                  notificationEnabled: updateSettingsDto.notificationEnabled,
+                  updatedAt: Date.now(),
+               },
+               mongooseSession,
+            );
+
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
+
+         response.json(updatedAccessibilitySettings);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
@@ -178,6 +263,21 @@ class SettingsController {
          );
          return new SignifyResult(null, signifyException);
       }
+   }
+
+   async #preprocessSettingsData(settingsData) {
+      settingsData.forEach((data) => {
+         this.#updateEnumValue(data);
+      });
+      return settingsData;
+   }
+
+   async #updateEnumValue(data) {
+      data[ControllerConstants.ASL_TRANSLATION_LANGUAGE_KEY] =
+         ControllerConstants.ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT[
+            data[ControllerConstants.ASL_TRANSLATION_LANGUAGE_KEY]
+         ];
+      return data;
    }
 }
 

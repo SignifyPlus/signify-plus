@@ -6,6 +6,7 @@
 const RabbitMqProcessorManager = require('../managers/rabbitMqProcessorManager.js');
 const RabbitMqQueueManager = require('../managers/rabbitMqQueueManager.js');
 const FirebaseManager = require('../managers/firebase/firebaseManager.js');
+const AwsS3Manager = require('../managers/Aws/awsS3Manager.js');
 
 class ManagerFactory {
    //private fields
@@ -26,6 +27,12 @@ class ManagerFactory {
     * @type {FirebaseManager | null}
     */
    static #fireBaseManager = null;
+
+   /**
+    * @private
+    * @type {AwsS3Manager | null}
+    */
+   static #awsS3Manager = null;
 
    static getRabbitMqQueueManager() {
       if (!ManagerFactory.#rabbitMqQueueManager) {
@@ -51,6 +58,13 @@ class ManagerFactory {
          ManagerFactory.#fireBaseManager = new FirebaseManager();
       }
       return ManagerFactory.#fireBaseManager;
+   }
+
+   static getAwsS3Manager() {
+      if (!ManagerFactory.#awsS3Manager) {
+         ManagerFactory.#awsS3Manager = new AwsS3Manager();
+      }
+      return ManagerFactory.#awsS3Manager;
    }
 }
 

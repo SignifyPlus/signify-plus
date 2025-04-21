@@ -7,6 +7,7 @@ const EventFactory = require('../factories/eventFactory.js');
 const ManagerFactory = require('../factories/managerFactory.js');
 const MessageEvent = require('../events/services/messageEvent.js');
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
+const UserEvent = require('../events/services/userEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
@@ -59,10 +60,16 @@ async function setupServer() {
       EventFactory.setMessageEvent = new MessageEvent();
       EventFactory.setAccessibilitySettingsEvent =
          new AccessibilitySettingsEvent();
+      EventFactory.setUserEvent = new UserEvent();
       //setup processors, if any
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),
       );
+
+      //setup Amazon S3 Manager
+      //dont await, let it run on a separate thread
+      //as it wont be needed immediately
+      ManagerFactory.getAwsS3Manager().initiateS3Connection();
       //TODO Later
       //initiliaze firebase admin (for now not needed)
       //await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);
