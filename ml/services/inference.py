@@ -20,7 +20,7 @@ class KerasInferenceService:
         Initialize the Keras inference service
         model_path: Path to your Keras model file
         """
-        self.model_path = model_path or os.environ.get('ML_MODEL_PATH', './models/model.keras')
+        self.model_path = model_path or os.environ.get('ML_MODEL_PATH', './models/mob_model.keras')
         self.sequence_length = int(os.environ.get('ML_SEQUENCE_LENGTH', 30))
         self.confidence_threshold = float(os.environ.get('ML_CONFIDENCE_THRESHOLD', 0.95))
         
