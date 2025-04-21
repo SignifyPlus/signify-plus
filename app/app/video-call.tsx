@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -6,16 +6,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 import {
   MeetingProvider,
   register,
   useMeeting,
-} from '@videosdk.live/react-native-sdk';
-import { createMeeting, token } from '@/api';
-import { useLocalSearchParams } from 'expo-router';
-import { ParticipantList } from '@/components/ParticipantList';
-import { ControlsContainer } from '@/components/ControlsContainer';
+} from "@videosdk.live/react-native-sdk";
+import { createMeeting, token } from "@/api";
+import { useLocalSearchParams } from "expo-router";
+import { ParticipantList } from "@/components/ParticipantList";
+import { ControlsContainer } from "@/components/ControlsContainer";
 
 register();
 
@@ -28,7 +28,7 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
   getMeetingId,
   setMeetingId,
 }) => {
-  const [meetingVal, setMeetingVal] = useState<string>('');
+  const [meetingVal, setMeetingVal] = useState<string>("");
 
   return (
     <SafeAreaView style={styles.container}>
@@ -41,7 +41,7 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
       <TextInput
         value={meetingVal}
         onChangeText={setMeetingVal}
-        placeholder={'XXXX-XXXX-XXXX'}
+        placeholder={"XXXX-XXXX-XXXX"}
         style={styles.textInput}
       />
 
@@ -63,6 +63,14 @@ const MeetingView: React.FC = () => {
   const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
 
+  // Filter out the AI_MODEL participant by name
+  const visibleParticipants = Array.from(participants.keys()).filter(
+    (participantId) => {
+      const participant = participants.get(participantId);
+      return participant?.displayName !== "AI_MODEL";
+    }
+  );
+
   useEffect(() => {
     if (joinedRef.current) {
       return;
@@ -80,10 +88,10 @@ const MeetingView: React.FC = () => {
     <View
       style={{
         flex: 1,
-        position: 'relative',
+        position: "relative",
       }}
     >
-      <ParticipantList participants={participantsArrId} />
+      <ParticipantList participants={visibleParticipants} />
       <ControlsContainer />
     </View>
   );
@@ -102,7 +110,7 @@ const MeetingScreen: React.FC<MeetingScreenProps> = (props) => {
           meetingId,
           micEnabled: true,
           webcamEnabled: true,
-          name: 'Expo User',
+          name: "Expo User",
         }}
         token={token}
       >
@@ -145,35 +153,35 @@ const App: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F6FF',
-    justifyContent: 'center',
+    backgroundColor: "#F6F6FF",
+    justifyContent: "center",
     paddingHorizontal: 60,
   },
   createButton: {
-    backgroundColor: '#1178F8',
+    backgroundColor: "#1178F8",
     padding: 12,
     borderRadius: 6,
   },
   buttonText: {
-    color: 'white',
-    alignSelf: 'center',
+    color: "white",
+    alignSelf: "center",
     fontSize: 18,
   },
   orText: {
-    alignSelf: 'center',
+    alignSelf: "center",
     fontSize: 22,
     marginVertical: 16,
-    fontStyle: 'italic',
-    color: 'grey',
+    fontStyle: "italic",
+    color: "grey",
   },
   textInput: {
     padding: 12,
     borderWidth: 1,
     borderRadius: 6,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   joinButton: {
-    backgroundColor: '#1178F8',
+    backgroundColor: "#1178F8",
     padding: 12,
     marginTop: 14,
     borderRadius: 6,
@@ -181,7 +189,7 @@ const styles = StyleSheet.create({
 
   appContainer: {
     flex: 1,
-    backgroundColor: '#F6F6FF',
+    backgroundColor: "#F6F6FF",
   },
 });
 

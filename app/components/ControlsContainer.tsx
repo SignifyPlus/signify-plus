@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useMeeting } from '@videosdk.live/react-native-sdk';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { useMeeting } from "@videosdk.live/react-native-sdk";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 export const ControlsContainer: React.FC = () => {
   const { leave, toggleWebcam, toggleMic, localParticipant } = useMeeting();
@@ -28,42 +28,20 @@ export const ControlsContainer: React.FC = () => {
     toggleWebcam();
   };
 
-  const clearMeetingIdOnServer = async () => {
-    try {
-      const response = await fetch(
-        'https://robust-hen-big.ngrok-free.app/meeting-id',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ meetingId: null }),
-        }
-      );
-      if (!response.ok) {
-        // console.error('Failed to clear meeting ID on server:', response.status);
-      } else {
-        // console.log('Meeting ID cleared on server.');
-      }
-    } catch (error) {
-      // console.error('Error clearing meeting ID on server:', error);
-    }
-  };
-
   return (
     <View
       style={{
-        position: 'absolute',
+        position: "absolute",
         bottom: 24,
         left: 24,
         right: 24,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: 'rgba(31, 41, 55, 0.75)', // translucent dark background
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: "rgba(31, 41, 55, 0.75)", // translucent dark background
         borderRadius: 999,
         padding: 16,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 10,
@@ -73,13 +51,13 @@ export const ControlsContainer: React.FC = () => {
       <TouchableOpacity
         onPress={handleToggleWebcam}
         style={{
-          backgroundColor: '#1f2937',
+          backgroundColor: "#1f2937",
           padding: 12,
           borderRadius: 999,
         }}
       >
         <Ionicons
-          name={webcamOn ? 'videocam-outline' : 'videocam-off-outline'}
+          name={webcamOn ? "videocam-outline" : "videocam-off-outline"}
           size={24}
           color="#fff"
         />
@@ -88,13 +66,13 @@ export const ControlsContainer: React.FC = () => {
       <TouchableOpacity
         onPress={handleToggleMic}
         style={{
-          backgroundColor: '#1f2937',
+          backgroundColor: "#1f2937",
           padding: 12,
           borderRadius: 999,
         }}
       >
         <Ionicons
-          name={micOn ? 'mic-outline' : 'mic-off-outline'}
+          name={micOn ? "mic-outline" : "mic-off-outline"}
           size={24}
           color="#fff"
         />
@@ -102,12 +80,12 @@ export const ControlsContainer: React.FC = () => {
 
       <TouchableOpacity
         onPress={async () => {
-          await clearMeetingIdOnServer();
+          // await clearMeetingIdOnServer();
           leave();
-          router.replace('/(tabs)/chats');
+          router.replace("/(tabs)/chats");
         }}
         style={{
-          backgroundColor: '#dc2626',
+          backgroundColor: "#dc2626",
           padding: 12,
           borderRadius: 999,
         }}
