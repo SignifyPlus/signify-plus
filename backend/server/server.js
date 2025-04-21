@@ -6,6 +6,7 @@ const WebSocketManager = require('../managers/websocketManager.js');
 const EventFactory = require('../factories/eventFactory.js');
 const ManagerFactory = require('../factories/managerFactory.js');
 const MessageEvent = require('../events/services/messageEvent.js');
+const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
@@ -56,6 +57,8 @@ async function setupServer() {
       await ManagerFactory.getRabbitMqQueueManager().establishConnection();
       //setup message event
       EventFactory.setMessageEvent = new MessageEvent();
+      EventFactory.setAccessibilitySettingsEvent =
+         new AccessibilitySettingsEvent();
       //setup processors, if any
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),
