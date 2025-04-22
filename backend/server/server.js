@@ -7,6 +7,7 @@ const EventFactory = require('../factories/eventFactory.js');
 const ManagerFactory = require('../factories/managerFactory.js');
 const MessageEvent = require('../events/services/messageEvent.js');
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
+const UserAuthenticationEvent = require('../events/services/userAuthenticationEvent.js');
 const UserEvent = require('../events/services/userEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
@@ -24,6 +25,7 @@ const forumMemberRoutes = require('../routes/ForumMemberRoutes.js');
 const threadRoutes = require('../routes/ThreadRoutes.js');
 const commentRoutes = require('../routes/CommentRoutes.js');
 const settingsRoutes = require('../routes/SettingsRoutes.js');
+const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js');
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -61,6 +63,7 @@ async function setupServer() {
       EventFactory.setAccessibilitySettingsEvent =
          new AccessibilitySettingsEvent();
       EventFactory.setUserEvent = new UserEvent();
+      EventFactory.setUserAuthenticationEvent = new UserAuthenticationEvent();
       //setup processors, if any
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),
@@ -93,6 +96,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/threads', threadRoutes);
       signifyPlusAppServer.use('/comments', commentRoutes);
       signifyPlusAppServer.use('/settings', settingsRoutes);
+      signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,

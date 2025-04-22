@@ -5,6 +5,7 @@
 
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
 const MessageEvent = require('../events/services/messageEvent.js');
+const UserAuthenticationEvent = require('../events/services/userAuthenticationEvent.js');
 const UserEvent = require('../events/services/userEvent.js');
 
 class EventFactory {
@@ -23,6 +24,12 @@ class EventFactory {
 
    /**
     * @private
+    * @type {UserAuthenticationEvent | null}
+    */
+   static #userAuthenticationEvent = null;
+
+   /**
+    * @private
     * @type {UserEvent | null}
     */
    static #userEvent = null;
@@ -37,6 +44,10 @@ class EventFactory {
 
    static get getUserEvent() {
       return EventFactory.#userEvent;
+   }
+
+   static get getUserAuthenticationEvent() {
+      return EventFactory.#userAuthenticationEvent;
    }
 
    /**
@@ -58,6 +69,13 @@ class EventFactory {
     */
    static set setUserEvent(value) {
       EventFactory.#userEvent = value;
+   }
+
+   /**
+    * @param {(param: UserAuthenticationEvent) => void} value
+    */
+   static set setUserAuthenticationEvent(value) {
+      EventFactory.#userAuthenticationEvent = value;
    }
 }
 

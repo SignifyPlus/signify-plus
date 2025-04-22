@@ -153,9 +153,17 @@ class UserController {
             mongooseSession,
          );
 
+         //TODO - tie to a single transaction
          //use event-driven approach to also create user settings (via an event)
          EventDispatcher.dispatchEvent(
             EventConstants.ACCESSIBILITY_SETTINGS_EVENT,
+            userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
+         );
+
+         //TODO - tie to a single transaction
+         //use event-driven approach to also create default user authentication record (via an event)
+         EventDispatcher.dispatchEvent(
+            EventConstants.USER_AUTHENTICAITON_EVENT,
             userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
          );
 
