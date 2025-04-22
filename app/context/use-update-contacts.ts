@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePostContactsMutation } from '@/api/post-contacts-mutation';
 // eslint-disable-next-line react-native/split-platform-components
 import { Permission, PermissionsAndroid, Platform } from 'react-native';
-import { sanitizePhoneNumber } from '@/context/app-context';
+import { sanitizePhoneNumber } from '@/constants/utils';
 
 export const useUpdateContacts = ({
   phoneNumber,

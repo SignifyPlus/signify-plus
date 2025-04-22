@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -16,6 +17,9 @@ import { createMeeting, token } from '@/api';
 import { useLocalSearchParams } from 'expo-router';
 import { ParticipantList } from '@/components/ParticipantList';
 import { ControlsContainer } from '@/components/ControlsContainer';
+import { useAppContext } from '@/context/app-context';
+import { useUpdateContacts } from '@/context/use-update-contacts';
+import { sanitizePhoneNumber } from '@/constants/utils';
 
 register();
 
@@ -59,10 +63,17 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
 };
 
 const MeetingView: React.FC = () => {
+  const { incomingCallUser, phoneNumber, callingUser } = useAppContext();
+
+  console.log('callingUsercallingUserr', callingUser);
+  const { contacts } = useUpdateContacts({ phoneNumber });
+  const contact = contacts.find((contact) => {
+    return contact.phoneNumbers[0]?.number === callingUser;
+  });
+
+  console.log('incomingCallUser', incomingCallUser);
   const { participants, localParticipant, join } = useMeeting();
-
   const participantsArrId = Array.from(participants.keys());
-
   const joinedRef = React.useRef(false);
 
   useEffect(() => {
@@ -85,8 +96,56 @@ const MeetingView: React.FC = () => {
         position: 'relative',
       }}
     >
-      <ParticipantList participants={participantsArrId} />
-      <ControlsContainer />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 50,
+        }}
+      >
+        <View
+          style={{
+            alignItems: 'center',
+            marginTop: 50,
+          }}
+        >
+          <View
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              backgroundColor: '#404040',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 40,
+                color: 'white',
+              }}
+            >
+              {(incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
+                .charAt(0)
+                .toUpperCase()}
+            </Text>
+          </View>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              marginBottom: 10,
+            }}
+          >
+            {incomingCallUser?.displayName ??
+              contact?.displayName ??
+              'Unknown Caller'}
+          </Text>
+        </View>
+      </View>
+      <ControlsContainer hideVideo />
     </View>
   );
 };
@@ -103,7 +162,7 @@ const MeetingScreen: React.FC<MeetingScreenProps> = (props) => {
         config={{
           meetingId,
           micEnabled: true,
-          webcamEnabled: true,
+          webcamEnabled: false,
           name: 'Expo User',
         }}
         token={token}

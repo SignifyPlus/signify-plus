@@ -125,7 +125,7 @@ const Page = () => {
         onSend={(messages: any) => onSend(messages)}
         onInputTextChanged={setText}
         user={{
-          _id: user?.id ?? '',
+          _id: user?._id ?? '',
         }}
         renderSystemMessage={(props) => (
           <SystemMessage {...props} textStyle={{ color: Colors.gray }} />
