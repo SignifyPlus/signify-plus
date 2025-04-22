@@ -1,6 +1,11 @@
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { Button, TextInput } from 'react-native';
+import {
+  Button,
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
 import auth from '@react-native-firebase/auth';
 import { usePathname, useRouter } from 'expo-router';
 

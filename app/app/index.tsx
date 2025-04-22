@@ -11,7 +11,9 @@ import Colors from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import logoImage from '@/assets/images/logo.jpeg';
 import { useLoginUserMutation } from '@/api/user/login-user-mutation';
-import { sanitizePhoneNumber, useAppContext } from '@/context/app-context';
+import { useAppContext } from '@/context/app-context';
+import { setAsyncStorageValue } from '@/context/async-storage';
+import { sanitizePhoneNumber } from '@/constants/utils';
 
 const logo_image = Image.resolveAssetSource(logoImage).uri;
 
@@ -42,10 +44,12 @@ const LoginScreen = () => {
     mutate(
       { phoneNumber: santizedPhoneNumber, password },
       {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           setUser(data);
           setPhoneNumberInContext(santizedPhoneNumber);
-          router.replace('/chats');
+          await setAsyncStorageValue('user', JSON.stringify(data));
+          // router.replace(`/verify/${santizedPhoneNumber}`);
+          router.replace('/(tabs)/chats');
         },
         onError: () => {
           setLoginError('Login failed. Please check your credentials.');

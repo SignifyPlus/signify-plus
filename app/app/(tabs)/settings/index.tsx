@@ -8,6 +8,7 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
@@ -50,9 +51,16 @@ const Page = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.userHeader}>
-        <View style={styles.avatarPlaceholder}>
-          <Ionicons name="person-outline" />
-        </View>
+        {context.user?.profilePicture ? (
+          <Image
+            source={{ uri: context.user?.profilePicture }}
+            style={styles.avatarPlaceholder}
+          />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person-outline" />
+          </View>
+        )}
         <View style={styles.userText}>
           <Text style={styles.userName}>{settings.userId?.name ?? 'User'}</Text>
           <Text style={styles.userStatus}>Available</Text>
