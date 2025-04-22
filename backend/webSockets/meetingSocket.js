@@ -1,4 +1,5 @@
 const LoggerFactory = require('../factories/loggerFactory.js');
+const CallDto = require('../dtos/CallDto.js');
 class MeetingSocket {
    constructor(socket, userSocketMap) {
       this.meetingIdEvent(socket, userSocketMap);
@@ -7,16 +8,34 @@ class MeetingSocket {
 
    meetingIdEvent(socket, userSocketMap) {
       socket.on('meeting-id', (data) => {
-         LoggerFactory.getApplicationLogger.info(data);
-         const sendersSocketId = userSocketMap[data.userPhoneNumber];
+         const callDto = new CallDto(
+            data?.userPhoneNumber,
+            data?.targetPhoneNumbers,
+            data?.meetingId,
+            data?.isVoiceCall,
+         );
+         LoggerFactory.getApplicationLogger.info(JSON.stringify(callDto));
+         if (
+            callDto.senderPhoneNumber == null ||
+            callDto.targetPhoneNumbers == null ||
+            callDto.isVoiceCall == null ||
+            callDto.meetingId == null
+         ) {
+            LoggerFactory.getApplicationLogger.error(
+               `Please check if userPhoneNumber, targetPhoneNumbers, isVoiceCall, and meetingId are provided - One of them seems to be null!`,
+            );
+            return;
+         }
+
+         const sendersSocketId = userSocketMap[callDto.senderPhoneNumber];
          if (!sendersSocketId) {
             //if sender is undefined, exit
             return;
          }
          LoggerFactory.getApplicationLogger.info(
-            `Meeting ID: ${data.meetingId} callerPhoneNumber: ${data.userPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${data.targetPhoneNumbers}`,
+            `Meeting ID: ${callDto.meetingId} callerPhoneNumber: ${callDto.senderPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${callDto.targetPhoneNumbers}`,
          );
-         data.targetPhoneNumbers.forEach((phoneNumber) => {
+         callDto.targetPhoneNumbers.forEach((phoneNumber) => {
             const targetSocketId = userSocketMap[phoneNumber];
             LoggerFactory.getApplicationLogger.info(
                `Iterating ${targetSocketId}`,
@@ -30,12 +49,13 @@ class MeetingSocket {
             const payloadBody = targetSocketId
                ? {
                     senderSocketId: socket.id,
-                    senderPhoneNumber: data.userPhoneNumber,
-                    meetingId: data.meetingId,
+                    senderPhoneNumber: callDto.senderPhoneNumber,
+                    meetingId: callDto.meetingId,
+                    isVoiceCall: callDto.isVoiceCall,
                  }
                : {
                     senderSocketId: socket.id,
-                    senderPhoneNumber: data.userPhoneNumber,
+                    senderPhoneNumber: callDto.senderPhoneNumber,
                     message: 'Failed! - no user found!',
                  };
             socketEventType.emit(event, payloadBody);
@@ -45,8 +65,18 @@ class MeetingSocket {
 
    meetingIdDeclineEvent(socket, userSocketMap) {
       socket.on('meeting-id-decline', (data) => {
+         if (
+            data.userPhoneNumber == null ||
+            data.meetingId == null ||
+            data.targetPhoneNumber == null
+         ) {
+            LoggerFactory.getApplicationLogger.error(
+               `Please check if userPhoneNumber, targetPhoneNumber, and meetingId are provided for the decline event - One of them seems to be null!`,
+            );
+            return;
+         }
          LoggerFactory.getApplicationLogger.info(
-            `decline offer ${data.userPhoneNumber} ${data.meetingId} ${data.targetPhoneNumber}`,
+            `decline offer from: ${data.userPhoneNumber} meetingId: ${data.meetingId} target: ${data.targetPhoneNumber}`,
          );
          //send the decline offer to the targetPhoneNumber
          //find the user from the map
