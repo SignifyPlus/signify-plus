@@ -1,7 +1,6 @@
 const socketIo = require('socket.io');
 const MeetingSocket = require('../webSockets/meetingSocket.js');
 const MessageSocket = require('../webSockets/messageSocket.js');
-const VoiceCallSocket = require('../webSockets/voiceCallSocket.js');
 const Socket = require('../webSockets/socket.js');
 
 class WebSocketManager {
@@ -18,7 +17,6 @@ class WebSocketManager {
          this.socket = new Socket(socket, userSocketMap);
          this.messageSocket = new MessageSocket(socket, userSocketMap);
          this.meetingSocket = new MeetingSocket(socket, userSocketMap);
-         this.voiceCallSocket = new VoiceCallSocket(socket, userSocketMap);
       });
    }
 }

@@ -1,6 +1,6 @@
 import Colors from '@/constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -16,15 +16,7 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import {
-  activateUserSessionAfterSignIn,
-  activateUserSessionAfterSignUp,
-  attemptFirstFactorVerificationForSignIn,
-  attemptPhoneNumberVerificationForSignUp,
-  resendSignInVerificationCode,
-  resendSignUpVerificationCode,
-} from '@/api';
-import { useAppContext } from '@/context/app-context';
+import auth from '@react-native-firebase/auth';
 
 const CELL_COUNT = 6;
 
@@ -35,8 +27,8 @@ const Page = () => {
   }>();
   const router = useRouter();
   const [code, setCode] = useState('');
+  const [confirm, setConfirm] = useState<any>(null);
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
-  const { setPhoneNumber } = useAppContext();
 
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
 
@@ -45,74 +37,39 @@ const Page = () => {
     setValue: setCode,
   });
 
-  const handleSignUpVerification = useCallback(async () => {
-    try {
-      await attemptPhoneNumberVerificationForSignUp(code);
-      await activateUserSessionAfterSignUp();
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        'An error occurred during verification. Please try again.'
-      );
-    }
-  }, [code]);
-
-  const handleSignInVerification = useCallback(async () => {
-    try {
-      await attemptFirstFactorVerificationForSignIn(code);
-      await activateUserSessionAfterSignIn();
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        'An error occurred during verification. Please try again.'
-      );
-    }
-  }, [code]);
-
-  const handleResendCode = useCallback(async () => {
-    try {
-      if (signin === 'true') {
-        await resendSignInVerificationCode(phone);
-      } else {
-        await resendSignUpVerificationCode(phone);
-        // createUser({
-        //   name: 'test',
-        //   phoneNumber: phone,
-        //   password: 'test',
-        // });
+  useEffect(() => {
+    (async () => {
+      if (code.length === 6) {
+        try {
+          const result = await confirm.confirm(code);
+          console.log(JSON.stringify(result, null, 2));
+          router.replace('/(tabs)/chats');
+        } catch (error) {
+          Alert.alert(
+            'Invalid code.',
+            'The code you entered is incorrect. Please try again. ' +
+              (error as Error).message
+          );
+        }
       }
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        'An error occurred while resending the verification code. Please try again.'
-      );
-    }
-  }, [phone, signin]);
+    })();
+  }, [code, confirm, router, signin]);
 
   useEffect(() => {
-    if (code.length === 6) {
-      // console.log('verify', code);
-
-      if (signin === 'true') {
-        // console.log('signin');
-        handleSignInVerification();
-      } else {
-        handleSignUpVerification();
-        // createUser({ name: 'test', phoneNumber: phone, password: 'test' });
+    (async () => {
+      try {
+        const confirmation = await auth().signInWithPhoneNumber(phone);
+        console.log('confiramtion', confirmation);
+        setConfirm(confirmation);
+      } catch (error) {
+        Alert.alert(
+          'Error',
+          'Firebase authentication failed. Use a whitelisted number ' +
+            (error as Error).message
+        );
       }
-      router.replace('/(tabs)/chats');
-    }
-  }, [
-    code,
-    handleSignInVerification,
-    handleSignUpVerification,
-    router,
-    signin,
-  ]);
-
-  useEffect(() => {
-    setPhoneNumber(phone);
-  }, [setPhoneNumber, phone]);
+    })();
+  }, [phone]);
 
   return (
     <KeyboardAvoidingView
@@ -153,7 +110,7 @@ const Page = () => {
           )}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleResendCode}>
+        <TouchableOpacity style={styles.button} onPress={() => router.back()}>
           <Text style={styles.buttonText}>
             Didn&#39;t receive a verification code?
           </Text>

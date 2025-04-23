@@ -3,7 +3,7 @@ import Colors from '@/constants/Colors';
 import { format } from 'date-fns';
 import { Link } from 'expo-router';
 import { FC } from 'react';
-import { Text, TouchableHighlight, View } from 'react-native';
+import { Text, TouchableHighlight, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export interface ChatRowProps {
@@ -20,7 +20,7 @@ export const ChatRow: FC<ChatRowProps> = ({
   id,
   from,
   date,
-  // img,
+  img,
   msg,
   // read,
   // unreadCount,
@@ -41,22 +41,26 @@ export const ChatRow: FC<ChatRowProps> = ({
               paddingVertical: 10,
             }}
           >
-            {/*<Image*/}
-            {/*  source={{ uri: img }}*/}
-            {/*  style={{ width: 50, height: 50, borderRadius: 50 }}*/}
-            {/*/>*/}
-            <View
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 50,
-                backgroundColor: Colors.lightGray,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="person-outline" />
-            </View>
+            {img ? (
+              <Image
+                source={{ uri: img }}
+                style={{ width: 50, height: 50, borderRadius: 50 }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 50,
+                  backgroundColor: Colors.lightGray,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons name="person-outline" />
+              </View>
+            )}
+
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{from}</Text>
               <Text style={{ fontSize: 16, color: Colors.gray }}>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useMeeting } from '@videosdk.live/react-native-sdk';
 import { ParticipantView } from './ParticipantView';
+import { useAppContext } from '@/context/app-context';
+import { useUpdateContacts } from '@/context/use-update-contacts';
 
 interface ParticipantListProps {
   participants: string[];
@@ -10,12 +12,79 @@ interface ParticipantListProps {
 export const ParticipantList: React.FC<ParticipantListProps> = ({
   participants: participantsList,
 }) => {
+  const { callingUser, incomingCallUser, phoneNumber } = useAppContext();
   const { localParticipant } = useMeeting();
+  const { contacts } = useUpdateContacts({ phoneNumber });
+  const contact = contacts.find((contact) => {
+    return contact.phoneNumbers[0]?.number === callingUser;
+  });
 
   const set = new Set(participantsList.filter(Boolean));
   const participants = Array.from(set);
 
   const [isLocalFullscreen, setIsLocalFullscreen] = useState(false);
+
+  // if (participants.length < 2) {
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         justifyContent: 'space-between',
+  //         alignItems: 'center',
+  //         paddingVertical: 50,
+  //       }}
+  //     >
+  //       <View
+  //         style={{
+  //           alignItems: 'center',
+  //           marginTop: 50,
+  //         }}
+  //       >
+  //         <View
+  //           style={{
+  //             width: 100,
+  //             height: 100,
+  //             borderRadius: 50,
+  //             backgroundColor: '#404040',
+  //             justifyContent: 'center',
+  //             alignItems: 'center',
+  //             marginBottom: 20,
+  //           }}
+  //         >
+  //           <Text
+  //             style={{
+  //               fontSize: 40,
+  //               color: 'white',
+  //             }}
+  //           >
+  //             {(incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
+  //               .charAt(0)
+  //               .toUpperCase()}
+  //           </Text>
+  //         </View>
+  //         <Text
+  //           style={{
+  //             fontSize: 24,
+  //             fontWeight: 'bold',
+  //             marginBottom: 10,
+  //           }}
+  //         >
+  //           {incomingCallUser?.displayName ??
+  //             contact?.displayName ??
+  //             'Unknown Caller'}
+  //         </Text>
+  //         <Text
+  //           style={{
+  //             fontSize: 16,
+  //             marginBottom: 10,
+  //           }}
+  //         >
+  //           Ringing...
+  //         </Text>
+  //       </View>
+  //     </View>
+  //   );
+  // }
 
   if (participants.length > 2) {
     return (

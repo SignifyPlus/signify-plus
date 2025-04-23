@@ -13,7 +13,8 @@ import Colors from '@/constants/Colors';
 import { Link, useRouter } from 'expo-router';
 import welcomeImage from '@/assets/images/logo.jpeg';
 import { useCreateUserMutation } from '@/api/user/create-user-mutation';
-import { sanitizePhoneNumber, useAppContext } from '@/context/app-context';
+import { useAppContext } from '@/context/app-context';
+import { sanitizePhoneNumber } from '@/constants/utils';
 
 const welcome_image = Image.resolveAssetSource(welcomeImage).uri;
 
@@ -63,7 +64,8 @@ const SignupScreen = () => {
             setPhoneNumber('');
             setPassword('');
             setRepeatPassword('');
-            router.replace('/chats');
+            // router.replace(`/verify/${sanitizedPhoneNumber}`);
+            router.replace('/(tabs)/chats');
           },
           onError: (err) => {
             Alert.alert('Signup Failed', (err as Error).message);

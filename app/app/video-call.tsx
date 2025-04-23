@@ -60,7 +60,9 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
 
 const MeetingView: React.FC = () => {
   const { participants, localParticipant, join } = useMeeting();
+
   const participantsArrId = Array.from(participants.keys());
+
   const joinedRef = React.useRef(false);
 
   // Filter out the AI_MODEL participant by name

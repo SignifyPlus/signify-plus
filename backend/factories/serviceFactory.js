@@ -27,6 +27,8 @@ const UserActivityService = require('../services/UserActivityService.js');
 const UserService = require('../services/UserService.js');
 const ThreadService = require('../services/ThreadService.js');
 const CommentService = require('../services/CommentService.js');
+const UserAuthenticationService = require('../services/UserAuthenticationService.js');
+const MongooseService = require('../services/MongooseService.js');
 
 //models
 const CallHistory = require('../models/CallHistory.js');
@@ -51,7 +53,7 @@ const User = require('../models/User.js');
 const UserActivity = require('../models/UserActivity.js');
 const Thread = require('../models/Thread.js');
 const Comment = require('../models/Comment.js');
-const MongooseService = require('../services/MongooseService.js');
+const UserAuthentication = require('../models/UserAuthentication.js');
 
 class ServiceFactory {
    //private fields
@@ -192,6 +194,12 @@ class ServiceFactory {
     * @type {MongooseService | null}
     */
    static #mongooseService = null;
+
+   /**
+    * @private
+    * @type {UserAuthenticationService | null}
+    */
+   static #userAuthenticationService = null;
 
    constructor() {}
 
@@ -371,6 +379,14 @@ class ServiceFactory {
          ServiceFactory.#mongooseService = new MongooseService();
       }
       return ServiceFactory.#mongooseService;
+   }
+
+   static get getUserAuthenticationService() {
+      if (!ServiceFactory.#userAuthenticationService) {
+         ServiceFactory.#userAuthenticationService =
+            new UserAuthenticationService(UserAuthentication);
+      }
+      return ServiceFactory.#userAuthenticationService;
    }
 }
 

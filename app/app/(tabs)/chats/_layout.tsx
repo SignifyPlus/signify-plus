@@ -4,21 +4,37 @@ import { Link, Stack, usePathname } from 'expo-router';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '@/context/app-context';
 import { useChatsQuery } from '@/api/chat/chats-query';
+import { useEffect } from 'react';
+import { useUpdateContacts } from '@/context/use-update-contacts';
 
 const Layout = () => {
   const path = usePathname();
   const chatId = path.split('/').pop();
 
-  const { phoneNumber } = useAppContext();
+  const { phoneNumber, setChatsSearchQuery, videoCallUser, voiceCallUser } =
+    useAppContext();
+  const { contacts } = useUpdateContacts({ phoneNumber });
   const { data: chats } = useChatsQuery({ phoneNumber });
 
   const chat = chats?.find((chat) => chat._id === chatId);
   const chatPhoneNumber = chat?.participants
     .filter((p) => p.phoneNumber !== phoneNumber)
-    .map((p) => p.phoneNumber)
-    ?.join(', ');
+    .map((p) => p.phoneNumber)[0];
 
-  const { videoCallUser } = useAppContext();
+  const contact = contacts.find((contact) => {
+    console.log(contact.phoneNumbers.find((c) => c.number === chatPhoneNumber));
+    if (contact.phoneNumbers[0]?.number === chatPhoneNumber) {
+      return contact;
+    }
+    return null;
+  });
+  console.log(contact);
+
+  useEffect(() => {
+    return () => {
+      setChatsSearchQuery('');
+    };
+  }, [setChatsSearchQuery]);
 
   return (
     <Stack>
@@ -26,27 +42,8 @@ const Layout = () => {
         name="index"
         options={{
           title: 'Chats',
-          // headerLargeTitle: isIos,
-          // headerTransparent: isIos,
-          // headerBlurEffect: "regular",
-          headerLeft: () => (
-            <TouchableOpacity>
-              <Ionicons
-                name="ellipsis-horizontal-circle-outline"
-                color={Colors.primary}
-                size={30}
-              />
-            </TouchableOpacity>
-          ),
           headerRight: () => (
             <View style={{ flexDirection: 'row', gap: 30 }}>
-              <TouchableOpacity>
-                <Ionicons
-                  name="camera-outline"
-                  color={Colors.primary}
-                  size={30}
-                />
-              </TouchableOpacity>
               <Link href="/(modals)/new-chat" asChild>
                 <TouchableOpacity>
                   <Ionicons
@@ -103,7 +100,7 @@ const Layout = () => {
                 <Ionicons name="person-outline" />
               </View>
               <Text style={{ fontSize: 16, fontWeight: '500' }}>
-                {chatPhoneNumber}
+                {contact?.displayName ?? chatPhoneNumber}
               </Text>
             </View>
           ),
@@ -121,7 +118,12 @@ const Layout = () => {
                   size={22}
                 />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                disabled={!chatPhoneNumber}
+                onPress={() => {
+                  if (chatPhoneNumber) voiceCallUser(chatPhoneNumber);
+                }}
+              >
                 <Ionicons
                   name="call-outline"
                   color={Colors.primary}
