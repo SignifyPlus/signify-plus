@@ -1,12 +1,22 @@
 const LoggerFactory = require('../factories/loggerFactory.js');
 const CallDto = require('../dtos/CallDto.js');
 class MeetingSocket {
-   constructor(socket, userSocketMap) {
-      this.meetingIdEvent(socket, userSocketMap);
-      this.meetingIdDeclineEvent(socket, userSocketMap);
+   constructor(socket, userSocketMap, callSocketMap, meetingParticipantMap) {
+      this.meetingIdEvent(
+         socket,
+         userSocketMap,
+         callSocketMap,
+         meetingParticipantMap,
+      );
+      this.meetingIdDeclineEvent(
+         socket,
+         userSocketMap,
+         callSocketMap,
+         meetingParticipantMap,
+      );
    }
 
-   meetingIdEvent(socket, userSocketMap) {
+   meetingIdEvent(socket, userSocketMap, callSocketMap, meetingParticipantMap) {
       socket.on('meeting-id', (data) => {
          const callDto = new CallDto(
             data?.userPhoneNumber,
@@ -32,11 +42,19 @@ class MeetingSocket {
             //if sender is undefined, exit
             return;
          }
+         callSocketMap[sendersSocketId] = { meetingId: callDto.meetingId };
+         meetingParticipantMap[callDto.meetingId] = [
+            callDto.senderPhoneNumber,
+            ...callDto.targetPhoneNumbers,
+         ];
          LoggerFactory.getApplicationLogger.info(
             `Meeting ID: ${callDto.meetingId} callerPhoneNumber: ${callDto.senderPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${callDto.targetPhoneNumbers}`,
          );
          callDto.targetPhoneNumbers.forEach((phoneNumber) => {
             const targetSocketId = userSocketMap[phoneNumber];
+            if (targetSocketId) {
+               callSocketMap[targetSocketId] = { meetingId: callDto.meetingId };
+            }
             LoggerFactory.getApplicationLogger.info(
                `Iterating ${targetSocketId}`,
             );
@@ -63,7 +81,7 @@ class MeetingSocket {
       });
    }
 
-   meetingIdDeclineEvent(socket, userSocketMap) {
+   meetingIdDeclineEvent(socket, userSocketMap, callSocketMap) {
       socket.on('meeting-id-decline', (data) => {
          if (
             data.userPhoneNumber == null ||
