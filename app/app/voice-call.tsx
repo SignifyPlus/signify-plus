@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -15,11 +14,9 @@ import {
 } from '@videosdk.live/react-native-sdk';
 import { createMeeting, token } from '@/api';
 import { useLocalSearchParams } from 'expo-router';
-import { ParticipantList } from '@/components/ParticipantList';
 import { ControlsContainer } from '@/components/ControlsContainer';
 import { useAppContext } from '@/context/app-context';
 import { useUpdateContacts } from '@/context/use-update-contacts';
-import { sanitizePhoneNumber } from '@/constants/utils';
 
 register();
 
@@ -65,13 +62,11 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
 const MeetingView: React.FC = () => {
   const { incomingCallUser, phoneNumber, callingUser } = useAppContext();
 
-  console.log('callingUsercallingUserr', callingUser);
   const { contacts } = useUpdateContacts({ phoneNumber });
   const contact = contacts.find((contact) => {
     return contact.phoneNumbers[0]?.number === callingUser;
   });
 
-  console.log('incomingCallUser', incomingCallUser);
   const { participants, localParticipant, join } = useMeeting();
   const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);

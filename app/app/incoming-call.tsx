@@ -34,7 +34,7 @@ const AcceptCallScreen = () => {
 
   const onDecline = () => {
     declineVideoCall();
-    router.replace('/(tabs)/chats');
+    router.back();
   };
 
   return (

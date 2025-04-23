@@ -60,6 +60,46 @@ const Page = () => {
   //   key: `${contact.name}-${index}`,
   // }));
 
+  if (data.length === 0) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          backgroundColor: '#f9f9f9',
+          paddingTop: 150,
+          padding: 20,
+          height: '100%',
+          width: '100%',
+        }}
+      >
+        <Ionicons name="people-outline" color="#A0A0A0" size={150} />
+        <Text
+          style={{
+            fontSize: 22,
+            fontWeight: 'bold',
+            color: '#333',
+            marginTop: 20,
+          }}
+        >
+          No Contacts
+        </Text>
+        <Text
+          style={{
+            fontSize: 16,
+            color: '#666',
+            textAlign: 'center',
+            marginVertical: 10,
+            paddingHorizontal: 20,
+          }}
+        >
+          Add contacts to chat with someone.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View
       style={{ flex: 1, paddingTop: 110, backgroundColor: Colors.background }}
@@ -81,11 +121,13 @@ const Page = () => {
               if (!phoneNumber) return;
               const exisingChat = chats?.find((chat) =>
                 chat.participants.find(
-                  (participant) => participant.phoneNumber === item.name
+                  (participant) =>
+                    participant.phoneNumber === item.name &&
+                    participant.phoneNumber !== phoneNumber
                 )
               );
               if (exisingChat) {
-                router.push(`/chats/${exisingChat._id}`);
+                router.navigate(`/(tabs)/chats/${exisingChat._id}`);
               } else {
                 const result = await mutateAsync({
                   mainUserPhoneNumber: phoneNumber,
@@ -94,7 +136,7 @@ const Page = () => {
                 await queryClient.invalidateQueries({
                   queryKey: ['chats'],
                 });
-                router.push(`/chats/${result[0]._id}`);
+                router.navigate(`/(tabs)/chats/${result[0]._id}`);
               }
             }}
           >

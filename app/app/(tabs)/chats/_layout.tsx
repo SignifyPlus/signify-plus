@@ -22,13 +22,11 @@ const Layout = () => {
     .map((p) => p.phoneNumber)[0];
 
   const contact = contacts.find((contact) => {
-    console.log(contact.phoneNumbers.find((c) => c.number === chatPhoneNumber));
     if (contact.phoneNumbers[0]?.number === chatPhoneNumber) {
       return contact;
     }
     return null;
   });
-  console.log(contact);
 
   useEffect(() => {
     return () => {

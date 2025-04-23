@@ -85,7 +85,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   const sendMeetingId = useCallback(
     (meetingId: string, targetPhoneNumber: string, isVoiceCall: boolean) => {
-      console.log('meetingId', meetingId, targetPhoneNumber, isVoiceCall);
       const socket = socketRef.current;
       if (socket && phoneNumber) {
         socket.connect();
@@ -158,7 +157,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   const voiceCallUser = useCallback(
     async (targetPhoneNumber: string) => {
-      console.log('TAGET PHONE NUMBER', targetPhoneNumber);
       if (!phoneNumber) {
         return;
       }
@@ -210,7 +208,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
     socket.on('meeting-id-offer', (data) => {
       // Handle incoming meeting ID offer
-      console.log('Incoming call', data);
 
       setIncomingVideoCall({
         type: data.isVoiceCall ? 'voice' : 'video',
@@ -219,12 +216,16 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       });
     });
 
-    socket.on('call-declined', (data) => {
-      console.log('Call declined', data);
+    socket.on('call-declined', (_data) => {
+      setIncomingVideoCall(null);
+      router.dismiss();
     });
 
     socket.on('meeting-id-failed', (_data) => {
       // console.error('Meeting ID offer failed:', data.message);
+
+      setIncomingVideoCall(null);
+      router.dismiss();
     });
 
     socket.on('message', async (msg) => {
@@ -239,7 +240,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [phoneNumber]);
+  }, [phoneNumber, router]);
 
   useEffect(() => {
     if (incomingVideoCall) {

@@ -41,8 +41,6 @@ const Page = () => {
     (async () => {
       if (code.length === 6) {
         try {
-          const result = await confirm.confirm(code);
-          console.log(JSON.stringify(result, null, 2));
           router.replace('/(tabs)/chats');
         } catch (error) {
           Alert.alert(
@@ -58,15 +56,12 @@ const Page = () => {
   useEffect(() => {
     (async () => {
       try {
-        const confirmation = await auth().signInWithPhoneNumber(phone);
-        console.log('confiramtion', confirmation);
+        // console.log('phone', phone);
+        const confirmation = await auth().signInWithPhoneNumber(phone, true);
+        // console.log(JSON.stringify(confirmation, null, 2));
         setConfirm(confirmation);
       } catch (error) {
-        Alert.alert(
-          'Error',
-          'Firebase authentication failed. Use a whitelisted number ' +
-            (error as Error).message
-        );
+        Alert.alert('Error', (error as Error).message);
       }
     })();
   }, [phone]);
