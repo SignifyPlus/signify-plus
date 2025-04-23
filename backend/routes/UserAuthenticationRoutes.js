@@ -1,11 +1,21 @@
 const express = require('express');
 const userAuthenticationRouter = express.Router();
+const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const ControllerFactory = require('../factories/controllerFactory.js');
 
+userAuthenticationRouter.get('/', async (request, response) => {
+   return await ExceptionHelper.validate(
+      null,
+      400,
+      `phoneNumber query parameter is required!`,
+      response,
+   );
+});
+
 userAuthenticationRouter.get(
-   '/all',
+   '/:phoneNumber',
    ControllerFactory.getUserAuthenticationController()
-      .getAllUserAuthenticationRecords,
+      .getUserAuthenticationRecord,
 );
 
 userAuthenticationRouter.post(
