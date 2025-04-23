@@ -37,6 +37,13 @@
             {
               "client_id": "561612205128-m82a9uh3p7cg8v5aogr7b6h5gvies2kn.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "561612205128-qfh1falaj85vc30kof81mkrl85t0t1ia.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.anonymous.videosdkexpoapp"
+              }
             }
           ]
         }

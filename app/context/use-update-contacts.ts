@@ -18,18 +18,17 @@ export const useUpdateContacts = ({
     if (!phoneNumber) return;
     const getContacts = () => {
       Contacts.getAll().then((contacts) => {
-        setContacts(
-          contacts.map((contact) => {
-            const sanitizedContact = contact.phoneNumbers.map((phone) => ({
-              ...phone,
-              number: sanitizePhoneNumber(phone.number),
-            }));
-            return {
-              ...contact,
-              phoneNumbers: sanitizedContact,
-            };
-          })
-        );
+        const sanitizedContacts = contacts.map((contact) => {
+          const sanitizedContact = contact.phoneNumbers.map((phone) => ({
+            ...phone,
+            number: sanitizePhoneNumber(phone.number),
+          }));
+          return {
+            ...contact,
+            phoneNumbers: sanitizedContact,
+          };
+        });
+        setContacts(sanitizedContacts);
         mutate(
           {
             userPhoneNumber: phoneNumber,
