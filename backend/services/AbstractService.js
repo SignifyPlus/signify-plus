@@ -109,8 +109,8 @@ class AbstractService {
    async saveDocuments(data, session = null) {
       try {
          const documents = session
-            ? await this.schemaModel.insertMany(data, { session })
-            : await this.schemaModel.insertMany(data);
+            ? await this.schemaModel.insertMany(data, { session, ordered: false })
+            : await this.schemaModel.insertMany(data, { ordered: false });
          return documents;
       } catch (exception) {
          throw new Error(`Error Saving the Documents: ${exception.message}`);
