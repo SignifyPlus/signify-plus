@@ -112,7 +112,7 @@ class ContactController {
       }
    };
 
-   
+
    createContact = async (request, response) => {
       try {
          const userPhoneNumber = request.body.userPhoneNumber;
@@ -183,7 +183,7 @@ class ContactController {
 
          //contacts to add - validation is left ,what if the userId doesn't even exist in the user table!
          const contactsToAdd = newContactUserIds
-            .filter((userId) => !existingUserIds.includes(userId))
+            .filter((userId) => !existingUserIds.includes(userId) && mainUser._id!=userId) //to tackle the user inserting his/her own contact... 
             .map((userId) => ({
                userId: mainUser._id,
                contactUserId: userId,
