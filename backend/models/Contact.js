@@ -16,7 +16,7 @@ const ContactSchema = new mongoose.Schema({
 });
 
 //uniqueness to combat race conditions based on milliseconds
-ContactSchema.index({userId: 1, contactUserId: 1}, {unique: true});
+ContactSchema.index({ userId: 1, contactUserId: 1 }, { unique: true });
 
 const Contact = mongoose.model('Contact', ContactSchema);
 module.exports = Contact;
