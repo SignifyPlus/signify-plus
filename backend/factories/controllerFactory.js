@@ -15,6 +15,7 @@ const ThreadController = require('../controllers/ThreadController.js');
 const CommentController = require('../controllers/CommentController.js');
 const SettingsController = require('../controllers/SettingsController.js');
 const UserAuthenticationController = require('../controllers/UserAuthenticationController.js');
+const TwilioOtpController = require('../controllers/TwilioOtpController.js');
 
 class ControllerFactory {
    /**
@@ -81,6 +82,12 @@ class ControllerFactory {
     * @type {UserAuthenticationController | null}
     */
    static #userAuthenticationController = null;
+
+   /**
+    * @private
+    * @type {TwilioOtpController | null}
+    */
+   static #twilioOtpController = null;
 
    constructor() {}
 
@@ -161,6 +168,13 @@ class ControllerFactory {
             new UserAuthenticationController();
       }
       return ControllerFactory.#userAuthenticationController;
+   }
+
+   static getTwilioOtpController() {
+      if (!ControllerFactory.#twilioOtpController) {
+         ControllerFactory.#twilioOtpController = new TwilioOtpController();
+      }
+      return ControllerFactory.#twilioOtpController;
    }
 }
 

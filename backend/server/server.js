@@ -13,6 +13,7 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
+const TwilioAdmin = require('../managers/twilio/models/TwilioAdmin.js');
 
 //routes
 const userRoutes = require('../routes/UserRoutes.js');
@@ -26,6 +27,7 @@ const threadRoutes = require('../routes/ThreadRoutes.js');
 const commentRoutes = require('../routes/CommentRoutes.js');
 const settingsRoutes = require('../routes/SettingsRoutes.js');
 const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js');
+const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -72,10 +74,14 @@ async function setupServer() {
       //setup Amazon S3 Manager
       //dont await, let it run on a separate thread
       //as it wont be needed immediately
-      ManagerFactory.getAwsS3Manager().initiateS3Connection();
-      //TODO Later
-      //initiliaze firebase admin (for now not needed)
-      //await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);
+      await ManagerFactory.getAwsS3Manager().initiateS3Connection();
+      //Twilio OTP/Verify
+      await ManagerFactory.getTwilioManager().initializeTwilioClient(
+         new TwilioAdmin(
+            process.env.TWILIO_ACCOUNT_SID_ENCRYPTED,
+            process.env.TWILIO_ACCOUNT_AUTH_TOKEN_ENCRYPTED,
+         ),
+      );
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -97,6 +103,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/comments', commentRoutes);
       signifyPlusAppServer.use('/settings', settingsRoutes);
       signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
+      signifyPlusAppServer.use('/twilio', twilioOtpRoutes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
