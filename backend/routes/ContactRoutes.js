@@ -2,7 +2,6 @@ const express = require('express');
 const contactRouter = express.Router();
 const ControllerFactory = require('../factories/controllerFactory.js');
 
-//test these
 contactRouter.get(
    '/all',
    ControllerFactory.getContactController().getAllContacts,

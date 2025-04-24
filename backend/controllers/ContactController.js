@@ -83,7 +83,6 @@ class ContactController {
       }
    };
 
-   //testing is left
    updateAllContactsById = async (request, response) => {
       try {
          const fieldsToUpdateArray = request.body.fieldsToUpdate;
@@ -113,8 +112,7 @@ class ContactController {
       }
    };
 
-   //A list will be send with the contacts and userPhone Number - to check automatically which are missing from the list, and delete them automatically
-   //Otherwise add if there's an extra entry in the array
+   
    createContact = async (request, response) => {
       try {
          const userPhoneNumber = request.body.userPhoneNumber;
