@@ -28,11 +28,11 @@ class KerasInferenceService:
         self.action_seq = []  
 
         # Frame interpolation parameters
-        self.target_fps = int(os.environ.get('ML_TARGET_FPS', 15))
-        self.max_frame_age = float(os.environ.get('ML_MAX_FRAME_AGE', 0.5))  # Maximum age of frames to keep (in seconds)
+        self.target_fps = int(os.environ.get('ML_TARGET_FPS', 10))
+        self.max_frame_age = float(os.environ.get('ML_MAX_FRAME_AGE', 3.0))  # Maximum age of frames to keep (in seconds)
 
         # Time-based sliding window instead of frame count
-        self.sliding_window_duration = float(os.environ.get('ML_WINDOW_DURATION', 1.0))  # Window duration in seconds
+        self.sliding_window_duration = float(os.environ.get('ML_WINDOW_DURATION', 4.0))  # Window duration in seconds
 
         # Enhanced buffers for time-based interpolation
         self.frame_buffer = deque(maxlen=60)  # Store more frames than needed to handle variable rate
@@ -41,11 +41,11 @@ class KerasInferenceService:
 
         # For interpolation
         self.last_interpolation_time = 0
-        self.interpolation_interval = 1.0 / self.target_fps
+        self.interpolation_interval = 1.0 / (self.target_fps*0.75)
 
         # Hand state tracking
         self.no_hand_counter = 0
-        self.no_hand_threshold = 3
+        self.no_hand_threshold = 5
         self.hand_present = False
         self.last_prediction = None
 
@@ -55,6 +55,8 @@ class KerasInferenceService:
         
         # Active clients
         self.active_clients = set()
+
+        self.debug_mode = True
 
     async def initialize(self):
         """Initialize the service, load models and resources"""
@@ -115,12 +117,15 @@ class KerasInferenceService:
         """
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(rgb_frame)
-        
+      
         if not results.multi_hand_landmarks:
-            return np.zeros(99, dtype=np.float32), False
+            if self.debug_mode:
+                print("No hand landmarks detected")
+            return np.zeros(100, dtype=np.float32), False 
             
         for hand_landmarks in results.multi_hand_landmarks:
             # Extract joint coordinates
+            hand_count = len(results.multi_hand_landmarks)
             joint = np.zeros((21, 4))
             for j, lm in enumerate(hand_landmarks.landmark):
                 joint[j] = [lm.x, lm.y, lm.z, lm.visibility]
@@ -140,10 +145,16 @@ class KerasInferenceService:
             angle = np.degrees(angle)
             
             # Concatenate joint.flatten() (84 values) and angle (15 values) to get 99 features
-            d = np.concatenate([joint.flatten(), angle])
+            d = np.concatenate([  
+                joint.flatten(),    # 84 dims  
+                angle,              # 15 dims  
+                np.array([float(hand_count)])  # 1 dim  
+            ]) 
+            if self.debug_mode:
+                print(f"Hand detected, feature vector shape: {d.shape}")   
             return d, True
             
-        return np.zeros(99, dtype=np.float32), False
+        return np.zeros(100, dtype=np.float32), False
     
     def interpolate_features(self, time_point: float) -> np.ndarray:
         """
@@ -152,7 +163,9 @@ class KerasInferenceService:
         """
         if len(self.feature_buffer) < 2 or len(self.time_buffer) < 2:
             # Not enough frames to interpolate
-            return np.zeros(99, dtype=np.float32)
+            if self.debug_mode:
+                print(f"Not enough frames to interpolate: features={len(self.feature_buffer)}, times={len(self.time_buffer)}")
+            return np.zeros(100, dtype=np.float32)
 
         # Find frames that bracket the desired time point
         i = 0
@@ -182,26 +195,47 @@ class KerasInferenceService:
         Generate a sequence of evenly spaced features at the target FPS.
         """
         if not self.time_buffer or not self.feature_buffer:
+            if self.debug_mode:
+                print("Empty time or feature buffer")
             return []
         # Get the time range from the buffer
         start_time = max(self.time_buffer[0], time.time() - self.sliding_window_duration)
         end_time = self.time_buffer[-1]
-        if end_time - start_time < 0.1:  # Less than 100ms of data, not enough for reliable sequence
+
+        if self.debug_mode:
+            print(f"Time range: {start_time:.2f} to {end_time:.2f}, span: {end_time - start_time:.2f}s")
+
+        if end_time - start_time < 0.1:
+            if self.debug_mode:
+                print("Time span too short, less than 100ms of data")  # Less than 100ms of data, not enough for reliable sequence
             return []
         # Calculate how many frames we need based on target FPS and available time window
         available_duration = min(end_time - start_time, self.sliding_window_duration)
         num_frames = min(self.sequence_length, int(available_duration * self.target_fps))
-        if num_frames < 3:  # Need at least a few frames for meaningful prediction
+
+        if self.debug_mode:
+            print(f"Available duration: {available_duration:.2f}s, generating {num_frames} frames")
+
+        if num_frames < 2:
+            if self.debug_mode:
+                print(f"Not enough frames for prediction: {num_frames} < 2")  # Need at least a few frames for meaningful prediction
             return []
         # Generate evenly spaced timestamps
         timestamps = np.linspace(end_time - available_duration, end_time, num_frames)
         # Interpolate features at each timestamp
         sequence = [self.interpolate_features(t) for t in timestamps]
+        
+        if self.debug_mode:
+            print(f"Generated sequence with {len(sequence)} frames")
         return sequence
     
     async def process_frame(self, frame: np.ndarray) -> List[Dict[str, Any]]:
         """Process a video frame and return predictions using time-based interpolation"""
         start_proc_time = time.time()
+
+        if self.debug_mode:
+            print(f"\n--- Processing frame at {start_proc_time:.2f} ---")
+
         try:
             # Extract features and check for hand
             features, hand_detected = self.extract_features(frame)
@@ -210,6 +244,10 @@ class KerasInferenceService:
             self.frame_buffer.append(frame)
             self.time_buffer.append(current_time)
             self.feature_buffer.append((features, hand_detected))
+
+            if self.debug_mode:
+                print(f"Buffer sizes - frames: {len(self.frame_buffer)}, times: {len(self.time_buffer)}, features: {len(self.feature_buffer)}")
+            
             # Clean up old frames
             while self.time_buffer and (current_time - self.time_buffer[0] > self.max_frame_age):
                 self.time_buffer.popleft()
@@ -218,8 +256,12 @@ class KerasInferenceService:
             #Update hand state
             if not hand_detected:
                 self.no_hand_counter += 1
+                if self.debug_mode:
+                    print(f"No hand detected, counter: {self.no_hand_counter}/{self.no_hand_threshold}")
                 if self.no_hand_counter >= self.no_hand_threshold:
-                    if self.hand_present:  # State transition: hand present -> not present
+                    if self.hand_present:
+                        if self.debug_mode:
+                            print("State transition: hand no longer present")  # State transition: hand present -> not present
                         self.hand_present = False
                         self.sequence_buffer = []  # Reset buffer on transition
                         self.last_prediction = None
@@ -228,55 +270,85 @@ class KerasInferenceService:
             else:
                 self.no_hand_counter = 0
                 self.hand_present = True
-
+                if self.debug_mode:
+                    print("Hand detected")
             # Only proceed with interpolation if a hand is present
             if not self.hand_present:
+                 if self.debug_mode:
+                    print("No hand present, skipping prediction")
                  return []
-            
             # Check if it's time to generate a new interpolated sequence
             if (current_time - self.last_interpolation_time >= self.interpolation_interval):
                 self.last_interpolation_time = current_time
+                if self.debug_mode:
+                    print(f"Time to interpolate, interval: {self.interpolation_interval:.3f}s")
+                    
                 # Generate interpolated sequence
                 self.sequence_buffer = self.generate_interpolated_sequence()
-
-                # Only make prediction if we have enough frames
-                if len(self.sequence_buffer) < self.sequence_length // 2:  # Allow at least half the sequence length
-                    return []
                 
+                # Only make prediction if we have enough frames
+                if len(self.sequence_buffer) < max(10, self.sequence_length // 2):  # Allow at least half the sequence length
+                    if self.debug_mode:
+                        print(f"Sequence too short: {len(self.sequence_buffer)} < {max(10, self.sequence_length // 2)}")
+                    return []
+
+                if self.debug_mode:
+                    print(f"Sequence buffer length: {len(self.sequence_buffer)}")
+
                 # Pad sequence if needed (this ensures model gets exactly what it expects)
                 if len(self.sequence_buffer) < self.sequence_length:
+                    if self.debug_mode:
+                        print(f"Padding sequence from {len(self.sequence_buffer)} to {self.sequence_length}")
+                
                     # Pad by repeating the last frame
                     pad_length = self.sequence_length - len(self.sequence_buffer)
                     self.sequence_buffer.extend([self.sequence_buffer[-1]] * pad_length)
                
                 # Make prediction
                 input_data = np.expand_dims(np.array(self.sequence_buffer, dtype=np.float32), axis=0)
+                if self.debug_mode:
+                    print(f"Input data shape: {input_data.shape}")
+
                 predictions = self.model.predict(input_data, verbose=0)[0]
+                if self.debug_mode:
+                    print(f"Input data shape: {input_data.shape}")
                
                 # Process prediction
                 predicted_idx = int(np.argmax(predictions))
                 confidence = float(predictions[predicted_idx])
+
+                if self.debug_mode:
+                    print(f"Top prediction: index={predicted_idx}, confidence={confidence:.4f}")
                
                 # Only return predictions with high confidence
                 if confidence < self.confidence_threshold:
+                    if self.debug_mode:
+                        print(f"Confidence too low: {confidence:.4f} < {self.confidence_threshold}")
+                   
                     return []
                 
                 action = self.class_names[predicted_idx]
                 self.last_prediction = action
                 self.action_seq.append(action)
-                
-                # Prediction smoothing - only show after consistent predictions
-                if len(self.action_seq) < 2:
-                    return []
+
+                if self.debug_mode:
+                    print(f"Predicted action: {action}, confidence: {confidence:.4f}")
+                    print(f"Action sequence: {self.action_seq}")
+
                     
                 # Keep action sequence from getting too long
                 if len(self.action_seq) > 5:
                     self.action_seq = self.action_seq[-5:]
+
+                if self.debug_mode:
+                    # For debugging, return every prediction that passes confidence threshold
+                    print(f"Returning prediction: {action}, confidence: {confidence:.4f}")
+                    return [{"gesture": action, "confidence": confidence}]
                     
                 # Check for consistent predictions
                 # Only return prediction if the latest N predictions are the same
                 if len(set(self.action_seq[-2:])) == 1:  # Last 2 predictions are the same
-                    print(f"Prediction: {action}, confidence: {confidence:.2f}")
+                    print(f"Consistent prediction: {action}, confidence: {confidence:.2f}")
                     # Track processing time for performance monitoring
                     proc_time = time.time() - start_proc_time
                     self.processing_times.append(proc_time)
@@ -285,8 +357,11 @@ class KerasInferenceService:
                         avg_time = sum(self.processing_times) / len(self.processing_times)
                         self.actual_fps = 1.0 / avg_time if avg_time > 0 else 0
                         print(f"Processing stats: Avg time: {avg_time*1000:.1f}ms, Effective FPS: {self.actual_fps:.1f}")
-                    
                     return [{"gesture": action, "confidence": confidence}]
+                else:
+                    if self.debug_mode:
+                        print(f"Not time to interpolate yet. Interval: {self.interpolation_interval:.3f}s, Time since last: {current_time - self.last_interpolation_time:.3f}s")
+                
             
             return []  # Default empty response
         except Exception as e:
