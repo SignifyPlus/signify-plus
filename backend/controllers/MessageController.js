@@ -105,19 +105,27 @@ class MessageController {
          };
          
          // Add reply reference if this is a reply
+        // Add reply reference if this is a reply
          if (request.body.replyToId) {
-            const replyToMessage = await ServiceFactory.getMessageService.getDocumentById(
-               request.body.replyToId
-            );
-            
-            if (!replyToMessage) {
+            try {
+               const replyToMessage = await ServiceFactory.getMessageService.getDocumentById(
+                  request.body.replyToId
+               );
+               
+               if (!replyToMessage) {
+                  return response.status(400).json({ 
+                     error: "The message you're replying to doesn't exist" 
+                  });
+               }
+               
+               // Make sure we're using a string for the replyToId
+               messageData.replyToId = request.body.replyToId;
+            } catch (error) {
                return response.status(400).json({ 
-                  error: "The message you're replying to doesn't exist" 
+                  error: `Error finding message to reply to: ${error.message}` 
                });
             }
-            
-            messageData.replyToId = request.body.replyToId;
-         }
+}
          
          const message = await ServiceFactory.getMessageService.saveDocument(messageData);
          return response.json(message);
