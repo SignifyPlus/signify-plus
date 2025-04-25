@@ -1,8 +1,8 @@
 import Colors from '@/constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -16,19 +16,27 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import auth from '@react-native-firebase/auth';
+import { useUserVerificationQuery } from '@/api/user/user-verification-query';
+import { useUpdateUserVerificationMutation } from '@/api/user/update-user-verification-mutation';
 
 const CELL_COUNT = 6;
 
 const Page = () => {
-  const { phone, signin } = useLocalSearchParams<{
+  const { phone } = useLocalSearchParams<{
     phone: string;
-    signin: string;
   }>();
   const router = useRouter();
   const [code, setCode] = useState('');
-  const [confirm, setConfirm] = useState<any>(null);
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
+
+  const {
+    data: userVerification,
+    isPending,
+    isLoading,
+  } = useUserVerificationQuery({
+    phoneNumber: phone,
+  });
+  const { mutateAsync } = useUpdateUserVerificationMutation();
 
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
 
@@ -37,34 +45,33 @@ const Page = () => {
     setValue: setCode,
   });
 
-  useEffect(() => {
-    (async () => {
-      if (code.length === 6) {
-        try {
-          router.replace('/(tabs)/chats');
-        } catch (error) {
-          Alert.alert(
-            'Invalid code.',
-            'The code you entered is incorrect. Please try again. ' +
-              (error as Error).message
-          );
-        }
-      }
-    })();
-  }, [code, confirm, router, signin]);
+  const verifyCode = useCallback(async () => {
+    if (code.length !== 6) return;
+
+    const result = await mutateAsync({
+      phoneNumber: phone,
+      isVerified: true,
+    });
+    if (result.isVerified) router.replace('/(tabs)/chats');
+  }, [code, mutateAsync, phone, router]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        // console.log('phone', phone);
-        const confirmation = await auth().signInWithPhoneNumber(phone, true);
-        // console.log(JSON.stringify(confirmation, null, 2));
-        setConfirm(confirmation);
-      } catch (error) {
-        Alert.alert('Error', (error as Error).message);
-      }
-    })();
-  }, [phone]);
+    verifyCode();
+  }, [verifyCode]);
+
+  useEffect(() => {
+    if (userVerification?.isVerified) {
+      router.replace('/(tabs)/chats');
+    }
+  }, [router, userVerification?.isVerified]);
+
+  if (isPending || isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

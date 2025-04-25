@@ -74,7 +74,12 @@ const Page = () => {
     return (
       <InputToolbar
         {...props}
-        containerStyle={{ backgroundColor: Colors.background }}
+        containerStyle={{
+          backgroundColor: Colors.background,
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: 56,
+        }}
         renderActions={() => (
           <View
             style={{

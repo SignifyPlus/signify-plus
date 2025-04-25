@@ -122,9 +122,11 @@ const MeetingView: React.FC = () => {
                 color: 'white',
               }}
             >
-              {(incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
-                .charAt(0)
-                .toUpperCase()}
+              {typeof incomingCallUser === 'string'
+                ? 'A'
+                : (incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
+                    .charAt(0)
+                    .toUpperCase()}
             </Text>
           </View>
           <Text
@@ -134,9 +136,11 @@ const MeetingView: React.FC = () => {
               marginBottom: 10,
             }}
           >
-            {incomingCallUser?.displayName ??
-              contact?.displayName ??
-              'Unknown Caller'}
+            {typeof incomingCallUser === 'string'
+              ? incomingCallUser
+              : (incomingCallUser?.displayName ??
+                contact?.displayName ??
+                'Unknown Caller')}
           </Text>
         </View>
       </View>

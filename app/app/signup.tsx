@@ -152,6 +152,8 @@ const SignupScreen = () => {
         }}
         textInputStyle={{
           height: 60,
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
         defaultCode="TR"
         layout="first"

@@ -11,8 +11,7 @@ const Layout = () => {
   const path = usePathname();
   const chatId = path.split('/').pop();
 
-  const { phoneNumber, setChatsSearchQuery, videoCallUser, voiceCallUser } =
-    useAppContext();
+  const { phoneNumber, setChatsSearchQuery, callUser } = useAppContext();
   const { contacts } = useUpdateContacts({ phoneNumber });
   const { data: chats } = useChatsQuery({ phoneNumber });
 
@@ -107,7 +106,7 @@ const Layout = () => {
               <TouchableOpacity
                 disabled={!chatPhoneNumber}
                 onPress={() => {
-                  if (chatPhoneNumber) videoCallUser(chatPhoneNumber);
+                  if (chatPhoneNumber) callUser('video', chatPhoneNumber);
                 }}
               >
                 <Ionicons
@@ -119,7 +118,7 @@ const Layout = () => {
               <TouchableOpacity
                 disabled={!chatPhoneNumber}
                 onPress={() => {
-                  if (chatPhoneNumber) voiceCallUser(chatPhoneNumber);
+                  if (chatPhoneNumber) callUser('voice', chatPhoneNumber);
                 }}
               >
                 <Ionicons

@@ -7,8 +7,10 @@ import { TouchableOpacity, View } from 'react-native';
 import { AppProvider } from '@/context/app-context';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-
 export { ErrorBoundary } from 'expo-router';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Warning: Country', 'Warning: Flag', 'Warning: Main']);
 
 SplashScreen.preventAutoHideAsync();
 

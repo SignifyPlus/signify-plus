@@ -13,7 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 const AcceptCallScreen = () => {
-  const { incomingCall, declineVideoCall, incomingCallUser } = useAppContext();
+  const { call, declineCall, incomingCallUser } = useAppContext();
 
   const { callType } = useLocalSearchParams<{
     callType: 'video' | 'voice';
@@ -22,20 +22,30 @@ const AcceptCallScreen = () => {
   const router = useRouter();
 
   const onAccept = () => {
-    if (!incomingCall) {
+    if (!call) {
       return;
     }
     if (callType === 'voice') {
-      router.push(`/voice-call?meetingId=${incomingCall.meetingId}`);
+      router.push(`/voice-call?meetingId=${call.meetingId}`);
     } else {
-      router.push(`/video-call?meetingId=${incomingCall.meetingId}`);
+      router.push(`/video-call?meetingId=${call.meetingId}`);
     }
   };
 
   const onDecline = () => {
-    declineVideoCall();
+    declineCall();
     router.back();
   };
+
+  const user =
+    typeof incomingCallUser === 'string'
+      ? incomingCallUser
+      : (incomingCallUser?.displayName ?? 'Unknown Caller');
+
+  const initial =
+    typeof incomingCallUser === 'string'
+      ? 'A'
+      : incomingCallUser?.displayName.charAt(0);
 
   return (
     <SafeAreaView
@@ -75,13 +85,7 @@ const AcceptCallScreen = () => {
                 color: 'white',
               }}
             >
-              {(
-                incomingCallUser?.displayName ??
-                incomingCall?.incomingCallNumber ??
-                'Unknown Caller'
-              )
-                .charAt(0)
-                .toUpperCase()}
+              {initial}
             </Text>
           </View>
           <Text
@@ -92,9 +96,7 @@ const AcceptCallScreen = () => {
               marginBottom: 10,
             }}
           >
-            {incomingCallUser?.displayName ??
-              incomingCall?.incomingCallNumber ??
-              'Unknown Caller'}
+            {user ?? 'Unknown Caller'}
           </Text>
           <Text
             style={{
