@@ -4,8 +4,6 @@ const LoggerFactory = require('../factories/loggerFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const UserAuthenticationDto = require('../dtos/UpdateUserAuthenticationDto.js');
-const ModelConstants = require('../constants/modelConstants.js');
-const ControllerConstants = require('../constants/controllerConstants.js');
 class UserAuthenticationController {
    constructor() {}
 
@@ -156,6 +154,66 @@ class UserAuthenticationController {
             .json(signifyException.loadResult());
       }
    };
+
+   async updateUserAuthenticationViaEvent(userId, isVerified) {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         if (userId == null || isVerified == null) {
+            const signifyException = new SignifyException(
+               500,
+               `userId or isVerified is Null!`,
+            );
+            return new SignifyResult(null, signifyException);
+         }
+
+         LoggerFactory.getApplicationLogger.info(
+            `Updating the userAuthentication record for the userId: ${userId} - satus: ${isVerified}`,
+         );
+
+         const existingUserAuthenticationRecord =
+            await ServiceFactory.getUserAuthenticationService.getDocumentByCustomFilters(
+               {
+                  userId: userId,
+               },
+            );
+         const existingUserAuthenticationRecordValidation =
+            await ExceptionHelper.validate(
+               existingUserAuthenticationRecord,
+               400,
+               `userAuthentication entry does not exist in the database - please try creating a new user to automatically create a default entry. You might be using an old account`,
+            );
+         if (existingUserAuthenticationRecordValidation)
+            return new SignifyResult(null, userIdValidation);
+         const updatedUserAuthenticationRecord =
+            await ServiceFactory.getUserAuthenticationService.updateDocument(
+               existingUserAuthenticationRecord._id,
+               {
+                  isVerified: isVerified,
+                  updatedAt: Date.now(),
+               },
+               mongooseSession,
+            );
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return new SignifyResult(updatedUserAuthenticationRecord);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
+   }
 
    async createDefaultUserAuthenticationRecord(userId) {
       var mongooseSession = null;

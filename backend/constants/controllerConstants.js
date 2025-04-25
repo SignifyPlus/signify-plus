@@ -6,7 +6,7 @@ class ControllerConstants {
 
    static ZERO_INDEX = 0;
 
-   static TWILIO_VERIFY_CHANNEL = "sms";
+   static TWILIO_VERIFY_CHANNEL = 'sms';
 
    static ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT = {
       English: 0,

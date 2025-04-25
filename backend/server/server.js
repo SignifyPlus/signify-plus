@@ -114,7 +114,9 @@ async function setupTwilio() {
          process.env.TWILIO_ACCOUNT_AUTH_TOKEN_ENCRYPTED,
       ),
    );
-   await ManagerFactory.getTwilioManager().setTwilioVerifyServiceDto(process.env.TWILIO_VERIFY_SERVICE_SID);
+   await ManagerFactory.getTwilioManager().setTwilioVerifyServiceDto(
+      process.env.TWILIO_VERIFY_SERVICE_SID,
+   );
 }
 
 async function setupApplicationLogger(logLevel) {
