@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Colors from '@/constants/Colors';
 import { AlphabetList, IData } from 'react-native-section-alphabet-list';
 import { defaultStyles } from '@/constants/Styles';
@@ -25,7 +31,11 @@ const Page = () => {
   const { phoneNumber } = useAppContext();
 
   const { contacts } = useUpdateContacts({ phoneNumber });
-  const { data: _data = [] } = useContactsQuery({ phoneNumber });
+  const {
+    data: _data = [],
+    isPending,
+    isLoading,
+  } = useContactsQuery({ phoneNumber });
   const { data: chats } = useChatsQuery({ phoneNumber });
   const { mutateAsync } = useCreateChatMutation();
 
@@ -59,6 +69,16 @@ const Page = () => {
   //   desc: contact.status ?? '',
   //   key: `${contact.name}-${index}`,
   // }));
+
+  if (isPending || isLoading) {
+    return (
+      <ActivityIndicator
+        style={{ flex: 1 }}
+        size="large"
+        color={Colors.primary}
+      />
+    );
+  }
 
   if (data.length === 0) {
     return (

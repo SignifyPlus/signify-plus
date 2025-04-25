@@ -1,42 +1,44 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Switch,
-  ScrollView,
-  Platform,
   ActivityIndicator,
   Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { UserSettings, useSettingsQuery } from '@/api/settings/settings-query';
 import { useUpdateSettingsMutation } from '@/api/settings/update-settings-mutation';
+import { useUpdateUserMutation } from '@/api/user/update-user-mutation';
 import { useAppContext } from '@/context/app-context';
 import { Ionicons } from '@expo/vector-icons';
+import { EditableField } from '@/components/EditableField';
 
 const Page = () => {
-  const context = useAppContext();
-  const phoneNumber = context.phoneNumber!;
+  const { phoneNumber, user, setUser } = useAppContext();
   const { data: settings, isLoading } = useSettingsQuery({ phoneNumber });
-  const { mutate } = useUpdateSettingsMutation();
+  const { mutate: updateSettings } = useUpdateSettingsMutation();
+  const { mutate: updateUser } = useUpdateUserMutation();
 
   const updateSetting = <K extends keyof UserSettings>(
     key: K,
     value: UserSettings[K]
   ) => {
     if (!settings) return;
-    mutate({
+    updateSettings({
       ...settings,
       [key]: value,
-      phoneNumber,
+      phoneNumber: phoneNumber!,
     });
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     router.replace('/');
   };
 
@@ -51,19 +53,55 @@ const Page = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.userHeader}>
-        {context.user?.profilePicture ? (
+        {user?.profilePicture ? (
           <Image
-            source={{ uri: context.user?.profilePicture }}
+            source={{ uri: user.profilePicture }}
             style={styles.avatarPlaceholder}
           />
         ) : (
           <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person-outline" />
+            <Ionicons name="person-outline" size={28} color="#555" />
           </View>
         )}
         <View style={styles.userText}>
-          <Text style={styles.userName}>{settings.userId?.name ?? 'User'}</Text>
-          <Text style={styles.userStatus}>Available</Text>
+          <EditableField
+            value={user?.name ?? ''}
+            onSave={(newName) => {
+              if (!user) return;
+              setUser({ ...user, name: newName });
+              updateUser(
+                {
+                  phoneNumber: user.phoneNumber,
+                  name: newName,
+                },
+                {
+                  onSuccess: (data) => {
+                    setUser({ ...user, name: data.name });
+                  },
+                }
+              );
+            }}
+            size="large"
+          />
+          <EditableField
+            value={user?.profileStatus ?? ''}
+            onSave={(newStatus) => {
+              if (!user) return;
+              setUser({ ...user, profileStatus: newStatus });
+              updateUser(
+                {
+                  phoneNumber: user.phoneNumber,
+                  profileStatus: newStatus,
+                },
+                {
+                  onSuccess: (data) => {
+                    setUser({ ...user, profileStatus: data.profileStatus });
+                  },
+                }
+              );
+            }}
+            size="small"
+          />
         </View>
       </View>
 
@@ -144,17 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   userText: {
-    flexDirection: 'column',
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111',
-  },
-  userStatus: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 4,
+    flex: 1,
   },
   title: {
     fontSize: 14,

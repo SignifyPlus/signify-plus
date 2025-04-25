@@ -100,6 +100,7 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
       ws?.close();
     };
   }, []);
+  
 
   return webcamOn && webcamStream ? (
     <View style={{ ...style }}>
