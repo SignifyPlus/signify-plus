@@ -51,7 +51,7 @@ ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 mainServer.listen(port, async () => {
    await CommonUtils.waitForVariableToBecomeNonNull(getApplicationLogger);
    LoggerFactory.getApplicationLogger.info(
-      `SignifyPlus Server is Up & Running`,
+      `SignifyPlus Server is Up & Running on http://localhost:${port}`,
    );
    const websocketManager = new WebSocketManager(mainServer);
 });
@@ -76,12 +76,7 @@ async function setupServer() {
       //as it wont be needed immediately
       await ManagerFactory.getAwsS3Manager().initiateS3Connection();
       //Twilio OTP/Verify
-      await ManagerFactory.getTwilioManager().initializeTwilioClient(
-         new TwilioAdmin(
-            process.env.TWILIO_ACCOUNT_SID_ENCRYPTED,
-            process.env.TWILIO_ACCOUNT_AUTH_TOKEN_ENCRYPTED,
-         ),
-      );
+      await setupTwilio();
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -110,6 +105,16 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       );
       throw new Error(exception);
    }
+}
+
+async function setupTwilio() {
+   await ManagerFactory.getTwilioManager().initializeTwilioClient(
+      new TwilioAdmin(
+         process.env.TWILIO_ACCOUNT_SID_ENCRYPTED,
+         process.env.TWILIO_ACCOUNT_AUTH_TOKEN_ENCRYPTED,
+      ),
+   );
+   await ManagerFactory.getTwilioManager().setTwilioVerifyServiceDto(process.env.TWILIO_VERIFY_SERVICE_SID);
 }
 
 async function setupApplicationLogger(logLevel) {
