@@ -51,12 +51,14 @@ class ChatController {
                   { mainUserId: userObject._id.toString() },
                   { participants: userObject._id.toString() },
                ],
+               isDeleted: false, // Only return non-deleted chats
             });
          const chats = await chatsQuery
             .populate({
                path: 'mainUserId participants',
                select: 'phoneNumber name',
             })
+            .sort({ isPinned: -1, lastActivity: -1 }) // Sort by pinned status first, then by activity
             .lean();
          const userChats = await this.#getUserChats(chats);
          response.json(await this.#postProcessChats(userChats));
@@ -84,16 +86,27 @@ class ChatController {
          const retrievedChat =
             ServiceFactory.getMessageService.getDocumentsByCustomFiltersQuery({
                chatId: new mongoose.Types.ObjectId(request.params.chatId),
+               isDeleted: false, // Only show non-deleted messages
             });
          const populatedChatData = await retrievedChat
-            .populate({
-               path: 'senderId receiverIds',
-               select: 'name phoneNumber',
-            })
+         .populate({
+            path: 'senderId receiverIds replyToId', // Add replyToId to populate
+            select: 'name phoneNumber content', // Add content for replyToId
+         })
+
+         .sort({ createdAt: 1 }) // Sort by creation time
             .lean();
+         // Get pinned messages for this chat
+         const pinnedMessages = await ServiceFactory.getMessageService.getDocumentsByCustomFilters({
+            chatId: new mongoose.Types.ObjectId(request.params.chatId),
+            isPinned: true,
+            isDeleted: false,
+         });
+
          response.json({
             messages: populatedChatData,
             totalNumberOfMessages: populatedChatData.length,
+            pinnedMessages: pinnedMessages || []
          });
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -122,6 +135,132 @@ class ChatController {
          );
       }
    }
+    // Delete entire chat
+    deleteChat = async (request, response) => {
+      try {
+         const userPhoneNumberValidation = await ExceptionHelper.validate(
+            request.body.userPhoneNumber,
+            400,
+            `userPhoneNumber is required!`,
+            response
+         );
+         if (userPhoneNumberValidation) return userPhoneNumberValidation;
+         const chatIdValidation = await ExceptionHelper.validate(
+            request.body.chatId,
+            400,
+            `chatId is not provided!`,
+            response
+         );
+         if (chatIdValidation) return chatIdValidation;
+         // Get user
+         const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({
+            phoneNumber: request.body.userPhoneNumber
+         });
+         const userValidation = await ExceptionHelper.validate(
+            user,
+            400,
+            `userPhoneNumber doesn't exist in the user table!`,
+            response
+         );
+         if (userValidation) return userValidation;
+         // Get chat
+         const chat = await ServiceFactory.getChatService.getDocumentById(request.body.chatId);
+         const chatValidation = await ExceptionHelper.validate(
+            chat,
+            400,
+            `Chat doesn't exist!`,
+            response
+         );
+         if (chatValidation) return chatValidation;
+         // Check if user is part of this chat
+         const isUserPartOfChat = 
+            chat.mainUserId.toString() === user._id.toString() || 
+            chat.participants.some(p => p.toString() === user._id.toString());
+         if (!isUserPartOfChat) {
+            return response.status(403).json({
+               error: "User is not part of this chat"
+            });
+         }
+         // Soft delete the chat
+         await ServiceFactory.getChatService.softDeleteChat(
+            chat._id.toString(),
+            user._id.toString()
+         );
+         return response.json({
+            message: "Chat deleted successfully"
+         });
+      } catch (exception) {
+         return response.status(500).json({ error: exception.message });
+      }
+   };
+   // Pin a chat
+   pinChat = async (request, response) => {
+      try {
+         const userPhoneNumberValidation = await ExceptionHelper.validate(
+            request.body.userPhoneNumber,
+            400,
+            `userPhoneNumber is required!`,
+            response
+         );
+         if (userPhoneNumberValidation) return userPhoneNumberValidation;
+         const chatIdValidation = await ExceptionHelper.validate(
+            request.body.chatId,
+            400,
+            `chatId is not provided!`,
+            response
+         );
+         if (chatIdValidation) return chatIdValidation;
+         const isPinnedValidation = await ExceptionHelper.validate(
+            request.body.isPinned !== undefined,
+            400,
+            `isPinned (boolean) is required!`,
+            response
+         );
+         if (isPinnedValidation) return isPinnedValidation;
+         // Get user
+         const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({
+            phoneNumber: request.body.userPhoneNumber
+         });
+         const userValidation = await ExceptionHelper.validate(
+            user,
+            400,
+            `userPhoneNumber doesn't exist in the user table!`,
+            response
+         );
+         if (userValidation) return userValidation;
+         // Get chat
+         const chat = await ServiceFactory.getChatService.getDocumentById(request.body.chatId);
+         const chatValidation = await ExceptionHelper.validate(
+            chat,
+            400,
+            `Chat doesn't exist!`,
+            response
+         );
+         if (chatValidation) return chatValidation;
+         // Check if user is part of this chat
+         const isUserPartOfChat = 
+            chat.mainUserId.toString() === user._id.toString() || 
+            chat.participants.some(p => p.toString() === user._id.toString());
+         if (!isUserPartOfChat) {
+            return response.status(403).json({
+               error: "User is not part of this chat"
+            });
+         }
+         // Update pin status
+         await ServiceFactory.getChatService.toggleChatPin(
+            chat._id.toString(),
+            user._id.toString(),
+            request.body.isPinned
+         );
+         return response.json({
+            message: request.body.isPinned ? 
+               "Chat pinned successfully" : 
+               "Chat unpinned successfully"
+         });
+      } catch (exception) {
+         return response.status(500).json({ error: exception.message });
+      }
+   };
 
    async #getUserChats(chats) {
       const chatObjects = [];
@@ -129,7 +268,10 @@ class ChatController {
       for (const chat of chats) {
          const messages =
             await ServiceFactory.getMessageService.getDocumentsByCustomFiltersAndSortByCreatedAt(
-               { chatId: chat._id.toString() },
+               {
+                  chatId: chat._id.toString(),
+                  isDeleted: false // Only count non-deleted messages
+               },
             );
          chat.lastMessage =
             messages == null || messages.length == ZERO_INDEX
@@ -137,9 +279,15 @@ class ChatController {
                : messages[ZERO_INDEX].content;
          chat.totalNumberOfMessagesInChat =
             messages == null ? 0 : messages.length;
-         chatObjects.push(chat);
-      }
-      return chatObjects;
+            // Add unread count
+            const unreadCount = messages?.filter(msg => 
+               !msg.isRead && 
+               msg.senderId.toString() !== chat.mainUserId._id.toString()
+            ).length || 0;
+            chat.unreadCount = unreadCount;
+            chatObjects.push(chat);
+         }
+         return chatObjects;
    }
 
    async #postProcessChats(chats) {
@@ -230,6 +378,7 @@ class ChatController {
             {
                mainUserId: mainUserPhoneNumberUserObject._id.toString(),
                participants: participantsIdMap,
+               lastActivity: new Date()
             },
             mongooseSession,
          );
@@ -285,6 +434,7 @@ class ChatController {
             $all: participantsIdMap,
             $size: participantsIdMap.length,
          },
+         isDeleted: false // Only consider non-deleted chats
       });
    }
 }

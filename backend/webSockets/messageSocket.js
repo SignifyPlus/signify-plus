@@ -30,6 +30,7 @@ class MessageSocket {
             data?.senderPhoneNumber,
             data?.targetPhoneNumbers,
             data?.message,
+            data?.replyToId // Add support for replies
          );
          try {
             if (
@@ -74,6 +75,7 @@ class MessageSocket {
                socket.to(userSocketMap[targetPhoneNumber]).emit('message', {
                   message: messageDto.message,
                   chatId: messageDto.chatId,
+                  replyToId: messageDto.replyToId, // Add reply info to emit event
                });
             });
          } catch (exception) {
@@ -111,6 +113,163 @@ class MessageSocket {
             );
          }
       });
+       // Add listeners for other message actions
+       this.setupMessageActionsListeners(socket, userSocketMap);
+      }
+      // Add new listener methods for other message actions
+      setupMessageActionsListeners(socket, userSocketMap) {
+         // Handle message editing
+         socket.on('edit-message', async (data) => {
+            try {
+               if (!data.messageId || !data.newContent || !data.senderPhoneNumber) {
+                  socket.emit('message-action-failure', {
+                     error: 'Missing required fields for message edit',
+                     action: 'edit-message'
+                  });
+                  return;
+               }
+               // Get the message and validate sender
+               const result = await MessageSocketUtils.validateMessageOwnership(
+                  data.messageId, 
+                  data.senderPhoneNumber
+               );
+               if (!result.success) {
+                  socket.emit('message-action-failure', {
+                     error: result.error,
+                     action: 'edit-message'
+                  });
+                  return;
+               }
+               // Update the message
+               const updatedMessage = await MessageSocketUtils.editMessage(
+                  data.messageId,
+                  data.newContent
+               );
+               // Notify all users in the chat
+               if (updatedMessage) {
+                  const targetPhoneNumbers = await MessageSocketUtils.getMessageRecipients(data.messageId);
+                  targetPhoneNumbers.forEach(phoneNumber => {
+                     if (userSocketMap[phoneNumber]) {
+                        socket.to(userSocketMap[phoneNumber]).emit('message-edited', {
+                           messageId: data.messageId,
+                           newContent: data.newContent,
+                           chatId: updatedMessage.chatId
+                        });
+                     }
+                  });
+                  // Confirm to sender
+                  socket.emit('message-edited', {
+                     messageId: data.messageId,
+                     newContent: data.newContent,
+                     chatId: updatedMessage.chatId
+                  });
+               }
+            } catch (error) {
+               LoggerFactory.getApplicationLogger.error(`Exception in edit-message: ${error}`);
+               socket.emit('message-action-failure', {
+                  error: 'Failed to edit message',
+                  action: 'edit-message'
+               });
+            }
+         });
+         // Handle message deletion
+         socket.on('delete-message', async (data) => {
+            try {
+               if (!data.messageId || !data.senderPhoneNumber) {
+                  socket.emit('message-action-failure', {
+                     error: 'Missing required fields for message delete',
+                     action: 'delete-message'
+                  });
+                  return;
+               }
+               // Get the message and validate sender
+               const result = await MessageSocketUtils.validateMessageOwnership(
+                  data.messageId, 
+                  data.senderPhoneNumber
+               );
+               if (!result.success) {
+                  socket.emit('message-action-failure', {
+                     error: result.error,
+                     action: 'delete-message'
+                  });
+                  return;
+               }
+               // Delete the message
+               const deletedMessage = await MessageSocketUtils.softDeleteMessage(data.messageId);
+               // Notify all users in the chat
+               if (deletedMessage) {
+                  const targetPhoneNumbers = await MessageSocketUtils.getMessageRecipients(data.messageId);
+                  targetPhoneNumbers.forEach(phoneNumber => {
+                     if (userSocketMap[phoneNumber]) {
+                        socket.to(userSocketMap[phoneNumber]).emit('message-deleted', {
+                           messageId: data.messageId,
+                           chatId: deletedMessage.chatId
+                        });
+                     }
+                  });
+                  // Confirm to sender
+                  socket.emit('message-deleted', {
+                     messageId: data.messageId,
+                     chatId: deletedMessage.chatId
+                  });
+               }
+            } catch (error) {
+               LoggerFactory.getApplicationLogger.error(`Exception in delete-message: ${error}`);
+               socket.emit('message-action-failure', {
+                  error: 'Failed to delete message',
+                  action: 'delete-message'
+
+               });
+            }
+         });
+         // Handle message pin/unpin
+         socket.on('pin-message', async (data) => {
+            try {
+               if (!data.messageId || !data.userPhoneNumber || data.isPinned === undefined) {
+                  socket.emit('message-action-failure', {
+                     error: 'Missing required fields for pin message',
+                     action: 'pin-message'
+                  });
+                  return;
+               }
+               // Pin/unpin the message
+               const result = await MessageSocketUtils.pinMessage(
+                  data.messageId,
+                  data.userPhoneNumber,
+                  data.isPinned
+               );
+               if (!result.success) {
+                  socket.emit('message-action-failure', {
+                     error: result.error,
+                     action: 'pin-message'
+                  });
+                  return;
+               }
+               // Notify all users in the chat
+               const targetPhoneNumbers = await MessageSocketUtils.getChatParticipants(result.data.chatId);
+               targetPhoneNumbers.forEach(phoneNumber => {
+                  if (userSocketMap[phoneNumber]) {
+                     socket.to(userSocketMap[phoneNumber]).emit('message-pin-updated', {
+                        messageId: data.messageId,
+                        isPinned: data.isPinned,
+                        chatId: result.data.chatId
+                     });
+                  }
+               });
+               // Confirm to sender
+               socket.emit('message-pin-updated', {
+                  messageId: data.messageId,
+                  isPinned: data.isPinned,
+                  chatId: result.data.chatId
+               });
+            } catch (error) {
+               LoggerFactory.getApplicationLogger.error(`Exception in pin-message: ${error}`);
+               socket.emit('message-action-failure', {
+                  error: 'Failed to update pin status',
+                  action: 'pin-message'
+               });
+            }
+         });
    }
 
    async chatCreatedListener() {

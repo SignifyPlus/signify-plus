@@ -28,4 +28,15 @@ chatRouter.post(
    ControllerFactory.getChatController().initializeEmptyChat,
 );
 
+// New routes
+chatRouter.delete(
+   '/delete',
+   ControllerFactory.getChatController().deleteChat
+);
+
+chatRouter.post(
+   '/pin',
+   ControllerFactory.getChatController().pinChat
+);
+
 module.exports = chatRouter;

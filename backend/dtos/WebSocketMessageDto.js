@@ -4,6 +4,7 @@ class WebSocketMessageDto {
       this.senderPhoneNumber = senderPhoneNumber;
       this.targetPhoneNumbers = targetPhoneNumbers;
       this.message = message;
+      this.replyToId = replyToId; // ID of the message this is a reply to
    }
 }
 
