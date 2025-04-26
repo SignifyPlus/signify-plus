@@ -78,6 +78,7 @@ class MeetingSocket {
                     isVoiceCall: callDto.isVoiceCall,
                  }
                : {
+                    targetPhoneNumber: phoneNumber,
                     senderSocketId: socket.id,
                     senderPhoneNumber: callDto.senderPhoneNumber,
                     message: 'Failed! - no user found!',
