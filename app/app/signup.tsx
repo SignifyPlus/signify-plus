@@ -49,28 +49,6 @@ const SignupScreen = () => {
       : 'Invalid phone number. Use format +491234567890';
   };
 
-  const validatePasswordsMatch = (pwd: string, repeatPwd: string) => {
-    return pwd !== repeatPwd ? 'Passwords do not match' : '';
-  };
-
-  const validatePasswordStrength = (pwd: string) => {
-    const lengthRequirement = /.{8,}/;
-    const lowercaseRequirement = /[a-z]/;
-    const uppercaseRequirement = /[A-Z]/;
-    const digitRequirement = /\d/;
-    const specialCharRequirement = /[!@#$%^&*(),.?":{}|<>]/;
-
-    return !(
-      lengthRequirement.test(pwd) &&
-      lowercaseRequirement.test(pwd) &&
-      uppercaseRequirement.test(pwd) &&
-      digitRequirement.test(pwd) &&
-      specialCharRequirement.test(pwd)
-    )
-      ? 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.'
-      : '';
-  };
-
   const handleSignup = () => {
     const phoneErr = validatePhoneNumber(phoneNumber);
     const strengthErr = validatePasswordStrength(password);
@@ -315,5 +293,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+export const validatePasswordsMatch = (pwd: string, repeatPwd: string) => {
+  return pwd !== repeatPwd ? 'Passwords do not match' : '';
+};
+
+export const validatePasswordStrength = (pwd: string) => {
+  const lengthRequirement = /.{8,}/;
+  const lowercaseRequirement = /[a-z]/;
+  const uppercaseRequirement = /[A-Z]/;
+  const digitRequirement = /\d/;
+  const specialCharRequirement = /[!@#$%^&*(),.?":{}|<>]/;
+
+  return !(
+    lengthRequirement.test(pwd) &&
+    lowercaseRequirement.test(pwd) &&
+    uppercaseRequirement.test(pwd) &&
+    digitRequirement.test(pwd) &&
+    specialCharRequirement.test(pwd)
+  )
+    ? 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.'
+    : '';
+};
 
 export default SignupScreen;

@@ -111,10 +111,10 @@ export const ControlsContainer = ({
 
       <TouchableOpacity
         onPress={async () => {
-          await clearMeetingIdOnServer();
           leave();
           declineCall();
           router.replace('/(tabs)/chats');
+          await clearMeetingIdOnServer();
         }}
         style={{
           backgroundColor: '#dc2626',

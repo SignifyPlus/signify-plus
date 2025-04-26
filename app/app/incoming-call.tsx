@@ -15,20 +15,21 @@ const { width } = Dimensions.get('window');
 const AcceptCallScreen = () => {
   const { call, declineCall, incomingCallUser } = useAppContext();
 
-  const { callType } = useLocalSearchParams<{
-    callType: 'video' | 'voice';
-  }>();
-
   const router = useRouter();
 
   const onAccept = () => {
     if (!call) {
       return;
     }
-    if (callType === 'voice') {
-      router.push(`/voice-call?meetingId=${call.meetingId}`);
-    } else {
-      router.push(`/video-call?meetingId=${call.meetingId}`);
+
+    console.log(call, 'incoming call');
+    switch (call.type) {
+      case 'video':
+        router.replace(`/video-call?meetingId=${call.meetingId}`);
+        break;
+      case 'voice':
+        router.replace(`/voice-call?meetingId=${call.meetingId}`);
+        break;
     }
   };
 

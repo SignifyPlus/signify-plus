@@ -10,7 +10,12 @@ import { Ionicons } from '@expo/vector-icons';
 export { ErrorBoundary } from 'expo-router';
 import { LogBox } from 'react-native';
 
-LogBox.ignoreLogs(['Warning: Country', 'Warning: Flag', 'Warning: Main']);
+LogBox.ignoreLogs([
+  'Warning: Country',
+  'Warning: Flag',
+  'Warning: Main',
+  'Header Modal:',
+]);
 
 SplashScreen.preventAutoHideAsync();
 

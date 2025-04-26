@@ -1,6 +1,6 @@
 import Colors from '@/constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -17,7 +17,8 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
 import { useUserVerificationQuery } from '@/api/user/user-verification-query';
-import { useUpdateUserVerificationMutation } from '@/api/user/update-user-verification-mutation';
+import { useGetOtpMutation } from '@/api/user/get-otp-mutation';
+import { useVerifyOtpMutation } from '@/api/user/verify-otp-mutation';
 
 const CELL_COUNT = 6;
 
@@ -36,7 +37,9 @@ const Page = () => {
   } = useUserVerificationQuery({
     phoneNumber: phone,
   });
-  const { mutateAsync } = useUpdateUserVerificationMutation();
+
+  const { mutate: getOtpMutate } = useGetOtpMutation();
+  const { mutate: verifyOtpMutate } = useVerifyOtpMutation();
 
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
 
@@ -45,19 +48,26 @@ const Page = () => {
     setValue: setCode,
   });
 
-  const verifyCode = useCallback(async () => {
+  useEffect(() => {
     if (code.length !== 6) return;
 
-    const result = await mutateAsync({
-      phoneNumber: phone,
-      isVerified: true,
-    });
-    if (result.isVerified) router.replace('/(tabs)/chats');
-  }, [code, mutateAsync, phone, router]);
+    verifyOtpMutate(
+      {
+        phoneNumber: phone,
+        otpCode: code,
+      },
+      {
+        onSuccess: (data) => {
+          if (data.valid || data.status === 'success')
+            router.replace('/(tabs)/chats');
+        },
+      }
+    );
+  }, [code, phone, router, verifyOtpMutate]);
 
   useEffect(() => {
-    verifyCode();
-  }, [verifyCode]);
+    if (phone && userVerification?.isVerified === false) getOtpMutate(phone);
+  }, [getOtpMutate, phone, userVerification?.isVerified]);
 
   useEffect(() => {
     if (userVerification?.isVerified) {
@@ -69,6 +79,14 @@ const Page = () => {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!userVerification) {
+    return (
+      <View>
+        <Text>Unable to find user verification</Text>
       </View>
     );
   }

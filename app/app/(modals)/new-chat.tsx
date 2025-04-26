@@ -8,7 +8,7 @@ import {
 import Colors from '@/constants/Colors';
 import { AlphabetList, IData } from 'react-native-section-alphabet-list';
 import { defaultStyles } from '@/constants/Styles';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '@/context/app-context';
 import { useContactsQuery } from '@/api/contacts-query';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -31,13 +31,11 @@ const Page = () => {
   const { phoneNumber } = useAppContext();
 
   const { contacts } = useUpdateContacts({ phoneNumber });
-  const {
-    data: _data = [],
-    isPending,
-    isLoading,
-  } = useContactsQuery({ phoneNumber });
+  const { data: _data = [], status } = useContactsQuery({ phoneNumber });
   const { data: chats } = useChatsQuery({ phoneNumber });
-  const { mutateAsync } = useCreateChatMutation();
+  const { mutateAsync, isPending: isPendingCreateChat } =
+    useCreateChatMutation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -70,7 +68,14 @@ const Page = () => {
   //   key: `${contact.name}-${index}`,
   // }));
 
-  if (isPending || isLoading) {
+  useEffect(() => {
+    if (isLoading) return;
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  }, [isLoading]);
+
+  if (isLoading || isPendingCreateChat) {
     return (
       <ActivityIndicator
         style={{ flex: 1 }}
