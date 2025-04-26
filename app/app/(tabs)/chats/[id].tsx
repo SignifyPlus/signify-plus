@@ -22,7 +22,7 @@ import { useChatsQuery } from '@/api/chat/chats-query';
 
 const Page = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const [text, setText] = useState('');
+  // const [text, setText] = useState('');
   const insets = useSafeAreaInsets();
 
   const { id } = useLocalSearchParams();
@@ -78,20 +78,21 @@ const Page = () => {
           backgroundColor: Colors.background,
           justifyContent: 'center',
           alignItems: 'center',
-          height: 56,
+          paddingVertical: 8,
+          // height: 56,
         }}
-        renderActions={() => (
-          <View
-            style={{
-              height: 44,
-              justifyContent: 'center',
-              alignItems: 'center',
-              left: 5,
-            }}
-          >
-            <Ionicons name="add" color={Colors.primary} size={28} />
-          </View>
-        )}
+        // renderActions={() => (
+        //   <View
+        //     style={{
+        //       height: 44,
+        //       justifyContent: 'center',
+        //       alignItems: 'center',
+        //       left: 5,
+        //     }}
+        //   >
+        //     <Ionicons name="add" color={Colors.primary} size={28} />
+        //   </View>
+        // )}
       />
     );
   };
@@ -128,7 +129,7 @@ const Page = () => {
       <GiftedChat
         messages={messages}
         onSend={(messages: any) => onSend(messages)}
-        onInputTextChanged={setText}
+        // onInputTextChanged={setText}
         user={{
           _id: user?._id ?? '',
         }}
@@ -139,6 +140,9 @@ const Page = () => {
         renderAvatar={null}
         maxComposerHeight={100}
         textInputProps={styles.composer}
+        messagesContainerStyle={{
+          paddingBottom: 12,
+        }}
         renderBubble={(props) => {
           return (
             <Bubble
@@ -159,10 +163,11 @@ const Page = () => {
             />
           );
         }}
+        alwaysShowSend
         renderSend={(props) => (
           <View
             style={{
-              height: 44,
+              height: '100%',
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
@@ -170,26 +175,24 @@ const Page = () => {
               paddingHorizontal: 14,
             }}
           >
-            {text === '' && (
-              <>
-                <Ionicons
-                  name="camera-outline"
-                  color={Colors.primary}
-                  size={28}
-                />
-                <Ionicons name="mic-outline" color={Colors.primary} size={28} />
-              </>
-            )}
-            {text !== '' && (
-              <Send
-                {...props}
-                containerStyle={{
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="send" color={Colors.primary} size={28} />
-              </Send>
-            )}
+            {/*{text === '' && (*/}
+            {/*  <>*/}
+            {/*    <Ionicons*/}
+            {/*      name="camera-outline"*/}
+            {/*      color={Colors.primary}*/}
+            {/*      size={28}*/}
+            {/*    />*/}
+            {/*    <Ionicons name="mic-outline" color={Colors.primary} size={28} />*/}
+            {/*  </>*/}
+            {/*)}*/}
+            <Send
+              {...props}
+              containerStyle={{
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="send" color={Colors.primary} size={28} />
+            </Send>
           </View>
         )}
         renderInputToolbar={renderInputToolbar}

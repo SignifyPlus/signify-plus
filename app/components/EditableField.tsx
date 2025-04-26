@@ -14,12 +14,14 @@ interface EditableFieldProps {
   value: string;
   onSave: (value: string) => void;
   size?: 'large' | 'small';
+  name: string;
 }
 
 export const EditableField: React.FC<EditableFieldProps> = ({
   value,
   onSave,
   size = 'small',
+  name,
 }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -55,6 +57,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
             onSubmitEditing={confirmEdit}
             blurOnSubmit
             style={[...sharedTextStyle, styles.input]}
+            placeholder="Status"
           />
           <TouchableOpacity onPress={confirmEdit} style={styles.iconBtn}>
             <Ionicons name="checkmark" size={20} color={Colors.primary} />
@@ -65,7 +68,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
         </View>
       ) : (
         <TouchableWithoutFeedback onPress={startEdit}>
-          <Text style={sharedTextStyle}>{value}</Text>
+          <Text style={sharedTextStyle}>{value || `Set ${name}`}</Text>
         </TouchableWithoutFeedback>
       )}
     </View>
