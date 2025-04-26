@@ -1,0 +1,30 @@
+{
+  "parser": "@babel/eslint-parser",
+  "plugins": ["react", "react-native", "react-hooks"],
+  "env": {
+    "react-native/react-native": true,
+    "browser": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-native/all",
+    "plugin:react-hooks/recommended"
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react-native/no-inline-styles": "off",
+    "no-undef": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "no-unused-vars": "off",
+    "react-native/sort-styles": "off",
+    "react-native/no-color-literals": "off",
+    "no-console": "error"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}

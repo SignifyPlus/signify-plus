@@ -3,6 +3,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useMeeting } from '@videosdk.live/react-native-sdk';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppContext } from '@/context/app-context';
 
 export const ControlsContainer = ({
   hideVideo = false,
@@ -11,6 +12,7 @@ export const ControlsContainer = ({
 }) => {
   const { leave, toggleWebcam, toggleMic, localParticipant } = useMeeting();
   const router = useRouter();
+  const { declineCall } = useAppContext();
 
   const [micOn, setMicOn] = useState<boolean>(false);
   const [webcamOn, setWebcamOn] = useState<boolean>(false);
@@ -87,9 +89,10 @@ export const ControlsContainer = ({
 
       <TouchableOpacity
         onPress={async () => {
-          // await clearMeetingIdOnServer();
           leave();
+          declineCall();
           router.replace('/(tabs)/chats');
+          //await clearMeetingIdOnServer();
         }}
         style={{
           backgroundColor: '#dc2626',

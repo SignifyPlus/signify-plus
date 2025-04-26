@@ -2,7 +2,7 @@ import Colors from '@/constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -16,19 +16,30 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import auth from '@react-native-firebase/auth';
+import { useUserVerificationQuery } from '@/api/user/user-verification-query';
+import { useGetOtpMutation } from '@/api/user/get-otp-mutation';
+import { useVerifyOtpMutation } from '@/api/user/verify-otp-mutation';
 
 const CELL_COUNT = 6;
 
 const Page = () => {
-  const { phone, signin } = useLocalSearchParams<{
+  const { phone } = useLocalSearchParams<{
     phone: string;
-    signin: string;
   }>();
   const router = useRouter();
   const [code, setCode] = useState('');
-  const [confirm, setConfirm] = useState<any>(null);
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
+
+  const {
+    data: userVerification,
+    isPending,
+    isLoading,
+  } = useUserVerificationQuery({
+    phoneNumber: phone,
+  });
+
+  const { mutate: getOtpMutate } = useGetOtpMutation();
+  const { mutate: verifyOtpMutate } = useVerifyOtpMutation();
 
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
 
@@ -38,38 +49,47 @@ const Page = () => {
   });
 
   useEffect(() => {
-    (async () => {
-      if (code.length === 6) {
-        try {
-          const result = await confirm.confirm(code);
-          console.log(JSON.stringify(result, null, 2));
-          router.replace('/(tabs)/chats');
-        } catch (error) {
-          Alert.alert(
-            'Invalid code.',
-            'The code you entered is incorrect. Please try again. ' +
-              (error as Error).message
-          );
-        }
+    if (code.length !== 6) return;
+
+    verifyOtpMutate(
+      {
+        phoneNumber: phone,
+        otpCode: code,
+      },
+      {
+        onSuccess: (data) => {
+          if (data.valid || data.status === 'success')
+            router.replace('/(tabs)/chats');
+        },
       }
-    })();
-  }, [code, confirm, router, signin]);
+    );
+  }, [code, phone, router, verifyOtpMutate]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const confirmation = await auth().signInWithPhoneNumber(phone);
-        console.log('confiramtion', confirmation);
-        setConfirm(confirmation);
-      } catch (error) {
-        Alert.alert(
-          'Error',
-          'Firebase authentication failed. Use a whitelisted number ' +
-            (error as Error).message
-        );
-      }
-    })();
-  }, [phone]);
+    if (phone && userVerification?.isVerified === false) getOtpMutate(phone);
+  }, [getOtpMutate, phone, userVerification?.isVerified]);
+
+  useEffect(() => {
+    if (userVerification?.isVerified) {
+      router.replace('/(tabs)/chats');
+    }
+  }, [router, userVerification?.isVerified]);
+
+  if (isPending || isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!userVerification) {
+    return (
+      <View>
+        <Text>Unable to find user verification</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

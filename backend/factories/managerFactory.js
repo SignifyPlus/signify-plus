@@ -7,6 +7,7 @@ const RabbitMqProcessorManager = require('../managers/rabbitMqProcessorManager.j
 const RabbitMqQueueManager = require('../managers/rabbitMqQueueManager.js');
 const FirebaseManager = require('../managers/firebase/firebaseManager.js');
 const AwsS3Manager = require('../managers/Aws/awsS3Manager.js');
+const TwilioManager = require('../managers/twilio/twilioManager.js');
 
 class ManagerFactory {
    //private fields
@@ -33,6 +34,12 @@ class ManagerFactory {
     * @type {AwsS3Manager | null}
     */
    static #awsS3Manager = null;
+
+   /**
+    * @private
+    * @type {TwilioManager | null}
+    */
+   static #twilioManager = null;
 
    static getRabbitMqQueueManager() {
       if (!ManagerFactory.#rabbitMqQueueManager) {
@@ -65,6 +72,13 @@ class ManagerFactory {
          ManagerFactory.#awsS3Manager = new AwsS3Manager();
       }
       return ManagerFactory.#awsS3Manager;
+   }
+
+   static getTwilioManager() {
+      if (!ManagerFactory.#twilioManager) {
+         ManagerFactory.#twilioManager = new TwilioManager();
+      }
+      return ManagerFactory.#twilioManager;
    }
 }
 

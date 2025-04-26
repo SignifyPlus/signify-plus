@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useMeeting } from '@videosdk.live/react-native-sdk';
 import { ParticipantView } from './ParticipantView';
-import { useAppContext } from '@/context/app-context';
-import { useUpdateContacts } from '@/context/use-update-contacts';
 
 interface ParticipantListProps {
   participants: string[];
@@ -12,12 +10,12 @@ interface ParticipantListProps {
 export const ParticipantList: React.FC<ParticipantListProps> = ({
   participants: participantsList,
 }) => {
-  const { callingUser, incomingCallUser, phoneNumber } = useAppContext();
   const { localParticipant } = useMeeting();
-  const { contacts } = useUpdateContacts({ phoneNumber });
-  const contact = contacts.find((contact) => {
-    return contact.phoneNumbers[0]?.number === callingUser;
-  });
+  // const { callingUser, incomingCallUser, phoneNumber } = useAppContext();
+  // const { contacts } = useUpdateContacts({ phoneNumber });
+  // const contact = contacts.find((contact) => {
+  //   return contact.phoneNumbers[0]?.number === callingUser;
+  // });
 
   const set = new Set(participantsList.filter(Boolean));
   const participants = Array.from(set);

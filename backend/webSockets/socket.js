@@ -1,8 +1,7 @@
 const LoggerFactory = require('../factories/loggerFactory.js');
 class Socket {
-   constructor(socket, userSocketMap) {
+   constructor(socket, userSocketMap, callSocketMap) {
       this.socketRegistrationEvent(socket, userSocketMap);
-      this.socketDisconnectionEvent(socket, userSocketMap);
    }
 
    socketRegistrationEvent(socket, userSocketMap) {
@@ -11,14 +10,6 @@ class Socket {
          userSocketMap[data.userPhoneNumber] = socket.id;
          LoggerFactory.getApplicationLogger.info(
             `User ${data.userPhoneNumber} registered with socket ID: ${socket.id}`,
-         );
-      });
-   }
-
-   socketDisconnectionEvent(socket, userSocketMap) {
-      socket.on('socket-disconnect', () => {
-         LoggerFactory.getApplicationLogger.info(
-            `Socket with id ${socket.id.substr(0, 2)} disconnected`,
          );
       });
    }

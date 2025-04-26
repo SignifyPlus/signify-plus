@@ -5,7 +5,13 @@ const S3RequestPresigner = require('@aws-sdk/s3-request-presigner');
 const CommonConstants = require('../../constants/commonConstants.js');
 const LoggerFactory = require('../../factories/loggerFactory.js');
 class awsS3Manager {
+   /**
+    * @type {AwsS3 | null}
+    */
    #awsS3Dto = null;
+   /**
+    * @type {S3Client.S3 | null}
+    */
    #awsS3Connection = null;
    constructor() {
       this.#createAwsS3Dto();
@@ -50,13 +56,39 @@ class awsS3Manager {
    async initiateS3Connection() {
       LoggerFactory.getApplicationLogger.info(`Initializing S3 connection...`);
       this.#awsS3Connection = new S3Client.S3({
-         accessKeyId: this.#awsS3Dto.accessKey,
-         secretAccessKey: this.#awsS3Dto.secretAccessKey,
+         credentials: {
+            accessKeyId: this.#awsS3Dto.accessKey,
+            secretAccessKey: this.#awsS3Dto.secretAccessKey,
+         },
          region: this.#awsS3Dto.region,
       });
    }
 
-   async generatePresignedS3UploadUrl() {}
+   get getAwsS3Dto() {
+      return this.#awsS3Dto;
+   }
+
+   get getAwsS3Connection() {
+      return this.#awsS3Connection;
+   }
+
+   async generatePresignedS3UploadUrl(fileName, fileType) {
+      const awsS3Parameters = {
+         Bucket: this.#awsS3Dto.bucketName,
+         Key: fileName,
+         ContentType: fileType,
+      };
+      const putObjectCommand = new S3Client.PutObjectCommand(awsS3Parameters);
+      const uploadUrl = await S3RequestPresigner.getSignedUrl(
+         this.#awsS3Connection,
+         putObjectCommand,
+         { expiresIn: CommonConstants.S3_PRE_SIGNED_URL_EXPIRATION_TIME },
+      );
+      LoggerFactory.getApplicationLogger.info(
+         `Generated presigned URL: ${uploadUrl}`,
+      );
+      return uploadUrl;
+   }
 
    async fetchFileFromS3Bucket() {}
 }

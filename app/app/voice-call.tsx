@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Platform,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -15,11 +14,10 @@ import {
 } from '@videosdk.live/react-native-sdk';
 import { createMeeting, token } from '@/api';
 import { useLocalSearchParams } from 'expo-router';
-import { ParticipantList } from '@/components/ParticipantList';
 import { ControlsContainer } from '@/components/ControlsContainer';
 import { useAppContext } from '@/context/app-context';
 import { useUpdateContacts } from '@/context/use-update-contacts';
-import { sanitizePhoneNumber } from '@/constants/utils';
+import { Ringing } from '@/components/Ringing';
 
 register();
 
@@ -63,15 +61,13 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
 };
 
 const MeetingView: React.FC = () => {
-  const { incomingCallUser, phoneNumber, callingUser } = useAppContext();
+  const { incomingCallUser, phoneNumber, callingUser, call } = useAppContext();
 
-  console.log('callingUsercallingUserr', callingUser);
   const { contacts } = useUpdateContacts({ phoneNumber });
   const contact = contacts.find((contact) => {
     return contact.phoneNumbers[0]?.number === callingUser;
   });
 
-  console.log('incomingCallUser', incomingCallUser);
   const { participants, localParticipant, join } = useMeeting();
   const participantsArrId = Array.from(participants.keys());
   const joinedRef = React.useRef(false);
@@ -88,6 +84,23 @@ const MeetingView: React.FC = () => {
       }, 200);
     }
   }, [join, localParticipant?.id, participantsArrId]);
+
+  const isRinging = joinedRef.current && participantsArrId.length <= 1;
+
+  const did2ParticipantsJoin = useRef(false);
+
+  useEffect(() => {
+    if (did2ParticipantsJoin.current) return;
+    did2ParticipantsJoin.current = participantsArrId.length > 1;
+  }, [participantsArrId.length]);
+
+  if (!call || (did2ParticipantsJoin.current && isRinging)) {
+    return null;
+  }
+
+  if (isRinging) {
+    return <Ringing />;
+  }
 
   return (
     <View
@@ -127,9 +140,11 @@ const MeetingView: React.FC = () => {
                 color: 'white',
               }}
             >
-              {(incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
-                .charAt(0)
-                .toUpperCase()}
+              {typeof incomingCallUser === 'string'
+                ? 'A'
+                : (incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
+                    .charAt(0)
+                    .toUpperCase()}
             </Text>
           </View>
           <Text
@@ -139,9 +154,11 @@ const MeetingView: React.FC = () => {
               marginBottom: 10,
             }}
           >
-            {incomingCallUser?.displayName ??
-              contact?.displayName ??
-              'Unknown Caller'}
+            {typeof incomingCallUser === 'string'
+              ? incomingCallUser
+              : (incomingCallUser?.displayName ??
+                contact?.displayName ??
+                'Unknown Caller')}
           </Text>
         </View>
       </View>

@@ -10,6 +10,7 @@ export interface User {
   password: string;
   phoneNumber: string;
   profilePicture?: string;
+  profileStatus?: string;
 }
 interface LoginPayload {
   phoneNumber: string;

@@ -26,8 +26,6 @@ const Page = () => {
     phoneNumber,
   });
 
-  // const chats = data ?? [];
-
   const chatRows: ChatRowProps[] = (data ?? [])
     .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
     .map((chat) => {

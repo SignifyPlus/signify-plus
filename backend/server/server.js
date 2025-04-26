@@ -13,6 +13,7 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
+const TwilioAdmin = require('../managers/twilio/models/TwilioAdmin.js');
 
 //routes
 const userRoutes = require('../routes/UserRoutes.js');
@@ -26,6 +27,8 @@ const threadRoutes = require('../routes/ThreadRoutes.js');
 const commentRoutes = require('../routes/CommentRoutes.js');
 const settingsRoutes = require('../routes/SettingsRoutes.js');
 const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js');
+const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
+const amazonS3Routes = require('../routes/AmazonS3Routes.js');
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -49,7 +52,7 @@ ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 mainServer.listen(port, async () => {
    await CommonUtils.waitForVariableToBecomeNonNull(getApplicationLogger);
    LoggerFactory.getApplicationLogger.info(
-      `SignifyPlus Server is Up & Running`,
+      `SignifyPlus Server is Up & Running on http://localhost:${port}`,
    );
    const websocketManager = new WebSocketManager(mainServer);
 });
@@ -72,10 +75,9 @@ async function setupServer() {
       //setup Amazon S3 Manager
       //dont await, let it run on a separate thread
       //as it wont be needed immediately
-      ManagerFactory.getAwsS3Manager().initiateS3Connection();
-      //TODO Later
-      //initiliaze firebase admin (for now not needed)
-      //await ManagerFactory.getFirebaseManager().connectToFireBase(process.env.FIRE_BASE_AUTHENTICATION_CREDS);
+      await ManagerFactory.getAwsS3Manager().initiateS3Connection();
+      //Twilio OTP/Verify
+      await setupTwilio();
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -97,12 +99,26 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/comments', commentRoutes);
       signifyPlusAppServer.use('/settings', settingsRoutes);
       signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
+      signifyPlusAppServer.use('/twilio', twilioOtpRoutes);
+      signifyPlusAppServer.use('/amazon', amazonS3Routes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
       );
       throw new Error(exception);
    }
+}
+
+async function setupTwilio() {
+   await ManagerFactory.getTwilioManager().initializeTwilioClient(
+      new TwilioAdmin(
+         process.env.TWILIO_ACCOUNT_SID_ENCRYPTED,
+         process.env.TWILIO_ACCOUNT_AUTH_TOKEN_ENCRYPTED,
+      ),
+   );
+   await ManagerFactory.getTwilioManager().setTwilioVerifyServiceDto(
+      process.env.TWILIO_VERIFY_SERVICE_SID,
+   );
 }
 
 async function setupApplicationLogger(logLevel) {

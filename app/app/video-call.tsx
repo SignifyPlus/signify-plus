@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -16,6 +16,8 @@ import { createMeeting, token } from '@/api';
 import { useLocalSearchParams } from 'expo-router';
 import { ParticipantList } from '@/components/ParticipantList';
 import { ControlsContainer } from '@/components/ControlsContainer';
+import { Ringing } from '@/components/Ringing';
+import { useAppContext } from '@/context/app-context';
 
 register();
 
@@ -61,6 +63,7 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
 const MeetingView: React.FC = () => {
   const { participants, localParticipant, join } = useMeeting();
 
+  const { call } = useAppContext();
   const participantsArrId = Array.from(participants.keys());
 
   const joinedRef = React.useRef(false);
@@ -83,6 +86,23 @@ const MeetingView: React.FC = () => {
       }, 200);
     }
   }, [join, localParticipant?.id, participantsArrId]);
+
+  const isRinging = joinedRef.current && participantsArrId.length <= 1;
+
+  const did2ParticipantsJoin = useRef(false);
+
+  useEffect(() => {
+    if (did2ParticipantsJoin.current) return;
+    did2ParticipantsJoin.current = participantsArrId.length > 1;
+  }, [participantsArrId.length]);
+
+  if (!call || (did2ParticipantsJoin.current && isRinging)) {
+    return null;
+  }
+
+  if (isRinging) {
+    return <Ringing />;
+  }
 
   return (
     <View
