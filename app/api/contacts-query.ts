@@ -28,7 +28,7 @@ export const contactsQueryKey = (params: { phoneNumber?: string }) => [
 ];
 
 export const useContactsQuery = (params: { phoneNumber?: string }) => {
-  const { isPending, error, data } = useQuery({
+  return useQuery({
     queryKey: contactsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
@@ -39,6 +39,4 @@ export const useContactsQuery = (params: { phoneNumber?: string }) => {
       return (await response.json()) as UserContact[];
     },
   });
-
-  return { isPending, error, data };
 };

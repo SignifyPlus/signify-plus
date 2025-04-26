@@ -98,8 +98,10 @@ const LoginScreen = () => {
         }}
         textInputStyle={{
           height: 60,
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
-        defaultCode="DE"
+        defaultCode="TR"
         layout="first"
         onChangeFormattedText={setPhoneNumber}
       />

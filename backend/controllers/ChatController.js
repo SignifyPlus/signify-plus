@@ -44,6 +44,14 @@ class ChatController {
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: request.params.phoneNumber,
             });
+
+         const userValidation = await ExceptionHelper.validate(
+            userObject,
+            400,
+            `User doesn't exist!.`,
+            response,
+         );
+         if (userValidation) return userValidation;
          const chatsQuery =
             ServiceFactory.getChatService.getDocumentsByCustomFiltersQuery({
                $or: [
@@ -317,6 +325,9 @@ class ChatController {
       const chatObjects = [];
       const ZERO_INDEX = 0;
       for (const chat of chats) {
+         if (await this.#isChatInvalid(chat)) {
+            continue;
+         }
          const messages =
             await ServiceFactory.getMessageService.getDocumentsByCustomFiltersAndSortByCreatedAt(
                {
@@ -487,6 +498,21 @@ class ChatController {
          },
          isDeleted: false // Only consider non-deleted chats
       });
+   }
+
+   async #isChatInvalid(chat) {
+      if (
+         chat == null ||
+         chat == undefined ||
+         chat.mainUserId == null ||
+         chat.mainUserId == undefined ||
+         chat.participants == null ||
+         chat.participants == undefined
+      ) {
+         return true;
+      }
+
+      return false;
    }
 }
 module.exports = ChatController;

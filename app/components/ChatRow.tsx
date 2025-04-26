@@ -25,6 +25,8 @@ export const ChatRow: FC<ChatRowProps> = ({
   // read,
   // unreadCount,
 }) => {
+  const message = msg.split('\n')[msg.split('\n').length - 1];
+
   return (
     <AppleStyleSwipeableRow>
       <Link href={`/(tabs)/chats/${id}`} asChild>
@@ -64,7 +66,9 @@ export const ChatRow: FC<ChatRowProps> = ({
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{from}</Text>
               <Text style={{ fontSize: 16, color: Colors.gray }}>
-                {msg.length > 40 ? `${msg.substring(0, 40)}...` : msg}
+                {(message || msg).length > 40
+                  ? `${(message || msg).substring(0, 40)}...`
+                  : message || msg}
               </Text>
             </View>
             <Text

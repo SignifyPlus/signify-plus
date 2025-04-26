@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -17,6 +17,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ControlsContainer } from '@/components/ControlsContainer';
 import { useAppContext } from '@/context/app-context';
 import { useUpdateContacts } from '@/context/use-update-contacts';
+import { Ringing } from '@/components/Ringing';
 
 register();
 
@@ -60,7 +61,7 @@ const JoinScreen: React.FC<JoinScreenProps> = ({
 };
 
 const MeetingView: React.FC = () => {
-  const { incomingCallUser, phoneNumber, callingUser } = useAppContext();
+  const { incomingCallUser, phoneNumber, callingUser, call } = useAppContext();
 
   const { contacts } = useUpdateContacts({ phoneNumber });
   const contact = contacts.find((contact) => {
@@ -83,6 +84,23 @@ const MeetingView: React.FC = () => {
       }, 200);
     }
   }, [join, localParticipant?.id, participantsArrId]);
+
+  const isRinging = joinedRef.current && participantsArrId.length <= 1;
+
+  const did2ParticipantsJoin = useRef(false);
+
+  useEffect(() => {
+    if (did2ParticipantsJoin.current) return;
+    did2ParticipantsJoin.current = participantsArrId.length > 1;
+  }, [participantsArrId.length]);
+
+  if (!call || (did2ParticipantsJoin.current && isRinging)) {
+    return null;
+  }
+
+  if (isRinging) {
+    return <Ringing />;
+  }
 
   return (
     <View
@@ -122,9 +140,11 @@ const MeetingView: React.FC = () => {
                 color: 'white',
               }}
             >
-              {(incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
-                .charAt(0)
-                .toUpperCase()}
+              {typeof incomingCallUser === 'string'
+                ? 'A'
+                : (incomingCallUser?.displayName ?? contact?.displayName ?? 'A')
+                    .charAt(0)
+                    .toUpperCase()}
             </Text>
           </View>
           <Text
@@ -134,9 +154,11 @@ const MeetingView: React.FC = () => {
               marginBottom: 10,
             }}
           >
-            {incomingCallUser?.displayName ??
-              contact?.displayName ??
-              'Unknown Caller'}
+            {typeof incomingCallUser === 'string'
+              ? incomingCallUser
+              : (incomingCallUser?.displayName ??
+                contact?.displayName ??
+                'Unknown Caller')}
           </Text>
         </View>
       </View>

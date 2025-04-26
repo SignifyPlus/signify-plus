@@ -13,29 +13,40 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 const AcceptCallScreen = () => {
-  const { incomingCall, declineVideoCall, incomingCallUser } = useAppContext();
-
-  const { callType } = useLocalSearchParams<{
-    callType: 'video' | 'voice';
-  }>();
+  const { call, declineCall, incomingCallUser } = useAppContext();
 
   const router = useRouter();
 
   const onAccept = () => {
-    if (!incomingCall) {
+    if (!call) {
       return;
     }
-    if (callType === 'voice') {
-      router.push(`/voice-call?meetingId=${incomingCall.meetingId}`);
-    } else {
-      router.push(`/video-call?meetingId=${incomingCall.meetingId}`);
+
+    console.log(call, 'incoming call');
+    switch (call.type) {
+      case 'video':
+        router.replace(`/video-call?meetingId=${call.meetingId}`);
+        break;
+      case 'voice':
+        router.replace(`/voice-call?meetingId=${call.meetingId}`);
+        break;
     }
   };
 
   const onDecline = () => {
-    declineVideoCall();
+    declineCall();
     router.back();
   };
+
+  const user =
+    typeof incomingCallUser === 'string'
+      ? incomingCallUser
+      : (incomingCallUser?.displayName ?? 'Unknown Caller');
+
+  const initial =
+    typeof incomingCallUser === 'string'
+      ? 'A'
+      : incomingCallUser?.displayName.charAt(0);
 
   return (
     <SafeAreaView
@@ -75,13 +86,7 @@ const AcceptCallScreen = () => {
                 color: 'white',
               }}
             >
-              {(
-                incomingCallUser?.displayName ??
-                incomingCall?.incomingCallNumber ??
-                'Unknown Caller'
-              )
-                .charAt(0)
-                .toUpperCase()}
+              {initial}
             </Text>
           </View>
           <Text
@@ -92,9 +97,7 @@ const AcceptCallScreen = () => {
               marginBottom: 10,
             }}
           >
-            {incomingCallUser?.displayName ??
-              incomingCall?.incomingCallNumber ??
-              'Unknown Caller'}
+            {user ?? 'Unknown Caller'}
           </Text>
           <Text
             style={{
