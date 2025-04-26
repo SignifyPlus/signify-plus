@@ -1,5 +1,6 @@
 const CommonConstants = require('../constants/commonConstants.js');
 const LoggerManager = require('../managers/loggerManager.js');
+const Uuid = require('uuid');
 class CommonUtils {
    static async waitForVariableToBecomeNonNull(
       getterFunction,
@@ -26,6 +27,10 @@ class CommonUtils {
       return Buffer.from(base64EncodedString, CommonConstants.BASE_64).toString(
          CommonConstants.BUFFER_ENCODING,
       );
+   }
+
+   static async generateUuid() {
+      return Uuid.v4();
    }
 }
 module.exports = CommonUtils;

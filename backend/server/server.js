@@ -28,6 +28,7 @@ const commentRoutes = require('../routes/CommentRoutes.js');
 const settingsRoutes = require('../routes/SettingsRoutes.js');
 const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js');
 const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
+const amazonS3Routes = require('../routes/AmazonS3Routes.js');
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -99,6 +100,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/settings', settingsRoutes);
       signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
       signifyPlusAppServer.use('/twilio', twilioOtpRoutes);
+      signifyPlusAppServer.use('/amazon', amazonS3Routes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,

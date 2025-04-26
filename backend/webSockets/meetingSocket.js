@@ -81,7 +81,7 @@ class MeetingSocket {
                     targetPhoneNumber: phoneNumber,
                     senderSocketId: socket.id,
                     senderPhoneNumber: callDto.senderPhoneNumber,
-                    message: 'Failed! - no user found!',
+                    message: `NO_USER_FOUND`,
                  };
             socketEventType.emit(event, payloadBody);
          });
@@ -131,9 +131,10 @@ class MeetingSocket {
                     message: 'Call Declined!',
                  }
                : {
+                    targetPhoneNumber: targetPhoneNumber,
                     sender: socket.id,
                     senderPhoneNumber: data.userPhoneNumber,
-                    message: `Failed! - no user found with ${data.targetPhoneNumber}`,
+                    message: `NO_USER_FOUND`,
                  };
             socketEventType.emit(event, payloadBody);
          });
