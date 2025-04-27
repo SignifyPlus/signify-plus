@@ -53,6 +53,10 @@ class UserService extends AbstractService {
    getDocumentsByCustomFiltersQuery(filterConditions, session = null) {
       return super.getDocumentsByCustomFiltersQuery(filterConditions, session);
    }
+
+   getDocumentByCustomFiltersQuery(filterConditions, session = null) {
+      return super.getDocumentByCustomFiltersQuery(filterConditions, session);
+   }
 }
 
 module.exports = UserService;

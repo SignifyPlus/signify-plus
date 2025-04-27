@@ -60,7 +60,25 @@ class UserController {
             response,
          );
          if (userValidation) return userValidation;
-         response.json(user);
+         const userAuthenticationRecord =
+            await ServiceFactory.getUserAuthenticationService.getDocumentByCustomFilters(
+               {
+                  userId: user._id.toString(),
+               },
+            );
+         const userAuthenticationRecordValidation =
+            await ExceptionHelper.validate(
+               userAuthenticationRecord,
+               400,
+               `UserAuthentication does not exist for the user: ${user._id.toString()}`,
+               response,
+            );
+         if (userAuthenticationRecordValidation)
+            return userAuthenticationRecordValidation;
+         //add the authenticationrecord - converts the mongoose document to an object, and then add the authentication record (with the same name)
+         //spreads over all the properties of user object first
+         const finalUser = { ...user.toObject(), userAuthenticationRecord };
+         response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
       }
