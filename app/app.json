@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "videosdk-expo-app",
-    "slug": "videosdk-expo-app",
+    "name": "SignifyPlus",
+    "slug": "SignifyPlus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,13 +15,16 @@
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
-      "bundleIdentifier": "com.anonymous.videosdkexpoapp"
+      "bundleIdentifier": "com.anonymous.videosdkexpoapp",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/foreground.png",
+        "backgroundImage": "./assets/background.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.BLUETOOTH_CONNECT",
@@ -42,6 +45,9 @@
     "plugins": [
       "@config-plugins/react-native-webrtc",
       "@videosdk.live/expo-config-plugin",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/crashlytics",
       "expo-router"
     ]
   }

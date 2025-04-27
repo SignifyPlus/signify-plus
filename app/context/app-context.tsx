@@ -17,20 +17,23 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useUpdateContacts } from '@/context/use-update-contacts';
 import { useContactsQuery } from '@/api/contacts-query';
 import { User } from '@/api/user/login-user-mutation';
+import { sanitizePhoneNumber } from '@/constants/utils';
+import { Contact } from 'react-native-contacts/type';
 
-type IncomingCallType = {
+type CallType = {
+  type: 'video' | 'voice';
   meetingId: string;
-  incomingCallNumber: string;
+  caller: string;
+  callee: string;
 };
 
 type AppContextType = {
   phoneNumber?: string;
   setPhoneNumber: (phoneNumber: string) => void;
-  videoCallUser: (targetPhoneNumber: string) => void;
   emitMessage: (message: string) => void;
   isConnected: boolean;
-  incomingCall: IncomingCallType | null;
-  declineVideoCall: () => void;
+  call: CallType | null;
+  declineCall: () => void;
   sendMessage: (
     message: string,
     targetPhoneNumbers: string[],
@@ -38,13 +41,14 @@ type AppContextType = {
   ) => void;
   user: User | undefined;
   setUser: (user: User) => void;
+  chatsSearchQuery: string;
+  setChatsSearchQuery: (query: string) => void;
+  incomingCallUser: Contact | string | undefined;
+  callingUser: string | undefined;
+  callUser: (type: 'voice' | 'video', targetPhoneNumber: string) => void;
 };
 
 export const AppContext = createContext<AppContextType | null>(null);
-
-export const sanitizePhoneNumber = (phoneNumber: string): string => {
-  return phoneNumber.replace(/[\s\-()]/g, '');
-};
 
 export const useAppContext = () => {
   const context = useContext(AppContext);
@@ -55,14 +59,15 @@ export const useAppContext = () => {
 };
 
 export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
+  const [chatsSearchQuery, setChatsSearchQuery] = useState('');
   const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
-  const [incomingCall, setIncomingCall] = useState<IncomingCallType | null>(
-    null
-  );
+  const { contacts } = useUpdateContacts({ phoneNumber });
+  const [call, setCall] = useState<CallType | null>(null);
   const router = useRouter();
   const [user, setUser] = useState<User | undefined>();
+
   // means to fetch earlier than required so we can see the list instantly
   useContactsQuery({ phoneNumber });
 
@@ -77,7 +82,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   );
 
   const sendMeetingId = useCallback(
-    (meetingId: string, targetPhoneNumber: string) => {
+    (meetingId: string, targetPhoneNumber: string, isVoiceCall: boolean) => {
       const socket = socketRef.current;
       if (socket && phoneNumber) {
         socket.connect();
@@ -86,6 +91,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
           userPhoneNumber: sanitizePhoneNumber(phoneNumber),
           meetingId,
           targetPhoneNumbers: [sanitizedTargetPhone],
+          isVoiceCall,
         });
       }
     },
@@ -107,7 +113,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
           chatId,
         });
         setTimeout(() => {
-          console.log('Invalidating query');
           void queryClient.invalidateQueries({ queryKey: ['chats'] });
         }, 100);
       }
@@ -132,34 +137,49 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, []);
 
-  const videoCallUser = useCallback(
-    async (targetPhoneNumber: string) => {
-      if (!phoneNumber) {
-        return;
-      }
+  const callUser = useCallback(
+    async (type: 'voice' | 'video', targetPhoneNumber: string) => {
+      if (!phoneNumber) return;
       const sanitizedTargetPhone = sanitizePhoneNumber(targetPhoneNumber);
       const meetingId = await createMeeting();
-      sendMeetingId(meetingId, sanitizedTargetPhone);
-      router.push(`/video-call?meetingId=${meetingId}`);
-      // Send the new meeting ID to the Python server via HTTP POST
-      await sendMeetingIdToPython(meetingId);
+      setCall({
+        type: type,
+        meetingId: meetingId,
+        caller: phoneNumber,
+        callee: targetPhoneNumber,
+      });
+      sendMeetingId(meetingId, sanitizedTargetPhone, type === 'voice');
+      switch (type) {
+        case 'video':
+          router.push(`/video-call?meetingId=${meetingId}`);
+          await sendMeetingIdToPython(meetingId);
+          break;
+        case 'voice':
+          router.push(`/voice-call?meetingId=${meetingId}`);
+          break;
+        default:
+          throw new Error('Invalid call type');
+      }
     },
     [phoneNumber, router, sendMeetingId, sendMeetingIdToPython]
   );
 
-  const declineVideoCall = useCallback(() => {
+  const declineCall = useCallback(() => {
     const socket = socketRef.current;
-    if (socket && isConnected && incomingCall && phoneNumber) {
+    if (socket && isConnected && call && phoneNumber) {
+      const targetPhoneNumbers = [
+        sanitizePhoneNumber(
+          call?.callee === phoneNumber ? call.caller : call.callee
+        ),
+      ];
       socket.emit('meeting-id-decline', {
         userPhoneNumber: sanitizePhoneNumber(phoneNumber),
-        meetingId: incomingCall?.meetingId,
-        targetPhoneNumber: sanitizePhoneNumber(
-          incomingCall?.incomingCallNumber
-        ),
+        meetingId: call?.meetingId,
+        targetPhoneNumbers: targetPhoneNumbers,
       });
     }
-    setIncomingCall(null);
-  }, [incomingCall, isConnected, phoneNumber]);
+    setCall(null);
+  }, [call, isConnected, phoneNumber]);
 
   useEffect(() => {
     if (!phoneNumber) return;
@@ -186,14 +206,32 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
     socket.on('meeting-id-offer', (data) => {
       // Handle incoming meeting ID offer
-      setIncomingCall({
+
+      const callType = data.isVoiceCall ? 'voice' : 'video';
+      setCall({
+        type: callType,
         meetingId: data.meetingId,
-        incomingCallNumber: data.senderPhoneNumber,
+        caller: data.senderPhoneNumber,
+        callee: phoneNumber,
       });
+      router.push(`/incoming-call?callType=${callType}`);
+    });
+
+    socket.on('call-declined', (_data) => {
+      setCall(null);
+      router.dismiss();
     });
 
     socket.on('meeting-id-failed', (_data) => {
       // console.error('Meeting ID offer failed:', data.message);
+
+      setCall(null);
+      router.dismiss();
+    });
+
+    socket.on('user-disconnected-from-meeting', () => {
+      setCall(null);
+      router.dismiss();
     });
 
     socket.on('message', async (msg) => {
@@ -208,36 +246,44 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [phoneNumber]);
+  }, [phoneNumber, router]);
 
-  useEffect(() => {
-    if (incomingCall) {
-      router.push('/incoming-call');
-    }
-  }, [incomingCall, router]);
+  const temp = call?.callee === phoneNumber ? call?.caller : call?.callee;
+  const incomingCallUser =
+    contacts.find((contact) => {
+      return contact.phoneNumbers.some((phone) => {
+        return phone.number === temp;
+      });
+    }) || temp;
 
   const contextValue = useMemo(
     () => ({
       phoneNumber,
       setPhoneNumber,
-      videoCallUser,
+      callUser,
       emitMessage,
       isConnected,
-      incomingCall,
-      declineVideoCall,
+      call: call,
+      declineCall,
       sendMessage,
       setUser,
       user,
+      chatsSearchQuery,
+      setChatsSearchQuery,
+      incomingCallUser,
+      callingUser: call?.caller,
     }),
     [
       phoneNumber,
-      videoCallUser,
+      callUser,
       emitMessage,
       isConnected,
-      incomingCall,
-      declineVideoCall,
+      call,
+      declineCall,
       sendMessage,
       user,
+      chatsSearchQuery,
+      incomingCallUser,
     ]
   );
 

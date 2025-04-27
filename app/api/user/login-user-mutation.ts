@@ -2,12 +2,16 @@ import { useMutation } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
 
 export interface User {
-  id: string;
+  _id: string;
+  __v: number;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
   name: string;
+  password: string;
   phoneNumber: string;
-  createdAt: string;
+  profilePicture?: string;
+  profileStatus?: string;
 }
-
 interface LoginPayload {
   phoneNumber: string;
   password: string;
@@ -26,17 +30,13 @@ export const loginUser = async ({
       body: JSON.stringify({ phoneNumber, password }),
     });
 
-    // if (!response.ok) {
-    //   throw new Error('Login failed. Please check your credentials.');
-    // }
-
+    if (!response.ok) {
+      throw new Error('Login failed. Please check your credentials.');
+    }
     const rawData = await response.json();
 
     return {
-      id: rawData._id,
-      name: rawData.name,
-      phoneNumber: rawData.phoneNumber,
-      createdAt: rawData.createdAt,
+      ...rawData,
     };
   } catch (error) {
     throw new Error('Login failed. Please check your credentials.');

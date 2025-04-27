@@ -3,97 +3,83 @@
 ## Prerequisites
 - Python 3.12
 - Windows OS
-- Ports 8765 and 8766 available
+- ngrok installed
+- Ports 8080, 8765, and 8766 available
 
 ## Setup Instructions
 
-### 1. Create Virtual Environments
+### 1. Setup ngrok Server
+Open an ngrok terminal and run the following command:
 ```bash
-# Create VideoSDK environment
+ngrok http --url=moving-cardinal-happily.ngrok-free.app 8080
+
+#Replace moving-cardinal-happily.ngrok-free.app with your own URL from your ngrok dashboard. Also, update this URL in:
+
+#videosdk_sender.py in the get_meeting_id() function.
+#app-context.tsx in the sendMeetingIdToPython function
+```
+
+### 2. Connect Your Device
+
+```bash
+#To get your device ID, run:
+adb devices
+
+#Connect your device and set up port forwarding by running:
+adb -s <your-device-id> reverse tcp:8766 tcp:8766
+
+```
+
+### 3.  Install Dependencies Globally
+
+```bash
+pip install videosdk websockets opencv-python av numpy aiohttp tensorflow mediapipe onnxruntime
+```
+
+### 4. Run the System
+
+Open four separate terminal windows:
+
+Terminal 1 (HTTP Meeting ID Server):
+```bash
 cd ml
-python -m venv videosdkvenv
-videosdkvenv/Scripts/activate
+python main.py
+```
 
-
-# Create Inference environment
+Terminal 2 (Inference Server):
+```bash
 cd ml
-python -m venv inferencevenv
-inferencevenv/Scripts/activate
+python testtestkeras.py
 ```
 
-### 2. Install Dependencies
-
+Terminal 3 (VideoSDK Sender):
 ```bash
-# In videosdkvenv
-pip install videosdk websockets opencv-python av numpy
-
-# In inferencevenv
-pip install websockets opencv-python numpy onnxruntime
+cd ml
+python videosdk_sender.py
 ```
-
-### 3. Configure Network
-
-```bash
-# Get your local IP
-ipconfig
-
-# Look for "IPv4 Address" under "Wireless LAN adapter Wi-Fi"
-# Example: 192.168.1.100
-```
-
-### 4. Update Frontend Configuration
-
-In your `video-call.tsx`, update the WebSocket connection:
-```typescript
-const ws = new WebSocket('ws://YOUR_LOCAL_IP:8766');
-```
-
-### 5. Configure VideoSDK
+Terminal 4 (Frontend App):
 ```bash
 cd app
 npx expo start
 s
 a
 ```
-get meeting_id
-
-In `videosdk_sender.py`, update:
-```python
-MEETING_ID = "your_meeting_id"
-```
-
-### 6. Run the System
-
-Open three separate terminal windows:
-
-Terminal 1 (Inference Server):
-```bash
-cd
-inferencevenv/Scripts/activate
-python testtestONNX.py
-```
-
-Terminal 2 (VideoSDK):
-```bash
-cd
-videosdkvenv/Scripts/activate
-python videosdk_sender.py
-```
-
-Terminal 3 (The App: npx expo start)
 
 ## Ports
-- 8765: Inference Server
-- 8766: WebSocket Server for React clients
+8080: HTTP Meeting ID Server (ngrok forwards this)
+8765: Inference Server
+8766: Global WebSocket Server for React clients
 
 ## Troubleshooting
 
 If ports are in use:
 ```bash
 # Check ports
+netstat -ano | findstr :8080
 netstat -ano | findstr :8765
 netstat -ano | findstr :8766
 
 # Kill process if needed
 taskkill /PID <process_id> /F
+
 ```

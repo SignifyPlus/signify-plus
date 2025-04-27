@@ -1,8 +1,14 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Colors from '@/constants/Colors';
 import { AlphabetList, IData } from 'react-native-section-alphabet-list';
 import { defaultStyles } from '@/constants/Styles';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppContext } from '@/context/app-context';
 import { useContactsQuery } from '@/api/contacts-query';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -27,7 +33,9 @@ const Page = () => {
   const { contacts } = useUpdateContacts({ phoneNumber });
   const { data: _data = [] } = useContactsQuery({ phoneNumber });
   const { data: chats } = useChatsQuery({ phoneNumber });
-  const { mutateAsync } = useCreateChatMutation();
+  const { mutateAsync, isPending: isPendingCreateChat } =
+    useCreateChatMutation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -60,6 +68,63 @@ const Page = () => {
   //   key: `${contact.name}-${index}`,
   // }));
 
+  useEffect(() => {
+    if (isLoading) return;
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  }, [isLoading]);
+
+  if (isLoading || isPendingCreateChat) {
+    return (
+      <ActivityIndicator
+        style={{ flex: 1 }}
+        size="large"
+        color={Colors.primary}
+      />
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          backgroundColor: '#f9f9f9',
+          paddingTop: 150,
+          padding: 20,
+          height: '100%',
+          width: '100%',
+        }}
+      >
+        <Ionicons name="people-outline" color="#A0A0A0" size={150} />
+        <Text
+          style={{
+            fontSize: 22,
+            fontWeight: 'bold',
+            color: '#333',
+            marginTop: 20,
+          }}
+        >
+          No Contacts
+        </Text>
+        <Text
+          style={{
+            fontSize: 16,
+            color: '#666',
+            textAlign: 'center',
+            marginVertical: 10,
+            paddingHorizontal: 20,
+          }}
+        >
+          Add contacts to chat with someone.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View
       style={{ flex: 1, paddingTop: 110, backgroundColor: Colors.background }}
@@ -81,11 +146,13 @@ const Page = () => {
               if (!phoneNumber) return;
               const exisingChat = chats?.find((chat) =>
                 chat.participants.find(
-                  (participant) => participant.phoneNumber === item.name
+                  (participant) =>
+                    participant.phoneNumber === item.name &&
+                    participant.phoneNumber !== phoneNumber
                 )
               );
               if (exisingChat) {
-                router.push(`/chats/${exisingChat._id}`);
+                router.navigate(`/(tabs)/chats/${exisingChat._id}`);
               } else {
                 const result = await mutateAsync({
                   mainUserPhoneNumber: phoneNumber,
@@ -94,7 +161,7 @@ const Page = () => {
                 await queryClient.invalidateQueries({
                   queryKey: ['chats'],
                 });
-                router.push(`/chats/${result._id}`);
+                router.navigate(`/(tabs)/chats/${result[0]._id}`);
               }
             }}
           >

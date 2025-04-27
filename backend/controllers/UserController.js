@@ -5,8 +5,8 @@ const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const SignifyException = require('../exception/SignifyException.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
-const SignifyResult = require('../dtos/SignifyResult.js');
 const EventConstants = require('../constants/eventConstants.js');
+const UpdateUserDto = require('../dtos/UpdateUserDto.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -60,7 +60,25 @@ class UserController {
             response,
          );
          if (userValidation) return userValidation;
-         response.json(user);
+         const userAuthenticationRecord =
+            await ServiceFactory.getUserAuthenticationService.getDocumentByCustomFilters(
+               {
+                  userId: user._id.toString(),
+               },
+            );
+         const userAuthenticationRecordValidation =
+            await ExceptionHelper.validate(
+               userAuthenticationRecord,
+               400,
+               `UserAuthentication does not exist for the user: ${user._id.toString()}`,
+               response,
+            );
+         if (userAuthenticationRecordValidation)
+            return userAuthenticationRecordValidation;
+         //add the authenticationrecord - converts the mongoose document to an object, and then add the authentication record (with the same name)
+         //spreads over all the properties of user object first
+         const finalUser = { ...user.toObject(), userAuthenticationRecord };
+         response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
       }
@@ -153,9 +171,17 @@ class UserController {
             mongooseSession,
          );
 
+         //TODO - tie to a single transaction
          //use event-driven approach to also create user settings (via an event)
          EventDispatcher.dispatchEvent(
             EventConstants.ACCESSIBILITY_SETTINGS_EVENT,
+            userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
+         );
+
+         //TODO - tie to a single transaction
+         //use event-driven approach to also create default user authentication record (via an event)
+         EventDispatcher.dispatchEvent(
+            EventConstants.USER_AUTHENTICAITON_EVENT,
             userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
          );
 
@@ -164,6 +190,106 @@ class UserController {
             mongooseSession,
          );
          response.json(userObject);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
+   //updates a user
+   updateUser = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         const phoneNumberValidation = await ExceptionHelper.validate(
+            request.body.phoneNumber,
+            400,
+            `phoneNumber is not provided in the request.`,
+            response,
+         );
+         if (phoneNumberValidation) return phoneNumberValidation;
+
+         const existingUserObject =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.phoneNumber,
+            });
+
+         const userObjectValidation = await ExceptionHelper.validate(
+            existingUserObject,
+            400,
+            `No such user exists with the phoneNumber: ${request.body.phoneNumber}`,
+            response,
+         );
+
+         if (userObjectValidation) return userObjectValidation;
+
+         const updateUserDto = new UpdateUserDto(
+            existingUserObject._id.toString(),
+            request.body?.name,
+            request.body?.phoneNumber,
+            request.body?.password,
+            request.body?.profileStatus,
+         );
+
+         //encrypt the new password
+         if (
+            updateUserDto.password != null ||
+            updateUserDto.password != undefined
+         ) {
+            updateUserDto.password = await Encrypt.encrypt(
+               this.#saltRoundForEncryption,
+               updateUserDto.password,
+            );
+         }
+
+         LoggerFactory.getApplicationLogger.info(
+            `Updating the userData with the id: ${updateUserDto.userId}`,
+         );
+         const updatedUserData =
+            await ServiceFactory.getUserService.updateDocument(
+               {
+                  _id: updateUserDto.userId,
+               },
+               {
+                  name:
+                     updateUserDto.name == null
+                        ? existingUserObject.name
+                        : updateUserDto.name,
+                  phoneNumber:
+                     updateUserDto.phoneNumber == null
+                        ? existingUserObject.phoneNumber
+                        : updateUserDto.phoneNumber,
+                  password:
+                     updateUserDto.password == null
+                        ? existingUserObject.password
+                        : updateUserDto.password,
+                  profileStatus:
+                     updateUserDto.profileStatus == null
+                        ? existingUserObject.profileStatus
+                        : updateUserDto.profileStatus,
+
+                  updatedAt: Date.now(),
+               },
+               mongooseSession,
+            );
+
+         //commit the transaction
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         response.json(updatedUserData);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
@@ -204,37 +330,6 @@ class UserController {
          response.status(500).json({ error: exception.message });
       }
    };
-
-   //updates user data
-   async updateUserData(userData) {
-      var mongooseSession = null;
-      try {
-         mongooseSession =
-            await ServiceFactory.getMongooseService.getMongooseSession();
-         await ServiceFactory.getMongooseService.startMongooseTransaction(
-            mongooseSession,
-         );
-         const updatedUserData =
-            await ServiceFactory.getUserService.updateDocument(
-               userData._id.toString(),
-               userData,
-               mongooseSession,
-            );
-         await ServiceFactory.getMongooseService.commitMongooseTransaction(
-            mongooseSession,
-         );
-         return new SignifyResult(updatedUserData, null);
-      } catch (exception) {
-         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
-            mongooseSession,
-         );
-         const signifyException = new SignifyException(
-            500,
-            `Exception Occured: ${exception.message}`,
-         );
-         return new SignifyResult(null, signifyException);
-      }
-   }
 }
 
 module.exports = UserController;

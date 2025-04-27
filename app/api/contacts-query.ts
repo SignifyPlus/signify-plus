@@ -28,14 +28,15 @@ export const contactsQueryKey = (params: { phoneNumber?: string }) => [
 ];
 
 export const useContactsQuery = (params: { phoneNumber?: string }) => {
-  const { isPending, error, data } = useQuery({
+  return useQuery({
     queryKey: contactsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
       const response = await fetch(`${API_URL}/contacts/${params.phoneNumber}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch contacts');
+      }
       return (await response.json()) as UserContact[];
     },
   });
-
-  return { isPending, error, data };
 };

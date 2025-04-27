@@ -3,7 +3,7 @@ import Colors from '@/constants/Colors';
 import { format } from 'date-fns';
 import { Link } from 'expo-router';
 import { FC } from 'react';
-import { Text, TouchableHighlight, View } from 'react-native';
+import { Text, TouchableHighlight, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export interface ChatRowProps {
@@ -20,13 +20,15 @@ export const ChatRow: FC<ChatRowProps> = ({
   id,
   from,
   date,
-  // img,
+  img,
   msg,
   // read,
   // unreadCount,
 }) => {
+  const message = msg.split('\n')[msg.split('\n').length - 1];
+
   return (
-    <AppleStyleSwipeableRow>
+    <AppleStyleSwipeableRow chatId={id}>
       <Link href={`/(tabs)/chats/${id}`} asChild>
         <TouchableHighlight
           activeOpacity={0.8}
@@ -41,26 +43,32 @@ export const ChatRow: FC<ChatRowProps> = ({
               paddingVertical: 10,
             }}
           >
-            {/*<Image*/}
-            {/*  source={{ uri: img }}*/}
-            {/*  style={{ width: 50, height: 50, borderRadius: 50 }}*/}
-            {/*/>*/}
-            <View
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 50,
-                backgroundColor: Colors.lightGray,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="person-outline" />
-            </View>
+            {img ? (
+              <Image
+                source={{ uri: img }}
+                style={{ width: 50, height: 50, borderRadius: 50 }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 50,
+                  backgroundColor: Colors.lightGray,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons name="person-outline" />
+              </View>
+            )}
+
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{from}</Text>
               <Text style={{ fontSize: 16, color: Colors.gray }}>
-                {msg.length > 40 ? `${msg.substring(0, 40)}...` : msg}
+                {(message || msg).length > 40
+                  ? `${(message || msg).substring(0, 40)}...`
+                  : message || msg}
               </Text>
             </View>
             <Text

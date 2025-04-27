@@ -6,23 +6,29 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import logoImage from '@/assets/images/logo.jpeg';
 import { useLoginUserMutation } from '@/api/user/login-user-mutation';
-import { sanitizePhoneNumber, useAppContext } from '@/context/app-context';
+import { useAppContext } from '@/context/app-context';
+import { setAsyncStorageValue } from '@/context/async-storage';
+import { sanitizePhoneNumber } from '@/constants/utils';
+import { Ionicons } from '@expo/vector-icons';
+import PhoneInput from 'react-native-phone-number-input';
 
 const logo_image = Image.resolveAssetSource(logoImage).uri;
 
 const LoginScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
   const [phoneError, setPhoneError] = useState('');
   const [loginError, setLoginError] = useState('');
 
   const { mutate, isPending } = useLoginUserMutation();
-
   const { setPhoneNumber: setPhoneNumberInContext, setUser } = useAppContext();
 
   const validatePhoneNumber = (number: string) => {
@@ -42,10 +48,11 @@ const LoginScreen = () => {
     mutate(
       { phoneNumber: santizedPhoneNumber, password },
       {
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
           setUser(data);
           setPhoneNumberInContext(santizedPhoneNumber);
-          router.replace('/chats');
+          await setAsyncStorageValue('user', JSON.stringify(data));
+          router.replace(`/verify/${phoneNumber}`);
         },
         onError: () => {
           setLoginError('Login failed. Please check your credentials.');
@@ -61,24 +68,60 @@ const LoginScreen = () => {
       <Image source={{ uri: logo_image }} style={styles.welcome} />
       <Text style={styles.headline}>Login to Signify Plus</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number (e.g., +491234567890)"
-        keyboardType="phone-pad"
-        value={phoneNumber}
-        onFocus={() => setPhoneError('')}
-        onBlur={() => validatePhoneNumber(phoneNumber)}
-        onChangeText={setPhoneNumber}
+      <PhoneInput
+        containerStyle={{
+          width: '100%',
+          borderWidth: 1,
+          borderColor: Colors.gray,
+          marginBottom: 10,
+          borderRadius: 10,
+          padding: 0,
+          height: 50,
+        }}
+        codeTextStyle={{
+          padding: 0,
+          margin: 0,
+          height: 60,
+          lineHeight: 60,
+        }}
+        countryPickerButtonStyle={{
+          padding: 0,
+          margin: 0,
+        }}
+        flagButtonStyle={{
+          padding: 0,
+          margin: 0,
+        }}
+        textContainerStyle={{
+          borderRadius: 10,
+        }}
+        textInputStyle={{
+          height: 60,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        defaultCode="TR"
+        layout="first"
+        onChangeFormattedText={setPhoneNumber}
       />
       {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            color={Colors.primary}
+            size={24}
+          />
+        </TouchableOpacity>
+      </View>
 
       {loginError && <Text style={styles.errorText}>{loginError}</Text>}
 
@@ -122,7 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  input: {
+  passwordContainer: {
     width: '100%',
     height: 50,
     borderWidth: 1,
@@ -130,11 +173,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 15,
     marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  passwordInput: {
+    flex: 1,
   },
   errorText: {
     color: 'red',
     fontSize: 14,
     marginBottom: 10,
+    width: '100%',
   },
   button: {
     width: '100%',

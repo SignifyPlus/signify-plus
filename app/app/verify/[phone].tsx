@@ -1,8 +1,8 @@
 import Colors from '@/constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -16,27 +16,30 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import {
-  activateUserSessionAfterSignIn,
-  activateUserSessionAfterSignUp,
-  attemptFirstFactorVerificationForSignIn,
-  attemptPhoneNumberVerificationForSignUp,
-  resendSignInVerificationCode,
-  resendSignUpVerificationCode,
-} from '@/api';
-import { useAppContext } from '@/context/app-context';
+import { useUserVerificationQuery } from '@/api/user/user-verification-query';
+import { useGetOtpMutation } from '@/api/user/get-otp-mutation';
+import { useVerifyOtpMutation } from '@/api/user/verify-otp-mutation';
 
 const CELL_COUNT = 6;
 
 const Page = () => {
-  const { phone, signin } = useLocalSearchParams<{
+  const { phone } = useLocalSearchParams<{
     phone: string;
-    signin: string;
   }>();
   const router = useRouter();
   const [code, setCode] = useState('');
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
-  const { setPhoneNumber } = useAppContext();
+
+  const {
+    data: userVerification,
+    isPending,
+    isLoading,
+  } = useUserVerificationQuery({
+    phoneNumber: phone,
+  });
+
+  const { mutate: getOtpMutate } = useGetOtpMutation();
+  const { mutate: verifyOtpMutate } = useVerifyOtpMutation();
 
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
 
@@ -45,74 +48,48 @@ const Page = () => {
     setValue: setCode,
   });
 
-  const handleSignUpVerification = useCallback(async () => {
-    try {
-      await attemptPhoneNumberVerificationForSignUp(code);
-      await activateUserSessionAfterSignUp();
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        'An error occurred during verification. Please try again.'
-      );
-    }
-  }, [code]);
+  useEffect(() => {
+    if (code.length !== 6) return;
 
-  const handleSignInVerification = useCallback(async () => {
-    try {
-      await attemptFirstFactorVerificationForSignIn(code);
-      await activateUserSessionAfterSignIn();
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        'An error occurred during verification. Please try again.'
-      );
-    }
-  }, [code]);
-
-  const handleResendCode = useCallback(async () => {
-    try {
-      if (signin === 'true') {
-        await resendSignInVerificationCode(phone);
-      } else {
-        await resendSignUpVerificationCode(phone);
-        // createUser({
-        //   name: 'test',
-        //   phoneNumber: phone,
-        //   password: 'test',
-        // });
+    verifyOtpMutate(
+      {
+        phoneNumber: phone,
+        otpCode: code,
+      },
+      {
+        onSuccess: (data) => {
+          if (data.valid || data.status === 'success')
+            router.replace('/(tabs)/chats');
+        },
       }
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        'An error occurred while resending the verification code. Please try again.'
-      );
-    }
-  }, [phone, signin]);
+    );
+  }, [code, phone, router, verifyOtpMutate]);
 
   useEffect(() => {
-    if (code.length === 6) {
-      // console.log('verify', code);
-
-      if (signin === 'true') {
-        // console.log('signin');
-        handleSignInVerification();
-      } else {
-        handleSignUpVerification();
-        // createUser({ name: 'test', phoneNumber: phone, password: 'test' });
-      }
+    if (phone && userVerification?.isVerified === false) {
+      console.log('Otp user verification is verified', userVerification);
+      getOtpMutate(phone);
+    }
+    if (userVerification?.isVerified) {
       router.replace('/(tabs)/chats');
     }
-  }, [
-    code,
-    handleSignInVerification,
-    handleSignUpVerification,
-    router,
-    signin,
-  ]);
+  }, [getOtpMutate, phone, router, userVerification?.isVerified]);
 
-  useEffect(() => {
-    setPhoneNumber(phone);
-  }, [setPhoneNumber, phone]);
+  if (isPending || isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!userVerification) {
+    return (
+      <View>
+        <Text>Unable to find user verification</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -153,7 +130,7 @@ const Page = () => {
           )}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleResendCode}>
+        <TouchableOpacity style={styles.button} onPress={() => router.back()}>
           <Text style={styles.buttonText}>
             Didn&#39;t receive a verification code?
           </Text>

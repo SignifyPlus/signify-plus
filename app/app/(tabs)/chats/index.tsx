@@ -18,7 +18,7 @@ import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
 const Page = () => {
-  const { phoneNumber } = useAppContext();
+  const { phoneNumber, chatsSearchQuery, user } = useAppContext();
 
   const { contacts } = useUpdateContacts({ phoneNumber });
   const { data, isPending } = useChatsQuery({ phoneNumber });
@@ -26,12 +26,12 @@ const Page = () => {
     phoneNumber,
   });
 
-  // const chats = data ?? [];
-
   const chatRows: ChatRowProps[] = (data ?? [])
     .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
     .map((chat) => {
-      const from = chat.participants.map((p) => p.phoneNumber)[0]!;
+      const from = chat.participants
+        .filter((p) => p._id !== user?._id)
+        .map((p) => p.phoneNumber)[0]!;
       const fromContact = contacts.find(
         (c) => c.phoneNumbers[0]?.number === from
       );
@@ -50,6 +50,13 @@ const Page = () => {
         read: true,
         unreadCount: 0,
       } satisfies ChatRowProps;
+    })
+    .filter((chatRow) => {
+      if (chatsSearchQuery === '') return true;
+      const from = chatRow.from.toLowerCase();
+      // const msg = chatRow.msg.toLowerCase();
+      const searchQuery = chatsSearchQuery.toLowerCase();
+      return from.includes(searchQuery);
     });
 
   if (isPending || isPendingContacts)

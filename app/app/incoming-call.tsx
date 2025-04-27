@@ -1,12 +1,11 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Dimensions,
   Platform,
   SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAppContext } from '@/context/app-context';
 import { useRouter } from 'expo-router';
@@ -14,129 +13,177 @@ import { useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 const AcceptCallScreen = () => {
-  const { incomingCall, declineVideoCall } = useAppContext();
+  const { call, declineCall, incomingCallUser } = useAppContext();
 
   const router = useRouter();
 
   const onAccept = () => {
-    if (!incomingCall) {
+    if (!call) {
       return;
     }
-    router.push(`/video-call?meetingId=${incomingCall.meetingId}`);
+
+    switch (call.type) {
+      case 'video':
+        router.replace(`/video-call?meetingId=${call.meetingId}`);
+        break;
+      case 'voice':
+        router.replace(`/voice-call?meetingId=${call.meetingId}`);
+        break;
+    }
   };
 
   const onDecline = () => {
-    declineVideoCall();
-    router.replace('/(tabs)/chats');
+    declineCall();
+    router.back();
   };
 
+  const user =
+    typeof incomingCallUser === 'string'
+      ? incomingCallUser
+      : (incomingCallUser?.displayName ?? 'Unknown Caller');
+
+  const initial =
+    typeof incomingCallUser === 'string'
+      ? 'A'
+      : incomingCallUser?.displayName.charAt(0);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.callerInfo}>
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>{'A'.charAt(0).toUpperCase()}</Text>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: '#1a1a1a',
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingVertical: 50,
+        }}
+      >
+        <View
+          style={{
+            alignItems: 'center',
+            marginTop: 50,
+          }}
+        >
+          <View
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              backgroundColor: '#404040',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 40,
+                color: 'white',
+              }}
+            >
+              {initial}
+            </Text>
           </View>
-          <Text style={styles.callerName}>
-            {incomingCall?.incomingCallNumber ?? 'Unknown Caller'}
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: 'white',
+              marginBottom: 10,
+            }}
+          >
+            {user ?? 'Unknown Caller'}
           </Text>
-          <Text style={styles.callStatus}>Incoming call...</Text>
+          <Text
+            style={{
+              fontSize: 16,
+              color: '#cccccc',
+            }}
+          >
+            Incoming call...
+          </Text>
         </View>
 
-        <View style={styles.actionButtons}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            width: width,
+            paddingHorizontal: 30,
+            marginBottom: 20,
+          }}
+        >
           <TouchableOpacity
-            style={[styles.button, styles.declineButton]}
             onPress={onDecline}
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#FF4444',
+              ...(Platform.OS === 'ios'
+                ? {
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                  }
+                : {
+                    elevation: 5,
+                  }),
+            }}
           >
-            <Text style={styles.buttonText}>Decline</Text>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 16,
+                fontWeight: 'bold',
+              }}
+            >
+              Decline
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.acceptButton]}
             onPress={onAccept}
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 35,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#4CAF50',
+              ...(Platform.OS === 'ios'
+                ? {
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                  }
+                : {
+                    elevation: 5,
+                  }),
+            }}
           >
-            <Text style={styles.buttonText}>Accept</Text>
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 16,
+                fontWeight: 'bold',
+              }}
+            >
+              Accept
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  callerInfo: {
-    alignItems: 'center',
-    marginTop: 50,
-  },
-  avatarPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#404040',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatarText: {
-    fontSize: 40,
-    color: 'white',
-  },
-  callerName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 10,
-  },
-  callStatus: {
-    fontSize: 16,
-    color: '#cccccc',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    width: width,
-    paddingHorizontal: 30,
-    marginBottom: 20,
-  },
-  button: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-  },
-  acceptButton: {
-    backgroundColor: '#4CAF50',
-  },
-  declineButton: {
-    backgroundColor: '#FF4444',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
 
 export default AcceptCallScreen;

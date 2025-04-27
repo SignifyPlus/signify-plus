@@ -7,8 +7,15 @@ import { TouchableOpacity, View } from 'react-native';
 import { AppProvider } from '@/context/app-context';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-
 export { ErrorBoundary } from 'expo-router';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Warning: Country',
+  'Warning: Flag',
+  'Warning: Main',
+  'Warning: HeaderModal:',
+]);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -107,8 +114,12 @@ const InitialLayout = () => {
         <Stack.Screen
           name="video-call"
           options={{
-            // headerTitle: 'Video Call',
-            // headerBackTitle: 'Back',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="voice-call"
+          options={{
             headerShown: false,
           }}
         />

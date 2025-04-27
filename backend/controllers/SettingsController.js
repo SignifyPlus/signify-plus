@@ -2,10 +2,8 @@ const ServiceFactory = require('../factories/serviceFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyException = require('../exception/SignifyException.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
-const EventDispatcher = require('../events/eventDispatcher.js');
-const UpdateProfileDto = require('../dtos/UpdateProfileDto.js');
+const UpdateSettingsDto = require('../dtos/UpdateSettingsDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
-const EventConstants = require('../constants/eventConstants.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
 class SettingsController {
    constructor() {}
@@ -77,7 +75,7 @@ class SettingsController {
          const userObjectValidation = await ExceptionHelper.validate(
             userObject,
             400,
-            `No such exists with the phoneNumber: ${userPhoneNumber}`,
+            `No such user exists with the phoneNumber: ${userPhoneNumber}`,
             response,
          );
          if (userObjectValidation) return userObjectValidation;
@@ -131,24 +129,89 @@ class SettingsController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
-         const updateProfileData = new UpdateProfileDto(
-            request.body?.phoneNumber,
+
+         const phoneNumberValidation = await ExceptionHelper.validate(
+            request.body.phoneNumber,
+            400,
+            `phoneNumber is not provided.`,
+            response,
+         );
+         if (phoneNumberValidation) return phoneNumberValidation;
+
+         const userObject =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.phoneNumber,
+            });
+
+         const userObjectValidation = await ExceptionHelper.validate(
+            userObject,
+            400,
+            `No such user exists with the phoneNumber: ${request.body.phoneNumber}`,
+            response,
+         );
+
+         if (userObjectValidation) return userObjectValidation;
+
+         const updateSettingsDto = new UpdateSettingsDto(
+            userObject._id.toString(),
             request.body?.theme,
             request.body?.autoDownload,
             request.body?.notificationEnabled,
             request.body?.aslTranslationLanguage,
-            request.body?.profilePicturePath,
          );
-         console.log(updateProfileData);
 
-         // EventDispatcher.dispatchEvent(
-         //          EventConstants.UPDATE_USER_EVENT,
-         //          {id: userObject._id.toString(), profilePicture: updateProfileData.profilePicturePath}
-         //       );
+         const existingAccessibilitySettingsObject =
+            await ServiceFactory.getSettingsService.getDocumentByCustomFilters({
+               userId: updateSettingsDto.userId,
+            });
+
+         const accessibilitySettingsObjectValidation =
+            await ExceptionHelper.validate(
+               existingAccessibilitySettingsObject,
+               400,
+               `No such accessibilitySettings record exists for the user: ${request.body.phoneNumber}`,
+               response,
+            );
+
+         if (accessibilitySettingsObjectValidation)
+            return accessibilitySettingsObjectValidation;
+
+         const updatedAccessibilitySettings =
+            await ServiceFactory.getSettingsService.updateDocument(
+               {
+                  userId: updateSettingsDto.userId,
+               },
+               {
+                  theme:
+                     updateSettingsDto.theme == null
+                        ? existingAccessibilitySettingsObject.theme
+                        : updateSettingsDto.theme,
+                  autoDownload:
+                     updateSettingsDto.autoDownload == null
+                        ? existingAccessibilitySettingsObject.autoDownload
+                        : updateSettingsDto.autoDownload,
+                  notificationEnabled:
+                     updateSettingsDto.notificationEnabled == null
+                        ? existingAccessibilitySettingsObject.notificationEnabled
+                        : updateSettingsDto.notificationEnabled,
+                  aslTranslationLanguage:
+                     updateSettingsDto.aslTranslationLanguage == null
+                        ? existingAccessibilitySettingsObject.aslTranslationLanguage
+                        : ControllerConstants
+                             .ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT_REVERSE[
+                             updateSettingsDto.aslTranslationLanguage
+                          ],
+                  notificationEnabled: updateSettingsDto.notificationEnabled,
+                  updatedAt: Date.now(),
+               },
+               mongooseSession,
+            );
+
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
-         response.json(updateProfileData);
+
+         response.json(updatedAccessibilitySettings);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,

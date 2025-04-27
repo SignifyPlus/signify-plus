@@ -64,6 +64,19 @@ class AbstractService {
       }
    }
 
+   getDocumentByCustomFiltersQuery(filterConditions, session = null) {
+      try {
+         const documentQuery = session
+            ? this.schemaModel.findOne(filterConditions).session(session)
+            : this.schemaModel.findOne(filterConditions);
+         return documentQuery;
+      } catch (exception) {
+         throw new Error(
+            `Error Fetching the Document: ${filterConditions}, ${exception.message}`,
+         );
+      }
+   }
+
    async getDocumentByCustomFilters(filterConditions, session = null) {
       try {
          const document = session
@@ -109,8 +122,11 @@ class AbstractService {
    async saveDocuments(data, session = null) {
       try {
          const documents = session
-            ? await this.schemaModel.insertMany(data, { session })
-            : await this.schemaModel.insertMany(data);
+            ? await this.schemaModel.insertMany(data, {
+                 session,
+                 ordered: false,
+              })
+            : await this.schemaModel.insertMany(data, { ordered: false });
          return documents;
       } catch (exception) {
          throw new Error(`Error Saving the Documents: ${exception.message}`);

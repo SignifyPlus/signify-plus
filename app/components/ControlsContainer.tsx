@@ -3,10 +3,16 @@ import { TouchableOpacity, View } from 'react-native';
 import { useMeeting } from '@videosdk.live/react-native-sdk';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppContext } from '@/context/app-context';
 
-export const ControlsContainer: React.FC = () => {
+export const ControlsContainer = ({
+  hideVideo = false,
+}: {
+  hideVideo?: boolean;
+}) => {
   const { leave, toggleWebcam, toggleMic, localParticipant } = useMeeting();
   const router = useRouter();
+  const { declineCall } = useAppContext();
 
   const [micOn, setMicOn] = useState<boolean>(false);
   const [webcamOn, setWebcamOn] = useState<boolean>(false);
@@ -57,8 +63,9 @@ export const ControlsContainer: React.FC = () => {
         bottom: 24,
         left: 24,
         right: 24,
+        gap: 32,
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(31, 41, 55, 0.75)', // translucent dark background
         borderRadius: 999,
@@ -70,20 +77,22 @@ export const ControlsContainer: React.FC = () => {
         elevation: 10, // for Android shadow
       }}
     >
-      <TouchableOpacity
-        onPress={handleToggleWebcam}
-        style={{
-          backgroundColor: '#1f2937',
-          padding: 12,
-          borderRadius: 999,
-        }}
-      >
-        <Ionicons
-          name={webcamOn ? 'videocam-outline' : 'videocam-off-outline'}
-          size={24}
-          color="#fff"
-        />
-      </TouchableOpacity>
+      {!hideVideo ? (
+        <TouchableOpacity
+          onPress={handleToggleWebcam}
+          style={{
+            backgroundColor: '#1f2937',
+            padding: 12,
+            borderRadius: 999,
+          }}
+        >
+          <Ionicons
+            name={webcamOn ? 'videocam-outline' : 'videocam-off-outline'}
+            size={24}
+            color="#fff"
+          />
+        </TouchableOpacity>
+      ) : null}
 
       <TouchableOpacity
         onPress={handleToggleMic}
@@ -102,9 +111,10 @@ export const ControlsContainer: React.FC = () => {
 
       <TouchableOpacity
         onPress={async () => {
-          await clearMeetingIdOnServer();
           leave();
+          declineCall();
           router.replace('/(tabs)/chats');
+          await clearMeetingIdOnServer();
         }}
         style={{
           backgroundColor: '#dc2626',

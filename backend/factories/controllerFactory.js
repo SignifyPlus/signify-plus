@@ -14,6 +14,9 @@ const ForumMemberController = require('../controllers/ForumMemberController.js')
 const ThreadController = require('../controllers/ThreadController.js');
 const CommentController = require('../controllers/CommentController.js');
 const SettingsController = require('../controllers/SettingsController.js');
+const UserAuthenticationController = require('../controllers/UserAuthenticationController.js');
+const TwilioOtpController = require('../controllers/TwilioOtpController.js');
+const AmazonS3Controller = require('../controllers/AmazonS3Controller.js');
 
 class ControllerFactory {
    /**
@@ -74,6 +77,24 @@ class ControllerFactory {
     * @type {SettingsController | null}
     */
    static #settingsController = null;
+
+   /**
+    * @private
+    * @type {UserAuthenticationController | null}
+    */
+   static #userAuthenticationController = null;
+
+   /**
+    * @private
+    * @type {TwilioOtpController | null}
+    */
+   static #twilioOtpController = null;
+
+   /**
+    * @private
+    * @type {AmazonS3Controller | null}
+    */
+   static #amazonS3Controller = null;
 
    constructor() {}
 
@@ -146,6 +167,28 @@ class ControllerFactory {
          ControllerFactory.#settingsController = new SettingsController();
       }
       return ControllerFactory.#settingsController;
+   }
+
+   static getUserAuthenticationController() {
+      if (!ControllerFactory.#userAuthenticationController) {
+         ControllerFactory.#userAuthenticationController =
+            new UserAuthenticationController();
+      }
+      return ControllerFactory.#userAuthenticationController;
+   }
+
+   static getTwilioOtpController() {
+      if (!ControllerFactory.#twilioOtpController) {
+         ControllerFactory.#twilioOtpController = new TwilioOtpController();
+      }
+      return ControllerFactory.#twilioOtpController;
+   }
+
+   static getAmazonS3Controller() {
+      if (!ControllerFactory.#amazonS3Controller) {
+         ControllerFactory.#amazonS3Controller = new AmazonS3Controller();
+      }
+      return ControllerFactory.#amazonS3Controller;
    }
 }
 
