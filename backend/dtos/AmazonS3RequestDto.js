@@ -1,7 +1,7 @@
 class AmazonS3RequestDto {
-   constructor(phoneNumber, fileType) {
+   constructor(phoneNumber, extension) {
       this.phoneNumber = phoneNumber;
-      this.fileType = fileType;
+      this.extension = extension;
    }
 }
 

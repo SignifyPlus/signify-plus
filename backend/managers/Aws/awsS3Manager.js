@@ -4,8 +4,8 @@ const S3Client = require('@aws-sdk/client-s3');
 const S3RequestPresigner = require('@aws-sdk/s3-request-presigner');
 const CommonConstants = require('../../constants/commonConstants.js');
 const LoggerFactory = require('../../factories/loggerFactory.js');
-const AmazonConstants = require('../../constants/amazonConstants.js');
-class awsS3Manager {
+const AwsS3PresignedResponse = require('./models/AwsS3PresignedResponse.js');
+class AwsS3Manager {
    /**
     * @type {AwsS3 | null}
     */
@@ -73,19 +73,19 @@ class awsS3Manager {
       return this.#awsS3Connection;
    }
 
-   async generatePresignedS3ProfilePictureUploadUrl(fileName, fileType) {
+   async generatePresignedS3ProfilePictureUploadUrl(fileName, mimeTye) {
       return this.#generatePresignedS3UploadUrl(
          this.#awsS3Dto.folderName,
          fileName,
-         fileType,
+         mimeTye,
       );
    }
 
-   async #generatePresignedS3UploadUrl(folderName, fileName, fileType) {
+   async #generatePresignedS3UploadUrl(folderName, fileName, mimeTye) {
       const awsS3Parameters = {
          Bucket: this.#awsS3Dto.bucketName,
          Key: `${folderName}/${fileName}`,
-         ContentType: fileType,
+         ContentType: mimeTye,
       };
       const putObjectCommand = new S3Client.PutObjectCommand(awsS3Parameters);
       const uploadUrl = await S3RequestPresigner.getSignedUrl(
@@ -93,13 +93,21 @@ class awsS3Manager {
          putObjectCommand,
          { expiresIn: CommonConstants.S3_PRE_SIGNED_URL_EXPIRATION_TIME },
       );
-      LoggerFactory.getApplicationLogger.info(
-         `Generated presigned URL: ${uploadUrl}`,
+      const publicUrl =
+         (await this.#generatePublicS3BaseUrl()) + '/' + fileName;
+      const awsS3PresignedResponse = new AwsS3PresignedResponse(
+         uploadUrl,
+         publicUrl,
       );
-      return uploadUrl;
+      LoggerFactory.getApplicationLogger.info(
+         `Generated presigned URL: ${JSON.stringify(awsS3PresignedResponse)}`,
+      );
+      return awsS3PresignedResponse;
    }
 
-   async fetchFileFromS3Bucket() {}
+   async #generatePublicS3BaseUrl() {
+      return `https://${this.#awsS3Dto.bucketName}.s3.${this.#awsS3Dto.region}.amazonaws.com/${this.#awsS3Dto.folderName}`;
+   }
 }
 
-module.exports = awsS3Manager;
+module.exports = AwsS3Manager;
