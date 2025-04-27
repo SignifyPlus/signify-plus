@@ -73,6 +73,83 @@ class ChatService extends AbstractService {
    getDocumentsQuery(session = null) {
       return super.getDocumentsQuery(session);
    }
+
+   // New methods for enhanced features
+   // Soft delete a chat
+   async softDeleteChat(chatId, userId, session = null) {
+      return await super.updateDocument(
+         { _id: chatId },
+         {
+            isDeleted: true,
+            $addToSet: { isDeletedBy: userId }, //ensures we dont overwrite the previous array + addToSet ensures the array/set is unique
+            lastActivity: new Date(),
+         },
+         session,
+      );
+   }
+
+   // Pin or unpin a chat
+   async toggleChatPin(chatId, userId, isPinned = true, session = null) {
+      if (isPinned) {
+         // Add user to pinnedBy array if not already there
+         return await this.schemaModel.findByIdAndUpdate(
+            chatId,
+            {
+               isPinned: true,
+               $addToSet: { pinnedBy: userId },
+               lastActivity: new Date(),
+            },
+            { new: true, session },
+         );
+      } else {
+         // Remove user from pinnedBy array
+         return await this.schemaModel
+            .findByIdAndUpdate(
+               chatId,
+               {
+                  $pull: { pinnedBy: userId },
+                  lastActivity: new Date(),
+               },
+               { new: true, session },
+            )
+            .then((chat) => {
+               // If no users have this chat pinned anymore, set isPinned to false
+               if (chat.pinnedBy.length === 0) {
+                  return this.schemaModel.findByIdAndUpdate(
+                     chatId,
+                     { isPinned: false },
+                     { new: true, session },
+                  );
+               }
+               return chat;
+            });
+      }
+   }
+
+   // Update lastActivity timestamp for a chat
+   async updateChatActivity(chatId, session = null) {
+      return await super.updateDocument(
+         { _id: chatId },
+         { lastActivity: new Date() },
+         session,
+      );
+   }
+
+   // Get chats sorted by activity (with pinned chats at top)
+   async getChatsForUser(userId, session = null) {
+      return await this.schemaModel
+         .find({
+            $or: [{ mainUserId: userId }, { participants: userId }],
+            isDeleted: false,
+         })
+         .sort({ isPinned: -1, lastActivity: -1 })
+         .populate({
+            path: 'mainUserId participants',
+            select: 'phoneNumber name',
+         })
+         .session(session)
+         .lean();
+   }
 }
 
 module.exports = ChatService;

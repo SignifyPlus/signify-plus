@@ -1,0 +1,31 @@
+[
+   {
+      "_id": "680cde77d020e74a79152e62",
+      "mainUserId": {
+         "_id": "680be2f74b458b0637e83544",
+         "name": "Iman",
+         "phoneNumber": "+90123456789"
+      },
+      "participants": [
+         {
+            "_id": "680bfe0e6b137d89bda1902a",
+            "name": "Kamila",
+            "phoneNumber": "+994557259939"
+         },
+         {
+            "_id": "680be2f74b458b0637e83544",
+            "name": "Iman",
+            "phoneNumber": "+90123456789"
+         }
+      ],
+      "isPinned": false,
+      "pinnedBy": [],
+      "lastActivity": "2025-04-26T13:24:07.512Z",
+      "isDeleted": false,
+      "createdAt": "2025-04-26T13:24:07.516Z",
+      "__v": 0,
+      "lastMessage": "Chat is Empty - No last Message available!",
+      "totalNumberOfMessagesInChat": 0,
+      "unreadCount": 0
+   }
+]

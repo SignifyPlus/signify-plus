@@ -18,6 +18,7 @@ class MessageEvent {
             messageObject.targetPhoneNumbers,
             messageObject.message,
             messageObject.chatId,
+            messageObject.replyToId, // Pass replyToId to postMessageToDb
          );
       return response;
    }
