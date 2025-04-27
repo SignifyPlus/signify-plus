@@ -1,99 +1,105 @@
 const ChannelSubscriberService = require("../../../services/ChannelSubscriberService");
 
-describe("ChannelSubscriberService", () => {
-    let service;
+describe("ChannelSubscriberService Unit Tests", () => {
     let mockModel;
+    let service;
 
     beforeEach(() => {
-        mockModel = {};
+        mockModel = {
+            find: jest.fn(),
+            findById: jest.fn(),
+            findOne: jest.fn(),
+            findOneAndUpdate: jest.fn(),
+            create: jest.fn(),
+            insertMany: jest.fn(),
+            findOneAndDelete: jest.fn(),
+            deleteMany: jest.fn()
+        };
+
         service = new ChannelSubscriberService(mockModel);
-
-        //mocking inherited AbstractService methods
-        service.__proto__.getDocuments = jest.fn(() => Promise.resolve("all docs"));
-        service.__proto__.getDocumentById = jest.fn(() => Promise.resolve("doc by id"));
-        service.__proto__.getDocumentsByCustomFilters = jest.fn(() => Promise.resolve("filtered docs"));
-        service.__proto__.getDocumentByCustomFilters = jest.fn(() => Promise.resolve("single filtered doc"));
-        service.__proto__.updateDocument = jest.fn(() => Promise.resolve("updated doc"));
-        service.__proto__.saveDocument = jest.fn(() => Promise.resolve("saved doc"));
-        service.__proto__.saveDocuments = jest.fn(() => Promise.resolve(["doc1", "doc2"]));
-        service.__proto__.deleteDocument = jest.fn(() => Promise.resolve("deleted doc"));
-        service.__proto__.deleteDocumentById = jest.fn(() => Promise.resolve("deleted by id"));
-        service.__proto__.deleteDocuments = jest.fn(() => Promise.resolve({ deletedCount: 3 }));
-        service.__proto__.getDocumentsByCustomFiltersQuery = jest.fn(() => "query object");
     });
 
-    test("getDocuments calls super.getDocuments", async () => {
+    test("getDocuments should call model.find", async () => {
+        mockModel.find.mockResolvedValue(["doc1"]);
         const result = await service.getDocuments();
-        expect(result).toBe("all docs");
-        expect(service.__proto__.getDocuments).toHaveBeenCalled();
+        expect(result).toEqual(["doc1"]);
+        expect(mockModel.find).toHaveBeenCalled();
     });
 
-    test("getDocumentById calls super.getDocumentById", async () => {
+    test("getDocumentById should call model.findById", async () => {
+        mockModel.findById.mockResolvedValue("doc");
         const result = await service.getDocumentById("id123");
-        expect(result).toBe("doc by id");
-        expect(service.__proto__.getDocumentById).toHaveBeenCalledWith("id123");
+        expect(result).toBe("doc");
+        expect(mockModel.findById).toHaveBeenCalledWith("id123");
     });
 
-    test("getDocumentsByCustomFilters calls super.getDocumentsByCustomFilters", async () => {
+    test("getDocumentsByCustomFilters should call model.find", async () => {
         const filters = { status: "active" };
+        mockModel.find.mockResolvedValue(["filtered"]);
         const result = await service.getDocumentsByCustomFilters(filters);
-        expect(result).toBe("filtered docs");
-        expect(service.__proto__.getDocumentsByCustomFilters).toHaveBeenCalledWith(filters);
+        expect(result).toEqual(["filtered"]);
+        expect(mockModel.find).toHaveBeenCalledWith(filters);
     });
 
-    test("getDocumentByCustomFilters calls super.getDocumentByCustomFilters", async () => {
+    test("getDocumentByCustomFilters should call model.findOne", async () => {
         const filters = { id: "123" };
+        mockModel.findOne.mockResolvedValue("one");
         const result = await service.getDocumentByCustomFilters(filters);
-        expect(result).toBe("single filtered doc");
-        expect(service.__proto__.getDocumentByCustomFilters).toHaveBeenCalledWith(filters);
+        expect(result).toBe("one");
+        expect(mockModel.findOne).toHaveBeenCalledWith(filters);
     });
 
-    test("updateDocument calls super.updateDocument", async () => {
+    test("updateDocument should call model.findOneAndUpdate", async () => {
         const filters = { id: "1" };
         const updates = { status: "updated" };
+        mockModel.findOneAndUpdate.mockResolvedValue("updated");
         const result = await service.updateDocument(filters, updates);
-        expect(result).toBe("updated doc");
-        expect(service.__proto__.updateDocument).toHaveBeenCalledWith(filters, updates);
+        expect(result).toBe("updated");
+        expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(filters, updates, { new: true });
     });
 
-    test("saveDocument calls super.saveDocument", async () => {
+    test("saveDocument should call model.create", async () => {
         const data = { channel: "abc" };
+        mockModel.create.mockResolvedValue([data]);
         const result = await service.saveDocument(data);
-        expect(result).toBe("saved doc");
-        expect(service.__proto__.saveDocument).toHaveBeenCalledWith(data);
+        expect(result).toEqual([data]);
+        expect(mockModel.create).toHaveBeenCalledWith([data]);
     });
 
-    test("saveDocuments calls super.saveDocuments", async () => {
+    test("saveDocuments should call model.insertMany", async () => {
         const data = [{}, {}];
+        mockModel.insertMany.mockResolvedValue(["doc1", "doc2"]);
         const result = await service.saveDocuments(data);
         expect(result).toEqual(["doc1", "doc2"]);
-        expect(service.__proto__.saveDocuments).toHaveBeenCalledWith(data);
     });
 
-    test("deleteDocument calls super.deleteDocument", async () => {
+    test("deleteDocument should call model.findOneAndDelete", async () => {
         const filters = { user: "xyz" };
+        mockModel.findOneAndDelete.mockResolvedValue("deleted doc");
         const result = await service.deleteDocument(filters);
         expect(result).toBe("deleted doc");
-        expect(service.__proto__.deleteDocument).toHaveBeenCalledWith(filters);
+        expect(mockModel.findOneAndDelete).toHaveBeenCalledWith(filters, { new: true });
     });
 
-    test("deleteDocumentById calls super.deleteDocumentById", async () => {
+    test("deleteDocumentById should call model.findOneAndDelete with _id", async () => {
+        mockModel.findOneAndDelete.mockResolvedValue("deleted by id");
         const result = await service.deleteDocumentById("delete-id");
         expect(result).toBe("deleted by id");
-        expect(service.__proto__.deleteDocumentById).toHaveBeenCalledWith("delete-id");
+        expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: "delete-id" }, { new: true });
     });
 
-    test("deleteDocuments calls super.deleteDocuments", async () => {
+    test("deleteDocuments should call model.deleteMany", async () => {
         const filters = { channel: "bulk" };
+        mockModel.deleteMany.mockResolvedValue({ deletedCount: 3 });
         const result = await service.deleteDocuments(filters);
         expect(result).toEqual({ deletedCount: 3 });
-        expect(service.__proto__.deleteDocuments).toHaveBeenCalledWith(filters);
     });
 
-    test("getDocumentsByCustomFiltersQuery calls super.getDocumentsByCustomFiltersQuery", () => {
+    test("getDocumentsByCustomFiltersQuery should call model.find and return the query", () => {
         const filters = { name: "query" };
+        mockModel.find.mockReturnValue("query object");
         const result = service.getDocumentsByCustomFiltersQuery(filters);
         expect(result).toBe("query object");
-        expect(service.__proto__.getDocumentsByCustomFiltersQuery).toHaveBeenCalledWith(filters);
+        expect(mockModel.find).toHaveBeenCalledWith(filters);
     });
 });

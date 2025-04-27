@@ -1,4 +1,5 @@
 const ChatService = require("../../../services/ChatService");
+const AbstractService = require("../../../services/AbstractService");
 const SignifyException = require("../../../exception/SignifyException");
 const EventDispatcher = require("../../../events/eventDispatcher");
 const EventConstants = require("../../../constants/eventConstants");
@@ -12,20 +13,19 @@ describe("ChatService", () => {
     beforeEach(() => {
         mockModel = {};
         service = new ChatService(mockModel);
-        jest.clearAllMocks(); //clear mocks to ensure no previous call affects tests
+        jest.clearAllMocks();
 
-        //mocking AbstractService inherited methods
-        service.__proto__.getDocuments = jest.fn(() => Promise.resolve("all chats"));
-        service.__proto__.getDocumentById = jest.fn(() => Promise.resolve("chat by id"));
-        service.__proto__.getDocumentsByCustomFilters = jest.fn(() => Promise.resolve("filtered chats"));
-        service.__proto__.getDocumentByCustomFilters = jest.fn(() => Promise.resolve("one filtered chat"));
-        service.__proto__.updateDocument = jest.fn(() => Promise.resolve("updated chat"));
-        service.__proto__.saveDocuments = jest.fn(() => Promise.resolve(["chat1", "chat2"]));
-        service.__proto__.deleteDocument = jest.fn(() => Promise.resolve("deleted chat"));
-        service.__proto__.deleteDocumentById = jest.fn(() => Promise.resolve("deleted chat by id"));
-        service.__proto__.deleteDocuments = jest.fn(() => Promise.resolve("bulk deleted"));
-        service.__proto__.getDocumentsByCustomFiltersQuery = jest.fn(() => "query object");
-        service.__proto__.getDocumentsQuery = jest.fn(() => "base query");
+        jest.spyOn(AbstractService.prototype, 'getDocuments').mockResolvedValue("all chats");
+        jest.spyOn(AbstractService.prototype, 'getDocumentById').mockResolvedValue("chat by id");
+        jest.spyOn(AbstractService.prototype, 'getDocumentsByCustomFilters').mockResolvedValue("filtered chats");
+        jest.spyOn(AbstractService.prototype, 'getDocumentByCustomFilters').mockResolvedValue("one filtered chat");
+        jest.spyOn(AbstractService.prototype, 'updateDocument').mockResolvedValue("updated chat");
+        jest.spyOn(AbstractService.prototype, 'saveDocuments').mockResolvedValue(["chat1", "chat2"]);
+        jest.spyOn(AbstractService.prototype, 'deleteDocument').mockResolvedValue("deleted chat");
+        jest.spyOn(AbstractService.prototype, 'deleteDocumentById').mockResolvedValue("deleted chat by id");
+        jest.spyOn(AbstractService.prototype, 'deleteDocuments').mockResolvedValue("bulk deleted");
+        jest.spyOn(AbstractService.prototype, 'getDocumentsByCustomFiltersQuery').mockReturnValue("query object");
+        jest.spyOn(AbstractService.prototype, 'getDocumentsQuery').mockReturnValue("base query");
     });
 
     test("getDocuments delegates to super", async () => {
@@ -87,20 +87,18 @@ describe("ChatService", () => {
         const data = { message: "Hello!" };
         const savedChat = { _id: "123", ...data };
 
-        // mock only the super.saveDocument call
-        service.__proto__.__proto__.saveDocument = jest.fn(() => Promise.resolve(savedChat));
+        jest.spyOn(AbstractService.prototype, 'saveDocument').mockResolvedValue(savedChat);
         EventDispatcher.dispatchEvent.mockResolvedValue(true);
 
         const result = await service.saveDocument(data);
 
         expect(result).toBe(savedChat);
-        expect(service.__proto__.__proto__.saveDocument).toHaveBeenCalledWith(data, null);
+        expect(AbstractService.prototype.saveDocument).toHaveBeenCalledWith(data, null);
         expect(EventDispatcher.dispatchEvent).toHaveBeenCalledWith(EventConstants.CHAT_CREATED_EVENT, data);
     });
 
     test("saveDocument returns SignifyException when saving fails", async () => {
-        // mock only the super.saveDocument call to simulate failure
-        service.__proto__.__proto__.saveDocument = jest.fn(() => Promise.resolve(undefined));
+        jest.spyOn(AbstractService.prototype, 'saveDocument').mockResolvedValue(null);
 
         const result = await service.saveDocument({ text: "Test chat" });
 
