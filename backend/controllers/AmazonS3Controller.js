@@ -8,6 +8,7 @@ const EventConstants = require('../constants/eventConstants.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
 const AmazonS3RequestDto = require('../dtos/AmazonS3RequestDto.js');
 const CommonUtils = require('../utilities/commonUtils.js');
+const CommonConstants = require('../constants/commonConstants.js');
 class AmazonS3Controller {
    constructor() {}
    getPresignedS3ProfilePicturebucketUrl = async (request, response) => {
@@ -47,9 +48,20 @@ class AmazonS3Controller {
          LoggerFactory.getApplicationLogger.info(
             `Generating presigned S3 bucket URl for the user: ${user._id.toString()}`,
          );
-         const fileName = await this.#generateFileName(user);
+         const fileName = await this.#generateFileName(
+            user,
+            amazonS3RequestDto.fileType,
+         );
+
+         const fileNameValidation = await ExceptionHelper.validate(
+            fileName,
+            400,
+            `Please ensure the content type/file type contains the accurate mime type!`,
+            response,
+         );
+         if (fileNameValidation) return fileNameValidation;
          const presignedUrl =
-            await ManagerFactory.getAwsS3Manager().generatePresignedS3UploadUrl(
+            await ManagerFactory.getAwsS3Manager().generatePresignedS3ProfilePictureUploadUrl(
                fileName,
                amazonS3RequestDto.fileType,
             );
@@ -60,9 +72,19 @@ class AmazonS3Controller {
       }
    };
 
-   async #generateFileName(userObject) {
+   async #generateFileName(userObject, fileType) {
+      const extension = CommonConstants.MIME_TYPE_TO_EXTENTION_MAP[fileType];
+      if (extension == null || extension == undefined) {
+         return null;
+      }
+      LoggerFactory.getApplicationLogger.info(
+         `File extension retrieved: ${extension}`,
+      );
       return (
-         (await CommonUtils.generateUuid()) + '-' + userObject._id.toString()
+         (await CommonUtils.generateUuid()) +
+         '-' +
+         userObject._id.toString() +
+         extension
       );
    }
 }

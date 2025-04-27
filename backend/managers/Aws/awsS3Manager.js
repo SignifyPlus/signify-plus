@@ -4,6 +4,7 @@ const S3Client = require('@aws-sdk/client-s3');
 const S3RequestPresigner = require('@aws-sdk/s3-request-presigner');
 const CommonConstants = require('../../constants/commonConstants.js');
 const LoggerFactory = require('../../factories/loggerFactory.js');
+const AmazonConstants = require('../../constants/amazonConstants.js');
 class awsS3Manager {
    /**
     * @type {AwsS3 | null}
@@ -72,10 +73,18 @@ class awsS3Manager {
       return this.#awsS3Connection;
    }
 
-   async generatePresignedS3UploadUrl(fileName, fileType) {
+   async generatePresignedS3ProfilePictureUploadUrl(fileName, fileType) {
+      return this.#generatePresignedS3UploadUrl(
+         this.#awsS3Dto.folderName,
+         fileName,
+         fileType,
+      );
+   }
+
+   async #generatePresignedS3UploadUrl(folderName, fileName, fileType) {
       const awsS3Parameters = {
          Bucket: this.#awsS3Dto.bucketName,
-         Key: fileName,
+         Key: `${folderName}/${fileName}`,
          ContentType: fileType,
       };
       const putObjectCommand = new S3Client.PutObjectCommand(awsS3Parameters);
