@@ -19,6 +19,7 @@ import { useAppContext } from '@/context/app-context';
 import { Ionicons } from '@expo/vector-icons';
 import { EditableField } from '@/components/EditableField';
 import { validatePasswordsMatch, validatePasswordStrength } from '@/app/signup';
+import { queryClient } from '@/api';
 
 const Page = () => {
   const { phoneNumber, user, setUser } = useAppContext();
@@ -45,6 +46,7 @@ const Page = () => {
 
   const handleLogout = () => {
     router.replace('/');
+    queryClient.removeQueries();
   };
 
   const handleChangePassword = () => {
@@ -187,10 +189,34 @@ const Page = () => {
 
         <Text style={styles.title}>Account Settings</Text>
 
+        <Text style={styles.label}>Phone</Text>
+        <Text
+          style={{
+            fontSize: 16,
+            color: '#666',
+            // paddingVertical: 8,
+            // borderBottomWidth: 1,
+            borderColor: '#ccc',
+            marginBottom: 20,
+          }}
+        >
+          {phoneNumber}
+        </Text>
+
         <Text style={styles.label}>Password</Text>
         {!editingPassword ? (
           <TouchableWithoutFeedback onPress={() => setEditingPassword(true)}>
-            <Text style={styles.passwordField}>********</Text>
+            <Text
+              style={{
+                fontSize: 16,
+                color: '#666',
+                paddingVertical: 8,
+                borderBottomWidth: 1,
+                borderColor: '#ccc',
+              }}
+            >
+              ********
+            </Text>
           </TouchableWithoutFeedback>
         ) : (
           <View>

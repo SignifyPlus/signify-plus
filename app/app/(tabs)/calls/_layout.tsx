@@ -1,7 +1,5 @@
-import Colors from "@/constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
-import { TouchableOpacity } from "react-native";
+import Colors from '@/constants/Colors';
+import { Stack } from 'expo-router';
 
 const Layout = () => {
   return (
@@ -9,21 +7,14 @@ const Layout = () => {
       <Stack.Screen
         name="index"
         options={{
-          title: "Calls",
+          title: 'Calls',
           headerLargeTitle: true,
-          headerTransparent: true,
-          headerBlurEffect: "regular",
-          headerStyle: {
-            backgroundColor: Colors.background,
-          },
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: Colors.background },
+
           headerSearchBarOptions: {
-            placeholder: "Search",
+            placeholder: 'Search',
           },
-          headerRight: () => (
-            <TouchableOpacity>
-              <Ionicons name="call-outline" color={Colors.primary} size={30} />
-            </TouchableOpacity>
-          ),
         }}
       />
     </Stack>

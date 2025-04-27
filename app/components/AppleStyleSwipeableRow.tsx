@@ -1,14 +1,23 @@
+import { archiveChat } from '@/api/chat/archive-chat-mutation';
+import { deleteChat } from '@/api/chat/delete-chat-mutation';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { Component, PropsWithChildren } from 'react';
-import { Animated, StyleSheet, Text, View, I18nManager } from 'react-native';
+import {
+  Alert,
+  Animated,
+  I18nManager,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { RectButton } from 'react-native-gesture-handler';
 
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 export class AppleStyleSwipeableRow extends Component<
-  PropsWithChildren<unknown>
+  PropsWithChildren<{ chatId: string }>
 > {
   private renderRightAction = (
     text: string,
@@ -22,8 +31,33 @@ export class AppleStyleSwipeableRow extends Component<
     });
     const pressHandler = () => {
       this.close();
+      if (text === 'Delete') {
+        Alert.alert(text, 'Are you sure you want to delete?', [
+          {
+            text: 'No',
+            onPress: () => {},
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: () => {
+              deleteChat(this.props.chatId).catch((err) => {
+                Alert.alert('Deleting chat failed', err.toString());
+              });
+            },
+            style: 'destructive',
+          },
+        ]);
+      }
+
+      if (text === 'Archive') {
+        archiveChat(this.props.chatId).catch((err) => {
+          Alert.alert('Archive chat failed', err.toString());
+        });
+      }
+
       // eslint-disable-next-line no-alert
-      window.alert(text);
+      // window.alert(text);
     };
 
     return (
@@ -33,7 +67,7 @@ export class AppleStyleSwipeableRow extends Component<
           onPress={pressHandler}
         >
           <Ionicons
-            name={text === 'More' ? 'ellipsis-horizontal' : 'archive'}
+            name={text === 'Archive' ? 'archive' : 'trash'}
             size={24}
             color={'#fff'}
             style={{ paddingTop: 10 }}
@@ -54,8 +88,8 @@ export class AppleStyleSwipeableRow extends Component<
         flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
       }}
     >
-      {this.renderRightAction('More', '#C8C7CD', 192, progress)}
-      {this.renderRightAction('Archive', Colors.muted, 128, progress)}
+      {this.renderRightAction('Archive', Colors.muted, 192, progress)}
+      {this.renderRightAction('Delete', Colors.red, 128, progress)}
     </View>
   );
 
