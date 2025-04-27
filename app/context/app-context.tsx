@@ -208,16 +208,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       // Handle incoming meeting ID offer
 
       const callType = data.isVoiceCall ? 'voice' : 'video';
-      console.log(
-        'Received meeting id offer, and setting call to ',
-        data.isVideoCall,
-        {
-          type: callType,
-          meetingId: data.meetingId,
-          caller: data.senderPhoneNumber,
-          callee: phoneNumber,
-        }
-      );
       setCall({
         type: callType,
         meetingId: data.meetingId,
@@ -228,7 +218,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     });
 
     socket.on('call-declined', (_data) => {
-      console.log('Call declined by the other user', _data);
       setCall(null);
       router.dismiss();
     });
@@ -300,7 +289,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   useUpdateContacts({ phoneNumber });
 
-  console.log(call);
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );

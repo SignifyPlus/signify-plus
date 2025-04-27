@@ -64,6 +64,19 @@ class AbstractService {
       }
    }
 
+   getDocumentByCustomFiltersQuery(filterConditions, session = null) {
+      try {
+         const documentQuery = session
+            ? this.schemaModel.findOne(filterConditions).session(session)
+            : this.schemaModel.findOne(filterConditions);
+         return documentQuery;
+      } catch (exception) {
+         throw new Error(
+            `Error Fetching the Document: ${filterConditions}, ${exception.message}`,
+         );
+      }
+   }
+
    async getDocumentByCustomFilters(filterConditions, session = null) {
       try {
          const document = session
