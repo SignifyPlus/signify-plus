@@ -69,8 +69,7 @@ const SignupScreen = () => {
             setPhoneNumber('');
             setPassword('');
             setRepeatPassword('');
-            router.replace('/(tabs)/chats');
-            // router.replace(`/verify/${sanitizedPhoneNumber}`);
+            router.replace(`/verify/${sanitizedPhoneNumber}`);
           },
           onError: (err) => {
             Alert.alert('Signup Failed', (err as Error).message);

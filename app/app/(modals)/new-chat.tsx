@@ -31,7 +31,7 @@ const Page = () => {
   const { phoneNumber } = useAppContext();
 
   const { contacts } = useUpdateContacts({ phoneNumber });
-  const { data: _data = [], status } = useContactsQuery({ phoneNumber });
+  const { data: _data = [] } = useContactsQuery({ phoneNumber });
   const { data: chats } = useChatsQuery({ phoneNumber });
   const { mutateAsync, isPending: isPendingCreateChat } =
     useCreateChatMutation();

@@ -1,14 +1,14 @@
 import React from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
   Dimensions,
   Platform,
   SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAppContext } from '@/context/app-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +22,6 @@ const AcceptCallScreen = () => {
       return;
     }
 
-    console.log(call, 'incoming call');
     switch (call.type) {
       case 'video':
         router.replace(`/video-call?meetingId=${call.meetingId}`);

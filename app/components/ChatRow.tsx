@@ -28,7 +28,7 @@ export const ChatRow: FC<ChatRowProps> = ({
   const message = msg.split('\n')[msg.split('\n').length - 1];
 
   return (
-    <AppleStyleSwipeableRow>
+    <AppleStyleSwipeableRow chatId={id}>
       <Link href={`/(tabs)/chats/${id}`} asChild>
         <TouchableHighlight
           activeOpacity={0.8}
