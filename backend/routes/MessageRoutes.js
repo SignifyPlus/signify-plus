@@ -15,43 +15,39 @@ messageRouter.delete(
 // New Routes
 messageRouter.post(
    '/soft-delete',
-   ControllerFactory.getMessageController().softDeleteMessage
+   ControllerFactory.getMessageController().softDeleteMessage,
 );
 
 messageRouter.put(
    '/edit',
-   ControllerFactory.getMessageController().editMessage
+   ControllerFactory.getMessageController().editMessage,
 );
 
 messageRouter.post(
    '/forward',
-   ControllerFactory.getMessageController().forwardMessage
+   ControllerFactory.getMessageController().forwardMessage,
 );
 
-messageRouter.post(
-   '/pin',
-   ControllerFactory.getMessageController().pinMessage
-);
+messageRouter.post('/pin', ControllerFactory.getMessageController().pinMessage);
 
 messageRouter.post(
    '/read-status',
-   ControllerFactory.getMessageController().toggleMessageReadStatus
+   ControllerFactory.getMessageController().toggleMessageReadStatus,
 );
 
 messageRouter.get(
    '/unread-count/:userPhoneNumber',
-   ControllerFactory.getMessageController().getUnreadMessageCount
+   ControllerFactory.getMessageController().getUnreadMessageCount,
 );
 
 messageRouter.get(
    '/unread-count/:userPhoneNumber/:chatId',
-   ControllerFactory.getMessageController().getUnreadMessageCount
+   ControllerFactory.getMessageController().getUnreadMessageCount,
 );
 
 messageRouter.get(
    '/replies/:messageId',
-   ControllerFactory.getMessageController().getMessageReplies
+   ControllerFactory.getMessageController().getMessageReplies,
 );
-
 
 module.exports = messageRouter;

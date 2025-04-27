@@ -15,6 +15,7 @@ const ChatSchema = new mongoose.Schema({
    pinnedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who pinned this chat
    lastActivity: { type: Date, default: Date.now }, // For sorting
    isDeleted: { type: Boolean, default: false }, // Soft delete
+   isDeletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], //Users who deleted this chat
 });
 
 const Chat = mongoose.model('Chat', ChatSchema);

@@ -1,1 +1,6 @@
-{"success":true,"message":"Message marked as read","messageId":"680cde7ad020e74a79152e70","isRead":true}
+{
+   "success": true,
+   "message": "Message marked as read",
+   "messageId": "680cde7ad020e74a79152e70",
+   "isRead": true
+}

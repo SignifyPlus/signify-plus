@@ -64,7 +64,7 @@ class MessageService extends AbstractService {
       return await super.updateDocument(
          { _id: messageId },
          { isRead: true },
-         session
+         session,
       );
    }
 
@@ -72,7 +72,7 @@ class MessageService extends AbstractService {
       return await this.schemaModel.updateMany(
          { _id: { $in: messageIds } },
          { isRead: true },
-         { session }
+         { session },
       );
    }
 
@@ -80,18 +80,18 @@ class MessageService extends AbstractService {
       return await this.schemaModel.updateMany(
          { _id: { $in: messageIds } },
          { isRead: false },
-         { session }
+         { session },
       );
    }
 
    async editMessage(messageId, newContent, session = null) {
       return await super.updateDocument(
          { _id: messageId },
-         { 
+         {
             content: newContent,
-            isEdited: true 
+            isEdited: true,
          },
-         session
+         session,
       );
    }
 
@@ -99,7 +99,7 @@ class MessageService extends AbstractService {
       return await super.updateDocument(
          { _id: messageId },
          { isDeleted: true },
-         session
+         session,
       );
    }
 
@@ -107,7 +107,7 @@ class MessageService extends AbstractService {
       return await super.updateDocument(
          { _id: messageId },
          { isPinned },
-         session
+         session,
       );
    }
 
@@ -116,15 +116,15 @@ class MessageService extends AbstractService {
          chatId,
          receiverIds: userId,
          isRead: false,
-         isDeleted: false
+         isDeleted: false,
       });
    }
 
    async getRepliesForMessage(messageId) {
       return await this.schemaModel
-         .find({ 
+         .find({
             replyToId: messageId,
-            isDeleted: false
+            isDeleted: false,
          })
          .populate({
             path: 'senderId',
@@ -133,7 +133,6 @@ class MessageService extends AbstractService {
          .sort({ createdAt: 1 })
          .lean();
    }
-
 
    //query methods
    getDocumentsByCustomFiltersQuery(filterConditions) {

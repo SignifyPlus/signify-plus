@@ -31,12 +31,9 @@ chatRouter.post(
 // New routes
 chatRouter.delete(
    '/delete',
-   ControllerFactory.getChatController().deleteChat
+   ControllerFactory.getChatController().softDeleteChat,
 );
 
-chatRouter.post(
-   '/pin',
-   ControllerFactory.getChatController().pinChat
-);
+chatRouter.post('/pin', ControllerFactory.getChatController().pinChat);
 
 module.exports = chatRouter;

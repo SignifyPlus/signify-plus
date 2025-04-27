@@ -90,72 +90,77 @@ class ChatController {
             response,
          );
          if (chatIdValidation) return chatIdValidation;
-   
+
          // First check if chat exists and is not deleted
-         const chat = await ServiceFactory.getChatService.getDocumentById(request.params.chatId);
+         const chat = await ServiceFactory.getChatService.getDocumentById(
+            request.params.chatId,
+         );
          if (!chat) {
             return response.status(404).json({
-               error: "Chat not found"
+               error: 'Chat not found',
             });
          }
-         
+
          if (chat.isDeleted) {
             return response.status(404).json({
-               error: "This chat has been deleted"
+               error: 'This chat has been deleted',
             });
          }
-   
+
          // Get non-deleted messages for this chat
          const retrievedChat =
             ServiceFactory.getMessageService.getDocumentsByCustomFiltersQuery({
                chatId: new mongoose.Types.ObjectId(request.params.chatId),
                isDeleted: false, // Only show non-deleted messages
             });
-   
+
          const populatedChatData = await retrievedChat
-         .populate({
-            path: 'senderId receiverIds', // Basic user info
-            select: 'name phoneNumber',
-         })
-         .populate({
-            path: 'replyToId', // For reply functionality
-            populate: {
-               path: 'senderId',
-               select: 'name phoneNumber'
-            },
-            select: 'content senderId' // Include content and sender of replied message
-         })
-         .sort({ createdAt: 1 }) // Sort by creation time
-         .lean();
-   
+            .populate({
+               path: 'senderId receiverIds', // Basic user info
+               select: 'name phoneNumber',
+            })
+            .populate({
+               path: 'replyToId', // For reply functionality
+               populate: {
+                  path: 'senderId',
+                  select: 'name phoneNumber',
+               },
+               select: 'content senderId', // Include content and sender of replied message
+            })
+            .sort({ createdAt: 1 }) // Sort by creation time
+            .lean();
+
          // Get pinned messages for this chat
-         const pinnedMessages = await ServiceFactory.getMessageService.getDocumentsByCustomFilters({
-            chatId: new mongoose.Types.ObjectId(request.params.chatId),
-            isPinned: true,
-            isDeleted: false,
-         });
-   
+         const pinnedMessages =
+            await ServiceFactory.getMessageService.getDocumentsByCustomFilters({
+               chatId: new mongoose.Types.ObjectId(request.params.chatId),
+               isPinned: true,
+               isDeleted: false,
+            });
+
          // Count unread messages if a user is specified
          let unreadCount = 0;
          if (request.query.userPhoneNumber) {
             // First get the user
-            const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({
-               phoneNumber: request.query.userPhoneNumber
-            });
-            
+            const user =
+               await ServiceFactory.getUserService.getDocumentByCustomFilters({
+                  phoneNumber: request.query.userPhoneNumber,
+               });
+
             if (user) {
-               unreadCount = await ServiceFactory.getMessageService.getUnreadMessageCount(
-                  request.params.chatId,
-                  user._id.toString()
-               );
+               unreadCount =
+                  await ServiceFactory.getMessageService.getUnreadMessageCount(
+                     request.params.chatId,
+                     user._id.toString(),
+                  );
             }
          }
-   
+
          response.json({
             messages: populatedChatData,
             totalNumberOfMessages: populatedChatData.length,
             pinnedMessages: pinnedMessages || [],
-            unreadCount: unreadCount
+            unreadCount: unreadCount,
          });
       } catch (exception) {
          const signifyException = new SignifyException(
@@ -184,139 +189,166 @@ class ChatController {
          );
       }
    }
-    // Delete entire chat
-
-   deleteChat = async (request, response) => {
+   // Delete entire chat
+   softDeleteChat = async (request, response) => {
+      var mongooseSession = null;
       try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
          const userPhoneNumberValidation = await ExceptionHelper.validate(
             request.body.userPhoneNumber,
             400,
             `userPhoneNumber is required!`,
-            response
+            response,
          );
          if (userPhoneNumberValidation) return userPhoneNumberValidation;
-         
+
          const chatIdValidation = await ExceptionHelper.validate(
             request.body.chatId,
             400,
             `chatId is not provided!`,
-            response
+            response,
          );
          if (chatIdValidation) return chatIdValidation;
-         
+
          // Get user by phone number
-         const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({
-            phoneNumber: request.body.userPhoneNumber
-         });
+         const user =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.userPhoneNumber,
+            });
          const userValidation = await ExceptionHelper.validate(
             user,
             400,
             `userPhoneNumber doesn't exist in the user table!`,
-            response
+            response,
          );
          if (userValidation) return userValidation;
-         
+
          // Get chat with proper ID
          const chat = await ServiceFactory.getChatService.getDocumentById(
-            request.body.chatId
+            request.body.chatId,
          );
          const chatValidation = await ExceptionHelper.validate(
             chat,
             400,
             `Chat doesn't exist!`,
-            response
+            response,
          );
          if (chatValidation) return chatValidation;
-         
+
          // Check if user is part of this chat - comparing ObjectIds as strings
-         const isUserPartOfChat = 
-            chat.mainUserId.toString() === user._id.toString() || 
-            chat.participants.some(p => p.toString() === user._id.toString());
-         
+         const isUserPartOfChat =
+            chat.mainUserId.toString() === user._id.toString() ||
+            chat.participants.some((p) => p.toString() === user._id.toString());
+
          if (!isUserPartOfChat) {
             return response.status(403).json({
-               error: "User is not part of this chat"
+               error: 'User is not part of this chat',
             });
          }
-         
+
          // Soft delete the chat
-         await ServiceFactory.getChatService.softDeleteChat(
-            chat._id.toString()
+         const updatedChat = await ServiceFactory.getChatService.softDeleteChat(
+            chat._id.toString(),
+            user._id,
+            mongooseSession,
          );
-         
-         return response.json({
-            success: true,
-            message: "Chat deleted successfully"
-         });
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return response.json(updatedChat);
       } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
          return response.status(500).json({ error: exception.message });
       }
    };
    // Pin a chat
    pinChat = async (request, response) => {
+      var mongooseSession = null;
       try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
          const userPhoneNumberValidation = await ExceptionHelper.validate(
             request.body.userPhoneNumber,
             400,
             `userPhoneNumber is required!`,
-            response
+            response,
          );
          if (userPhoneNumberValidation) return userPhoneNumberValidation;
          const chatIdValidation = await ExceptionHelper.validate(
             request.body.chatId,
             400,
             `chatId is not provided!`,
-            response
+            response,
          );
          if (chatIdValidation) return chatIdValidation;
          const isPinnedValidation = await ExceptionHelper.validate(
-            request.body.isPinned !== undefined,
+            request.body.isPinned,
             400,
             `isPinned (boolean) is required!`,
-            response
+            response,
          );
          if (isPinnedValidation) return isPinnedValidation;
          // Get user
-         const user = await ServiceFactory.getUserService.getDocumentByCustomFilters({
-            phoneNumber: request.body.userPhoneNumber
-         });
+         const user =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.userPhoneNumber,
+            });
          const userValidation = await ExceptionHelper.validate(
             user,
             400,
             `userPhoneNumber doesn't exist in the user table!`,
-            response
+            response,
          );
          if (userValidation) return userValidation;
          // Get chat
-         const chat = await ServiceFactory.getChatService.getDocumentById(request.body.chatId);
+         const chat = await ServiceFactory.getChatService.getDocumentById(
+            request.body.chatId,
+         );
          const chatValidation = await ExceptionHelper.validate(
             chat,
             400,
             `Chat doesn't exist!`,
-            response
+            response,
          );
          if (chatValidation) return chatValidation;
          // Check if user is part of this chat
-         const isUserPartOfChat = 
-            chat.mainUserId.toString() === user._id.toString() || 
-            chat.participants.some(p => p.toString() === user._id.toString());
+         const isUserPartOfChat =
+            chat.mainUserId.toString() === user._id.toString() ||
+            chat.participants.some((p) => p.toString() === user._id.toString());
          if (!isUserPartOfChat) {
             return response.status(403).json({
-               error: "User is not part of this chat"
+               error: 'User is not part of this chat',
             });
          }
          // Update pin status
-         await ServiceFactory.getChatService.toggleChatPin(
+         const updatedChat = await ServiceFactory.getChatService.toggleChatPin(
             chat._id.toString(),
             user._id.toString(),
-            request.body.isPinned
+            request.body.isPinned,
+            mongooseSession,
+         );
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
          );
          return response.json({
-            message: request.body.isPinned ? 
-               "Chat pinned successfully" : 
-               "Chat unpinned successfully"
+            message: request.body.isPinned
+               ? 'Chat pinned successfully'
+               : 'Chat unpinned successfully',
+            chat: updatedChat,
          });
       } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
          return response.status(500).json({ error: exception.message });
       }
    };
@@ -332,7 +364,7 @@ class ChatController {
             await ServiceFactory.getMessageService.getDocumentsByCustomFiltersAndSortByCreatedAt(
                {
                   chatId: chat._id.toString(),
-                  isDeleted: false // Only count non-deleted messages
+                  isDeleted: false, // Only count non-deleted messages
                },
             );
          chat.lastMessage =
@@ -341,15 +373,17 @@ class ChatController {
                : messages[ZERO_INDEX].content;
          chat.totalNumberOfMessagesInChat =
             messages == null ? 0 : messages.length;
-            // Add unread count
-            const unreadCount = messages?.filter(msg => 
-               !msg.isRead && 
-               msg.senderId.toString() !== chat.mainUserId._id.toString()
+         // Add unread count
+         const unreadCount =
+            messages?.filter(
+               (msg) =>
+                  !msg.isRead &&
+                  msg.senderId.toString() !== chat.mainUserId._id.toString(),
             ).length || 0;
-            chat.unreadCount = unreadCount;
-            chatObjects.push(chat);
-         }
-         return chatObjects;
+         chat.unreadCount = unreadCount;
+         chatObjects.push(chat);
+      }
+      return chatObjects;
    }
 
    async #postProcessChats(chats) {
@@ -440,7 +474,7 @@ class ChatController {
             {
                mainUserId: mainUserPhoneNumberUserObject._id.toString(),
                participants: participantsIdMap,
-               lastActivity: new Date()
+               lastActivity: new Date(),
             },
             mongooseSession,
          );
@@ -496,7 +530,7 @@ class ChatController {
             $all: participantsIdMap,
             $size: participantsIdMap.length,
          },
-         isDeleted: false // Only consider non-deleted chats
+         isDeleted: false, // Only consider non-deleted chats
       });
    }
 

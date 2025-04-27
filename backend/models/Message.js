@@ -23,7 +23,7 @@ const MessageSchema = new mongoose.Schema({
    content: { type: String, required: true },
    status: { type: Boolean }, //delivered or not
    createdAt: { type: Date, required: true, default: Date.now },
-    // New fields for reply functionality
+   // New fields for reply functionality
    replyToId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Message',

@@ -1,1 +1,13 @@
-[{"mainUserId":"680be2f74b458b0637e83544","participants":["680bfe0e6b137d89bda1902a","680be2f74b458b0637e83544"],"isPinned":false,"pinnedBy":[],"lastActivity":"2025-04-26T13:24:07.512Z","isDeleted":false,"_id":"680cde77d020e74a79152e62","createdAt":"2025-04-26T13:24:07.516Z","__v":0}]
+[
+   {
+      "mainUserId": "680be2f74b458b0637e83544",
+      "participants": ["680bfe0e6b137d89bda1902a", "680be2f74b458b0637e83544"],
+      "isPinned": false,
+      "pinnedBy": [],
+      "lastActivity": "2025-04-26T13:24:07.512Z",
+      "isDeleted": false,
+      "_id": "680cde77d020e74a79152e62",
+      "createdAt": "2025-04-26T13:24:07.516Z",
+      "__v": 0
+   }
+]
