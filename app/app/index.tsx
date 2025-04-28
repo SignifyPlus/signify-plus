@@ -52,7 +52,11 @@ const LoginScreen = () => {
           setUser(data);
           setPhoneNumberInContext(santizedPhoneNumber);
           await setAsyncStorageValue('user', JSON.stringify(data));
-          router.replace(`/verify/${phoneNumber}`);
+          if (data.userAuthenticationRecord?.isVerified) {
+            router.replace(`/(tabs)/chats`);
+          } else {
+            router.replace(`/verify/${phoneNumber}`);
+          }
         },
         onError: () => {
           setLoginError('Login failed. Please check your credentials.');

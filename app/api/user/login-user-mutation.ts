@@ -11,6 +11,9 @@ export interface User {
   phoneNumber: string;
   profilePicture?: string;
   profileStatus?: string;
+  userAuthenticationRecord: {
+    isVerified: boolean;
+  };
 }
 interface LoginPayload {
   phoneNumber: string;

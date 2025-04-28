@@ -67,13 +67,18 @@ const Page = () => {
 
   useEffect(() => {
     if (phone && userVerification?.isVerified === false) {
-      console.log('Otp user verification is verified', userVerification);
       getOtpMutate(phone);
     }
     if (userVerification?.isVerified) {
       router.replace('/(tabs)/chats');
     }
-  }, [getOtpMutate, phone, router, userVerification?.isVerified]);
+  }, [
+    getOtpMutate,
+    phone,
+    router,
+    userVerification,
+    userVerification?.isVerified,
+  ]);
 
   if (isPending || isLoading) {
     return (
