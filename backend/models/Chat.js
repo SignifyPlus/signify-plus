@@ -16,6 +16,8 @@ const ChatSchema = new mongoose.Schema({
    lastActivity: { type: Date, default: Date.now }, // For sorting
    isDeleted: { type: Boolean, default: false }, // Soft delete
    isDeletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], //Users who deleted this chat
+   isArchived: { type: Boolean, default: false }, // Archive
+   isArchivedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], //Users who archived the chat
 });
 
 const Chat = mongoose.model('Chat', ChatSchema);

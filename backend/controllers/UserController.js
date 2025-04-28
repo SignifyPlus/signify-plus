@@ -8,6 +8,7 @@ const ControllerConstants = require('../constants/controllerConstants.js');
 const EventConstants = require('../constants/eventConstants.js');
 const UpdateUserDto = require('../dtos/UpdateUserDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
+const ManagerFactory = require('../factories/managerFactory.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -119,15 +120,35 @@ class UserController {
                .status(signifyException.status)
                .json(signifyException.loadResult());
          }
-         const userAuthenticationResult =
-            await this.#getUserAuthenticationRecord(user);
-         if (userAuthenticationResult.exception) {
-            return response
-               .status(userAuthenticationResult.exception.status)
-               .json(userAuthenticationResult.exception.loadResult());
-         }
-         const authenticationData = userAuthenticationResult.data;
-         const finalUser = { ...user.toObject(), authenticationData };
+
+         //generate tokens
+         const accessToken =
+            await ManagerFactory.getJwtManager().generateAccessToken(
+               user._id.toString(),
+            );
+         const refreshToken =
+            await ManagerFactory.getJwtManager().generateRefreshToken(
+               user._id.toString(),
+            );
+
+         const authenticationData = await EventDispatcher.dispatchEvent(
+            EventConstants.USER_AUTHENTICATION_UPDATE_EVENT,
+            { userId: user._id.toString(), refreshToken: refreshToken },
+         );
+
+         // const userAuthenticationResult =
+         //    await this.#getUserAuthenticationRecord(user);
+         // if (userAuthenticationResult.exception) {
+         //    return response
+         //       .status(userAuthenticationResult.exception.status)
+         //       .json(userAuthenticationResult.exception.loadResult());
+         // }
+         // const authenticationData = userAuthenticationResult.data;
+         const finalUser = {
+            ...user.toObject(),
+            authenticationData,
+            accessToken,
+         };
          response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });

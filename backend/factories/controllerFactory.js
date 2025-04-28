@@ -17,6 +17,7 @@ const SettingsController = require('../controllers/SettingsController.js');
 const UserAuthenticationController = require('../controllers/UserAuthenticationController.js');
 const TwilioOtpController = require('../controllers/TwilioOtpController.js');
 const AmazonS3Controller = require('../controllers/AmazonS3Controller.js');
+const JwtController = require('../controllers/JwtController.js');
 
 class ControllerFactory {
    /**
@@ -95,6 +96,12 @@ class ControllerFactory {
     * @type {AmazonS3Controller | null}
     */
    static #amazonS3Controller = null;
+
+   /**
+    * @private
+    * @type {JwtController | null}
+    */
+   static #jwtController = null;
 
    constructor() {}
 
@@ -189,6 +196,13 @@ class ControllerFactory {
          ControllerFactory.#amazonS3Controller = new AmazonS3Controller();
       }
       return ControllerFactory.#amazonS3Controller;
+   }
+
+   static getJwtController() {
+      if (!ControllerFactory.#jwtController) {
+         ControllerFactory.#jwtController = new JwtController();
+      }
+      return ControllerFactory.#jwtController;
    }
 }
 

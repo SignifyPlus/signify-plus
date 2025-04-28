@@ -1,7 +1,8 @@
 class UpdateUserAuthenticationDto {
-   constructor(phoneNumber, isVerified) {
+   constructor(phoneNumber, isVerified, refreshToken) {
       this.phoneNumber = phoneNumber;
       this.isVerified = isVerified;
+      this.refreshToken = refreshToken;
    }
 }
 

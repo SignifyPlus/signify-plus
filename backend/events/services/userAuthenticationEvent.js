@@ -28,12 +28,11 @@ class UserAuthenticationEvent {
 
    async updateUserAuthenticationRecord(data) {
       LoggerFactory.getApplicationLogger.info(
-         `Updating user authentication record for the userId: ${data.userId}, status: ${data.isVerified} via the user authentication event...`,
+         `Updating user authentication record for the userId: ${data.userId}, status: ${data.isVerified}, token: ${data.refreshToken} via the user authentication event...`,
       );
       const response =
          await ControllerFactory.getUserAuthenticationController().updateUserAuthenticationViaEvent(
-            data.userId,
-            data.isVerified,
+            data,
          );
       return response;
    }

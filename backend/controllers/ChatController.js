@@ -353,6 +353,99 @@ class ChatController {
       }
    };
 
+   // Archive a chat
+   archiveChat = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         const userPhoneNumberValidation = await ExceptionHelper.validate(
+            request.body.userPhoneNumber,
+            400,
+            `userPhoneNumber is required!`,
+            response,
+         );
+         if (userPhoneNumberValidation) return userPhoneNumberValidation;
+         const chatIdValidation = await ExceptionHelper.validate(
+            request.body.chatId,
+            400,
+            `chatId is not provided!`,
+            response,
+         );
+         if (chatIdValidation) return chatIdValidation;
+         const isArchivedValidation = await ExceptionHelper.validate(
+            request.body.isPinned,
+            400,
+            `isArchived (boolean) is required!`,
+            response,
+         );
+         if (isArchivedValidation) return isArchivedValidation;
+         // Get user
+         const user =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.userPhoneNumber,
+            });
+         const userValidation = await ExceptionHelper.validate(
+            user,
+            400,
+            `userPhoneNumber doesn't exist in the user table!`,
+            response,
+         );
+         if (userValidation) return userValidation;
+         // Get chat
+         const chat = await ServiceFactory.getChatService.getDocumentById(
+            request.body.chatId,
+         );
+         const chatValidation = await ExceptionHelper.validate(
+            chat,
+            400,
+            `Chat doesn't exist!`,
+            response,
+         );
+         if (chatValidation) return chatValidation;
+         // Check if user is part of this chat
+         const isUserPartOfChat =
+            chat.mainUserId.toString() === user._id.toString() ||
+            chat.participants.some((p) => p.toString() === user._id.toString());
+         if (!isUserPartOfChat) {
+            return response.status(403).json({
+               error: 'User is not part of this chat',
+            });
+         }
+         // Update pin status
+         // const updatedChat = await ServiceFactory.getChatService.toggleChatPin(
+         //    chat._id.toString(),
+         //    user._id.toString(),
+         //    request.body.isPinned,
+         //    mongooseSession,
+         // );
+         // await ServiceFactory.getMongooseService.commitMongooseTransaction(
+         //    mongooseSession,
+         // );
+         // return response.json({
+         //    message: request.body.isPinned
+         //       ? 'Chat pinned successfully'
+         //       : 'Chat unpinned successfully',
+         //    chat: updatedChat,
+         // });
+         return response.json({});
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
    async #getUserChats(chats) {
       const chatObjects = [];
       const ZERO_INDEX = 0;

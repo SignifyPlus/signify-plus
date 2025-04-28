@@ -36,4 +36,6 @@ chatRouter.delete(
 
 chatRouter.post('/pin', ControllerFactory.getChatController().pinChat);
 
+chatRouter.post('/archive', ControllerFactory.getChatController().archiveChat);
+
 module.exports = chatRouter;
