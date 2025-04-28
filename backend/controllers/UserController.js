@@ -265,8 +265,8 @@ class UserController {
             existingUserObject._id.toString(),
             request.body?.name,
             request.body?.phoneNumber,
-            request.body?.profilePicture,
             request.body?.password,
+            request.body?.profilePicture,
             request.body?.profileStatus,
          );
 
