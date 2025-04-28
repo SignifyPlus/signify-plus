@@ -1,7 +1,7 @@
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, Stack, usePathname } from 'expo-router';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View, Image } from 'react-native';
 import { useAppContext } from '@/context/app-context';
 import { useChatsQuery } from '@/api/chat/chats-query';
 import { useEffect } from 'react';
@@ -19,6 +19,9 @@ const Layout = () => {
   const chatPhoneNumber = chat?.participants
     .filter((p) => p.phoneNumber !== phoneNumber)
     .map((p) => p.phoneNumber)[0];
+  const chatParticipant = chat?.participants.filter(
+    (p) => p.phoneNumber !== phoneNumber
+  )[0];
 
   const contact = contacts.find((contact) => {
     if (contact.phoneNumbers[0]?.number === chatPhoneNumber) {
@@ -78,24 +81,25 @@ const Layout = () => {
                 marginLeft: Platform.OS === 'ios' ? -100 : 0,
               }}
             >
-              {/*<Image*/}
-              {/*  source={{*/}
-              {/*    uri: 'https://avatars.githubusercontent.com/u/97961673?v=4',*/}
-              {/*  }}*/}
-              {/*  style={{ width: 32, height: 32, borderRadius: 50 }}*/}
-              {/*/>*/}
-              <View
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 15,
-                  backgroundColor: Colors.lightGray,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Ionicons name="person-outline" />
-              </View>
+              {chatParticipant?.profilePicture ? (
+                <Image
+                  source={{ uri: chatParticipant.profilePicture }}
+                  style={{ width: 32, height: 32, borderRadius: 50 }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    backgroundColor: Colors.lightGray,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Ionicons name="person-outline" />
+                </View>
+              )}
               <Text style={{ fontSize: 16, fontWeight: '500' }}>
                 {contact?.displayName ?? chatPhoneNumber}
               </Text>
