@@ -6,7 +6,7 @@
 const RabbitMqProcessorManager = require('../managers/rabbitMqProcessorManager.js');
 const RabbitMqQueueManager = require('../managers/rabbitMqQueueManager.js');
 const FirebaseManager = require('../managers/firebase/firebaseManager.js');
-const AwsS3Manager = require('../managers/aws/awsS3Manager.js');
+const AwsS3Manager = require('../managers/Aws/awsS3Manager.js');
 const TwilioManager = require('../managers/twilio/twilioManager.js');
 const JwtManager = require('../managers/jwt/jwtManager.js');
 
