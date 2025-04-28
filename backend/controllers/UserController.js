@@ -265,6 +265,7 @@ class UserController {
             existingUserObject._id.toString(),
             request.body?.name,
             request.body?.phoneNumber,
+            request.body?.profilePicture,
             request.body?.password,
             request.body?.profileStatus,
          );
@@ -301,6 +302,10 @@ class UserController {
                      updateUserDto.password == null
                         ? existingUserObject.password
                         : updateUserDto.password,
+                  profilePicture:
+                  updateUserDto.profilePicture == null
+                     ? existingUserObject.profilePicture
+                     : updateUserDto.profilePicture,
                   profileStatus:
                      updateUserDto.profileStatus == null
                         ? existingUserObject.profileStatus
