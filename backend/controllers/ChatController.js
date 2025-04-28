@@ -64,7 +64,7 @@ class ChatController {
          const chats = await chatsQuery
             .populate({
                path: 'mainUserId participants',
-               select: 'phoneNumber name',
+               select: 'phoneNumber name profilePicture',
             })
             .sort({ isPinned: -1, lastActivity: -1 }) // Sort by pinned status first, then by activity
             .lean();
@@ -117,13 +117,13 @@ class ChatController {
          const populatedChatData = await retrievedChat
             .populate({
                path: 'senderId receiverIds', // Basic user info
-               select: 'name phoneNumber',
+               select: 'name phoneNumber profilePicture',
             })
             .populate({
                path: 'replyToId', // For reply functionality
                populate: {
                   path: 'senderId',
-                  select: 'name phoneNumber',
+                  select: 'name phoneNumber profilePicture',
                },
                select: 'content senderId', // Include content and sender of replied message
             })
@@ -179,7 +179,7 @@ class ChatController {
          return await chatsQuery
             .populate({
                path: 'mainUserId participants',
-               select: 'phoneNumber',
+               select: 'phoneNumber profilePicture',
             })
             .lean();
       } catch (exception) {
