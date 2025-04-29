@@ -81,6 +81,8 @@
     <service android:name="live.videosdk.rnfgservice.ForegroundServiceTask"/>
     <service android:name="live.videosdk.rnfgservice.ForegroundService" android:foregroundServiceType="mediaProjection"/>
     <service android:name="live.videosdk.rnfgservice.ForegroundServiceTask"/>
+    <service android:name="live.videosdk.rnfgservice.ForegroundService" android:foregroundServiceType="mediaProjection"/>
+    <service android:name="live.videosdk.rnfgservice.ForegroundServiceTask"/>
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:screenOrientation="portrait">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

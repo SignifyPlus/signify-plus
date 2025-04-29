@@ -18,6 +18,7 @@ import {
   import { User } from '@/api/user/login-user-mutation';
 import { sanitizePhoneNumber } from '@/constants/utils';
 import { Contact } from 'react-native-contacts/type';
+import { Alert } from 'react-native';
 
 type CallType = {
   type: 'video' | 'voice';
@@ -207,16 +208,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       // Handle incoming meeting ID offer
 
       const callType = data.isVoiceCall ? 'voice' : 'video';
-      console.log(
-        'Received meeting id offer, and setting call to ',
-        data.isVideoCall,
-        {
-          type: callType,
-          meetingId: data.meetingId,
-          caller: data.senderPhoneNumber,
-          callee: phoneNumber,
-        }
-      );
       setCall({
         type: callType,
         meetingId: data.meetingId,
@@ -227,16 +218,21 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     });
 
     socket.on('call-declined', (_data) => {
-      console.log('Call declined by the other user', _data);
       setCall(null);
       router.dismiss();
     });
 
-    socket.on('meeting-id-failed', (_data) => {
-      // console.error('Meeting ID offer failed:', data.message);
-
-      setCall(null);
+    socket.on('meeting-id-failed', (data) => {
       router.dismiss();
+      setCall(null);
+      if (data.message === 'NO_USER_FOUND') {
+        setTimeout(() => {
+          Alert.alert(
+            'User not found',
+            'Call failed because user was not found'
+          );
+        }, 300);
+      }
     });
 
     socket.on('user-disconnected-from-meeting', () => {
@@ -299,7 +295,6 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
 
   useUpdateContacts({ phoneNumber });
 
-  console.log(call);
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );

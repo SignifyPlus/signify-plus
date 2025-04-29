@@ -7,12 +7,12 @@ const mockSocketUser2 = io('http://localhost:3001');
 mockSocketUser1.on('connect', () => {
    console.log(`Connected User 1 to MocketSocket ${'http://localhost:3001'}`);
    mockSocketUser1.emit('socket-registration', {
-      userPhoneNumber: '+90123456789',
+      userPhoneNumber: '+905343096627',
    });
    mockSocketUser1.emit('message', {
-      senderPhoneNumber: '+90123456789',
+      senderPhoneNumber: '+905343096627',
       message: 'Hi, How are you!!',
-      targetPhoneNumbers: ['+49123456789'],
+      targetPhoneNumbers: ['+905343096626'],
    });
 });
 
@@ -37,7 +37,7 @@ mockSocketUser1.on('message-failure', (data) => {
 mockSocketUser2.on('connect', () => {
    console.log(`Connected User 2 to MocketSocket ${'http://localhost:3001'}`);
    mockSocketUser2.emit('socket-registration', {
-      userPhoneNumber: '+49123456789',
+      userPhoneNumber: '+905343096626',
    });
 });
 
@@ -45,8 +45,8 @@ mockSocketUser2.on('message', (message) => {
    console.log(message);
    mockSocketUser2.emit('message', {
       message: "I'm Good!, How are you!!",
-      senderPhoneNumber: '+49123456789',
-      targetPhoneNumbers: ['+90123456789'],
+      senderPhoneNumber: '+905343096626',
+      targetPhoneNumbers: ['+905343096627'],
       chatId: message.chatId,
    });
 });

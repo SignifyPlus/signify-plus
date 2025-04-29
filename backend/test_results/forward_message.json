@@ -1,0 +1,20 @@
+{
+   "success": true,
+   "message": "Message forwarded successfully",
+   "forwardedMessage": [
+      {
+         "senderId": "680be2f74b458b0637e83544",
+         "receiverIds": ["680be27b4b458b0637e834cb"],
+         "chatId": "680cde83d020e74a79152e98",
+         "content": "This is the edited message content - Sat, Apr 26, 2025  4:24:12 PM",
+         "isEdited": false,
+         "isPinned": false,
+         "isDeleted": false,
+         "isRead": false,
+         "_id": "680cde83d020e74a79152e9a",
+         "createdAt": "2025-04-26T13:24:19.514Z",
+         "__v": 0
+      }
+   ],
+   "chatId": "680cde83d020e74a79152e98"
+}

@@ -14,7 +14,7 @@ LogBox.ignoreLogs([
   'Warning: Country',
   'Warning: Flag',
   'Warning: Main',
-  'Header Modal:',
+  'Warning: HeaderModal:',
 ]);
 
 SplashScreen.preventAutoHideAsync();

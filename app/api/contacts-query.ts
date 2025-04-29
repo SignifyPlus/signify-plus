@@ -29,6 +29,7 @@ export const contactsQueryKey = (params: { phoneNumber?: string }) => [
 
 export const useContactsQuery = (params: { phoneNumber?: string }) => {
   return useQuery({
+    refetchInterval: 500,
     queryKey: contactsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
