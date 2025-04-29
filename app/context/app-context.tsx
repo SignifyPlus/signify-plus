@@ -224,13 +224,16 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     });
 
     socket.on('meeting-id-failed', (data) => {
-      console.log(data);
-      if (data.message === 'USER_NOT_FOUND') {
-        Alert.alert('NO_USER_FOUND', 'Call failed because user was not found');
-      }
-
       router.dismiss();
       setCall(null);
+      if (data.message === 'NO_USER_FOUND') {
+        setTimeout(() => {
+          Alert.alert(
+            'User not found',
+            'Call failed because user was not found'
+          );
+        }, 300);
+      }
     });
 
     socket.on('user-disconnected-from-meeting', () => {

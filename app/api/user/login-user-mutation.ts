@@ -1,19 +1,30 @@
 import { useMutation } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
 
+interface AuthenticationData {
+  data: {
+    _id: string;
+    userId: string;
+    isVerified: boolean;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
+  exception: null;
+}
+
 export interface User {
   _id: string;
-  __v: number;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
   name: string;
-  password: string;
   phoneNumber: string;
-  profilePicture?: string;
-  profileStatus?: string;
-  userAuthenticationRecord: {
-    isVerified: boolean;
-  };
+  password: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  profileStatus: string;
+  profilePicture: string;
+  authenticationData: AuthenticationData[];
+  accessToken: string;
 }
 interface LoginPayload {
   phoneNumber: string;
@@ -36,7 +47,7 @@ export const loginUser = async ({
     if (!response.ok) {
       throw new Error('Login failed. Please check your credentials.');
     }
-    const rawData = await response.json();
+    const rawData = (await response.json()) as User;
 
     return {
       ...rawData,
