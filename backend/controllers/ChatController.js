@@ -377,7 +377,7 @@ class ChatController {
          );
          if (chatIdValidation) return chatIdValidation;
          const isArchivedValidation = await ExceptionHelper.validate(
-            request.body.isPinned,
+            request.body.isArchived,
             400,
             `isArchived (boolean) is required!`,
             response,
@@ -415,23 +415,22 @@ class ChatController {
                error: 'User is not part of this chat',
             });
          }
-         // Update pin status
-         // const updatedChat = await ServiceFactory.getChatService.toggleChatPin(
-         //    chat._id.toString(),
-         //    user._id.toString(),
-         //    request.body.isPinned,
-         //    mongooseSession,
-         // );
-         // await ServiceFactory.getMongooseService.commitMongooseTransaction(
-         //    mongooseSession,
-         // );
-         // return response.json({
-         //    message: request.body.isPinned
-         //       ? 'Chat pinned successfully'
-         //       : 'Chat unpinned successfully',
-         //    chat: updatedChat,
-         // });
-         return response.json({});
+         // Update archive status
+         const updatedChat = await ServiceFactory.getChatService.toggleArchive(
+            chat._id.toString(),
+            user._id.toString(),
+            request.body.isArchived,
+            mongooseSession,
+         );
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return response.json({
+            message: request.body.isArchived
+               ? 'Chat archived successfully'
+               : 'Chat unarchived successfully',
+            chat: updatedChat,
+         });
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,

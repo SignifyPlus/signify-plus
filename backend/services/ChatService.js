@@ -89,13 +89,13 @@ class ChatService extends AbstractService {
    }
 
    // Pin or unpin a chat
-   async toggleChatPin(chatId, userId, isPinned = true, session = null) {
+   async toggleChatPin(chatId, userId, isPinned, session = null) {
       if (isPinned) {
          // Add user to pinnedBy array if not already there
          return await this.schemaModel.findByIdAndUpdate(
             chatId,
             {
-               isPinned: true,
+               isPinned: isPinned,
                $addToSet: { pinnedBy: userId },
                lastActivity: new Date(),
             },
@@ -117,7 +117,45 @@ class ChatService extends AbstractService {
                if (chat.pinnedBy.length === 0) {
                   return this.schemaModel.findByIdAndUpdate(
                      chatId,
-                     { isPinned: false },
+                     { isPinned: isPinned },
+                     { new: true, session },
+                  );
+               }
+               return chat;
+            });
+      }
+   }
+
+   // archive or unarchive a chat
+   async toggleArchive(chatId, userId, isArchived, session = null) {
+      if (isArchived) {
+         // Add user to archivedBy array if not already there
+         return await this.schemaModel.findByIdAndUpdate(
+            chatId,
+            {
+               isArchived: isArchived,
+               $addToSet: { archivedBy: userId },
+               lastActivity: new Date(),
+            },
+            { new: true, session },
+         );
+      } else {
+         // Remove user from pinnedBy array
+         return await this.schemaModel
+            .findByIdAndUpdate(
+               chatId,
+               {
+                  $pull: { archivedBy: userId },
+                  lastActivity: new Date(),
+               },
+               { new: true, session },
+            )
+            .then((chat) => {
+               // If no users have this chat pinned anymore, set isPinned to false
+               if (chat.archivedBy.length === 0) {
+                  return this.schemaModel.findByIdAndUpdate(
+                     chatId,
+                     { isArchived: isArchived },
                      { new: true, session },
                   );
                }
