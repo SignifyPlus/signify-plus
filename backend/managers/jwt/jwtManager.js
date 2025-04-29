@@ -1,6 +1,7 @@
 const LoggerFactory = require('../../factories/loggerFactory.js');
 const JsonWebToken = require('jsonwebtoken');
 const JWT = require('./models/jwt.js');
+const SignifyResult = require('../../dtos/SignifyResult.js');
 class JwtManager {
    /**
     * @type {JWT | null}
@@ -42,7 +43,7 @@ class JwtManager {
          { expiresIn: this.#jwtDto.accessTokenExpirationTime },
       );
       LoggerFactory.getApplicationLogger.info(
-         `RefreshToken: ${accessToken} generated for the userId: ${userId}`,
+         `AccessToken: ${accessToken} generated for the userId: ${userId} - expiration Time: ${this.#jwtDto.accessTokenExpirationTime}`,
       );
       return accessToken;
    }
@@ -54,7 +55,7 @@ class JwtManager {
          { expiresIn: this.#jwtDto.refreshTokenExpirationTime },
       );
       LoggerFactory.getApplicationLogger.info(
-         `RefreshToken: ${refreshToken} generated for the userId: ${userId}`,
+         `RefreshToken: ${refreshToken} generated for the userId: ${userId} - expiration Time: ${this.#jwtDto.refreshTokenExpirationTime}`,
       );
       return refreshToken;
    }
@@ -66,13 +67,14 @@ class JwtManager {
             this.#jwtDto.accessTokenSecret,
          );
          LoggerFactory.getApplicationLogger.info(
-            `IsAccessTokenValid: ${isValid}`,
+            `IsAccessTokenValid: ${JSON.stringify(isValid)}`,
          );
+         return new SignifyResult(isValid);
       } catch (exception) {
          LoggerFactory.getApplicationLogger.error(
             `Exception Occured while verifying the access token: ${exception}`,
          );
-         throw new Error(exception);
+         return new SignifyResult(null, exception);
       }
    }
 
@@ -83,13 +85,14 @@ class JwtManager {
             this.#jwtDto.refreshTokenSecret,
          );
          LoggerFactory.getApplicationLogger.info(
-            `IsRefreshTokenValid: ${isValid}`,
+            `IsRefreshTokenValid: ${JSON.stringify(isValid)}`,
          );
+         return new SignifyResult(isValid);
       } catch (exception) {
          LoggerFactory.getApplicationLogger.error(
             `Exception Occured while verifying the refresh token: ${exception}`,
          );
-         throw new Error(exception);
+         return new SignifyResult(null, exception);
       }
    }
 }

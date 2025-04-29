@@ -303,9 +303,9 @@ class UserController {
                         ? existingUserObject.password
                         : updateUserDto.password,
                   profilePicture:
-                  updateUserDto.profilePicture == null
-                     ? existingUserObject.profilePicture
-                     : updateUserDto.profilePicture,
+                     updateUserDto.profilePicture == null
+                        ? existingUserObject.profilePicture
+                        : updateUserDto.profilePicture,
                   profileStatus:
                      updateUserDto.profileStatus == null
                         ? existingUserObject.profileStatus
