@@ -84,6 +84,7 @@ class UserAuthenticationController {
          const userAuthenticationDto = new UserAuthenticationDto(
             request.body?.phoneNumber,
             request.body?.isVerified,
+            request.body?.refreshToken,
          );
 
          const phoneNumberValidation = await ExceptionHelper.validate(
@@ -133,6 +134,10 @@ class UserAuthenticationController {
                      userAuthenticationDto.isVerified == null
                         ? existingUserAuthenticationRecord.isVerified
                         : userAuthenticationDto.isVerified,
+                  refreshToken:
+                     userAuthenticationDto.refreshToken == null
+                        ? existingUserAuthenticationRecord.refreshToken
+                        : userAuthenticationDto.refreshToken,
                   updatedAt: Date.now(),
                },
                mongooseSession,
@@ -155,7 +160,7 @@ class UserAuthenticationController {
       }
    };
 
-   async updateUserAuthenticationViaEvent(userId, isVerified) {
+   async updateUserAuthenticationViaEvent(data) {
       var mongooseSession = null;
       try {
          mongooseSession =
@@ -163,23 +168,21 @@ class UserAuthenticationController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
-
-         if (userId == null || isVerified == null) {
+         if (data.userId == null || data.userId == undefined) {
             const signifyException = new SignifyException(
                500,
-               `userId or isVerified is Null!`,
+               `userId is null`,
             );
             return new SignifyResult(null, signifyException);
          }
-
          LoggerFactory.getApplicationLogger.info(
-            `Updating the userAuthentication record for the userId: ${userId} - satus: ${isVerified}`,
+            `Updating the userAuthentication record for the userId: ${data.userId}`,
          );
 
          const existingUserAuthenticationRecord =
             await ServiceFactory.getUserAuthenticationService.getDocumentByCustomFilters(
                {
-                  userId: userId,
+                  userId: data.userId,
                },
             );
          const existingUserAuthenticationRecordValidation =
@@ -194,7 +197,14 @@ class UserAuthenticationController {
             await ServiceFactory.getUserAuthenticationService.updateDocument(
                existingUserAuthenticationRecord._id,
                {
-                  isVerified: isVerified,
+                  isVerified:
+                     data.isVerified == null
+                        ? existingUserAuthenticationRecord.isVerified
+                        : data.isVerified,
+                  refreshToken:
+                     data.refreshToken == null
+                        ? existingUserAuthenticationRecord.refreshToken
+                        : data.refreshToken,
                   updatedAt: Date.now(),
                },
                mongooseSession,

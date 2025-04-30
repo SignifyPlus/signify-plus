@@ -7,6 +7,7 @@ const UserAuthenticationSchema = new mongoose.Schema({
       required: true,
    },
    isVerified: { type: Boolean, required: true, default: false },
+   refreshToken: { type: String },
    createdAt: { type: Date, required: true, default: Date.now },
    updatedAt: { type: Date, required: true, default: Date.now },
 });

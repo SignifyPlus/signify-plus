@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
@@ -16,10 +15,10 @@ import Colors from '@/constants/Colors';
 import { useSettingsQuery } from '@/api/settings/settings-query';
 import { useUpdateUserMutation } from '@/api/user/update-user-mutation';
 import { useAppContext } from '@/context/app-context';
-import { Ionicons } from '@expo/vector-icons';
 import { EditableField } from '@/components/EditableField';
 import { validatePasswordsMatch, validatePasswordStrength } from '@/app/signup';
 import { queryClient } from '@/api';
+import { SettingsProfilePicture } from '@/components/SettingsProfilePicture';
 
 const Page = () => {
   const { phoneNumber, user, setUser } = useAppContext();
@@ -88,16 +87,7 @@ const Page = () => {
     <KeyboardAvoidingView style={styles.container}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.userHeader}>
-          {user?.profilePicture ? (
-            <Image
-              source={{ uri: user.profilePicture }}
-              style={styles.avatarPlaceholder}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person-outline" size={28} color="#555" />
-            </View>
-          )}
+          <SettingsProfilePicture />
           <View style={styles.userText}>
             <EditableField
               value={user?.name ?? ''}
@@ -271,15 +261,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  avatarPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#ddd',
-    marginRight: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   userText: {
     flex: 1,
   },
@@ -319,13 +300,6 @@ const styles = StyleSheet.create({
   //   width: '100%',
   //   color: '#111',
   // },
-  passwordField: {
-    fontSize: 16,
-    color: '#666',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',

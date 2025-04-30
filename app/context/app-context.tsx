@@ -19,6 +19,7 @@ import { useContactsQuery } from '@/api/contacts-query';
 import { User } from '@/api/user/login-user-mutation';
 import { sanitizePhoneNumber } from '@/constants/utils';
 import { Contact } from 'react-native-contacts/type';
+import { Alert } from 'react-native';
 
 type CallType = {
   type: 'video' | 'voice';
@@ -222,11 +223,17 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       router.dismiss();
     });
 
-    socket.on('meeting-id-failed', (_data) => {
-      // console.error('Meeting ID offer failed:', data.message);
-
-      setCall(null);
+    socket.on('meeting-id-failed', (data) => {
       router.dismiss();
+      setCall(null);
+      if (data.message === 'NO_USER_FOUND') {
+        setTimeout(() => {
+          Alert.alert(
+            'User not found',
+            'Call failed because user was not found'
+          );
+        }, 300);
+      }
     });
 
     socket.on('user-disconnected-from-meeting', () => {

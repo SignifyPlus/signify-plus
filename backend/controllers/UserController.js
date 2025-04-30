@@ -7,6 +7,8 @@ const SignifyException = require('../exception/SignifyException.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
 const EventConstants = require('../constants/eventConstants.js');
 const UpdateUserDto = require('../dtos/UpdateUserDto.js');
+const SignifyResult = require('../dtos/SignifyResult.js');
+const ManagerFactory = require('../factories/managerFactory.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -60,24 +62,18 @@ class UserController {
             response,
          );
          if (userValidation) return userValidation;
-         const userAuthenticationRecord =
-            await ServiceFactory.getUserAuthenticationService.getDocumentByCustomFilters(
-               {
-                  userId: user._id.toString(),
-               },
-            );
-         const userAuthenticationRecordValidation =
-            await ExceptionHelper.validate(
-               userAuthenticationRecord,
-               400,
-               `UserAuthentication does not exist for the user: ${user._id.toString()}`,
-               response,
-            );
-         if (userAuthenticationRecordValidation)
-            return userAuthenticationRecordValidation;
+         const userAuthenticationResult =
+            await this.#getUserAuthenticationRecord(user);
+
+         if (userAuthenticationResult.exception) {
+            return response
+               .status(userAuthenticationResult.exception.status)
+               .json(userAuthenticationResult.exception.loadResult());
+         }
          //add the authenticationrecord - converts the mongoose document to an object, and then add the authentication record (with the same name)
          //spreads over all the properties of user object first
-         const finalUser = { ...user.toObject(), userAuthenticationRecord };
+         const authenticationData = userAuthenticationResult.data;
+         const finalUser = { ...user.toObject(), authenticationData };
          response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
@@ -124,7 +120,36 @@ class UserController {
                .status(signifyException.status)
                .json(signifyException.loadResult());
          }
-         response.json(user);
+
+         //generate tokens
+         const accessToken =
+            await ManagerFactory.getJwtManager().generateAccessToken(
+               user._id.toString(),
+            );
+         const refreshToken =
+            await ManagerFactory.getJwtManager().generateRefreshToken(
+               user._id.toString(),
+            );
+
+         const authenticationData = await EventDispatcher.dispatchEvent(
+            EventConstants.USER_AUTHENTICATION_UPDATE_EVENT,
+            { userId: user._id.toString(), refreshToken: refreshToken },
+         );
+
+         // const userAuthenticationResult =
+         //    await this.#getUserAuthenticationRecord(user);
+         // if (userAuthenticationResult.exception) {
+         //    return response
+         //       .status(userAuthenticationResult.exception.status)
+         //       .json(userAuthenticationResult.exception.loadResult());
+         // }
+         // const authenticationData = userAuthenticationResult.data;
+         const finalUser = {
+            ...user.toObject(),
+            authenticationData,
+            accessToken,
+         };
+         response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
       }
@@ -180,6 +205,7 @@ class UserController {
 
          //TODO - tie to a single transaction
          //use event-driven approach to also create default user authentication record (via an event)
+         //(if want to use the result, simply use await to wait for the result which will be returned by the event :))
          EventDispatcher.dispatchEvent(
             EventConstants.USER_AUTHENTICAITON_EVENT,
             userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
@@ -240,6 +266,7 @@ class UserController {
             request.body?.name,
             request.body?.phoneNumber,
             request.body?.password,
+            request.body?.profilePicture,
             request.body?.profileStatus,
          );
 
@@ -275,6 +302,10 @@ class UserController {
                      updateUserDto.password == null
                         ? existingUserObject.password
                         : updateUserDto.password,
+                  profilePicture:
+                     updateUserDto.profilePicture == null
+                        ? existingUserObject.profilePicture
+                        : updateUserDto.profilePicture,
                   profileStatus:
                      updateUserDto.profileStatus == null
                         ? existingUserObject.profileStatus
@@ -330,6 +361,25 @@ class UserController {
          response.status(500).json({ error: exception.message });
       }
    };
+
+   async #getUserAuthenticationRecord(user) {
+      const userAuthenticationRecord =
+         await ServiceFactory.getUserAuthenticationService.getDocumentByCustomFilters(
+            {
+               userId: user._id.toString(),
+            },
+         );
+      const userAuthenticationRecordValidation = await ExceptionHelper.validate(
+         userAuthenticationRecord,
+         400,
+         `UserAuthentication does not exist for the user: ${user._id.toString()}`,
+      );
+      if (userAuthenticationRecordValidation) {
+         return new SignifyResult(null, signifyException);
+      }
+
+      return new SignifyResult(userAuthenticationRecord);
+   }
 }
 
 module.exports = UserController;

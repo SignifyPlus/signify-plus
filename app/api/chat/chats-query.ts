@@ -5,6 +5,7 @@ type User = {
   _id: string;
   name: string;
   phoneNumber: string;
+  profilePicture?: string | null;
 };
 
 export type Chat = {

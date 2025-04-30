@@ -29,6 +29,7 @@ const settingsRoutes = require('../routes/SettingsRoutes.js');
 const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js');
 const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
 const amazonS3Routes = require('../routes/AmazonS3Routes.js');
+const jwtRoutes = require('../routes/JwtRoutes.js');
 
 const signifyPlusApp = express();
 signifyPlusApp.use(express.json());
@@ -78,6 +79,8 @@ async function setupServer() {
       await ManagerFactory.getAwsS3Manager().initiateS3Connection();
       //Twilio OTP/Verify
       await setupTwilio();
+      //Jwt Manager
+      await setupJwtManager();
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -101,6 +104,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
       signifyPlusAppServer.use('/twilio', twilioOtpRoutes);
       signifyPlusAppServer.use('/amazon', amazonS3Routes);
+      signifyPlusAppServer.use('/jwt', jwtRoutes);
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -118,6 +122,19 @@ async function setupTwilio() {
    );
    await ManagerFactory.getTwilioManager().setTwilioVerifyServiceDto(
       process.env.TWILIO_VERIFY_SERVICE_SID,
+   );
+}
+
+async function setupJwtManager() {
+   await ManagerFactory.getJwtManager().setJwtDto(
+      await CommonUtils.decodeFromBase64(
+         process.env.JWT_SECRET_ACCESS_TOKEN_SECRET_KEY_ENCRYPTED,
+      ),
+      await CommonUtils.decodeFromBase64(
+         process.env.JWT_SECRET_REFRESH_TOKEN_SECRET_KEY,
+      ),
+      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_SECONDS,
+      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_SECONDS,
    );
 }
 

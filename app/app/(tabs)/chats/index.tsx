@@ -29,14 +29,12 @@ const Page = () => {
   const chatRows: ChatRowProps[] = (data ?? [])
     .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
     .map((chat) => {
-      const from = chat.participants
-        .filter((p) => p._id !== user?._id)
-        .map((p) => p.phoneNumber)[0]!;
+      const fromParticipants = chat.participants.filter(
+        (p) => p._id !== user?._id
+      );
+      const from = fromParticipants.map((p) => p.phoneNumber)[0]!;
       const fromContact = contacts.find(
         (c) => c.phoneNumbers[0]?.number === from
-      );
-      const fromContactQuery = _data.find(
-        (c) => c.contactUserId.phoneNumber === from
       );
 
       return {
@@ -45,7 +43,7 @@ const Page = () => {
           ? fromContact.givenName + fromContact.familyName
           : from,
         date: chat.createdAt,
-        img: fromContactQuery?.contactUserId.profilePicture ?? '',
+        img: fromParticipants[0]?.profilePicture ?? '',
         msg: chat.lastMessage,
         read: true,
         unreadCount: 0,

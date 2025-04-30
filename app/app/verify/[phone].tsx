@@ -1,8 +1,9 @@
 import Colors from '@/constants/Colors';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -23,11 +24,11 @@ import { useVerifyOtpMutation } from '@/api/user/verify-otp-mutation';
 const CELL_COUNT = 6;
 
 const Page = () => {
-  const { phone } = useLocalSearchParams<{
-    phone: string;
-  }>();
+  const { phone } = useLocalSearchParams<{ phone: string }>();
   const router = useRouter();
   const [code, setCode] = useState('');
+  const [timer, setTimer] = useState(30);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 90 : 0;
 
   const {
@@ -48,6 +49,36 @@ const Page = () => {
     setValue: setCode,
   });
 
+  const startTimer = () => {
+    setTimer(30);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setTimer((prev) => {
+        if (prev === 1) {
+          clearInterval(intervalRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (phone && userVerification?.isVerified === false) {
+      getOtpMutate(phone);
+      startTimer();
+    }
+    if (userVerification?.isVerified) {
+      router.replace('/(tabs)/chats');
+    }
+  }, [
+    getOtpMutate,
+    phone,
+    router,
+    userVerification,
+    userVerification?.isVerified,
+  ]);
+
   useEffect(() => {
     if (code.length !== 6) return;
 
@@ -58,22 +89,19 @@ const Page = () => {
       },
       {
         onSuccess: (data) => {
-          if (data.valid || data.status === 'success')
+          if (data.valid || data.status === 'success') {
             router.replace('/(tabs)/chats');
+          }
+        },
+        onError: (err) => {
+          Alert.alert(
+            'Invalid code',
+            'Please check the code and try again. ' + err.message
+          );
         },
       }
     );
   }, [code, phone, router, verifyOtpMutate]);
-
-  useEffect(() => {
-    if (phone && userVerification?.isVerified === false) {
-      console.log('Otp user verification is verified', userVerification);
-      getOtpMutate(phone);
-    }
-    if (userVerification?.isVerified) {
-      router.replace('/(tabs)/chats');
-    }
-  }, [getOtpMutate, phone, router, userVerification?.isVerified]);
 
   if (isPending || isLoading) {
     return (
@@ -130,9 +158,33 @@ const Page = () => {
           )}
         />
 
-        <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-          <Text style={styles.buttonText}>
-            Didn&#39;t receive a verification code?
+        <TouchableOpacity
+          style={[styles.button, timer > 0 && styles.disabledButton]}
+          disabled={timer > 0}
+          onPress={() => {
+            getOtpMutate(phone, {
+              onSuccess: () => {
+                Alert.alert(
+                  'Verification code sent',
+                  'We have sent you a new verification code. Please check your SMS.'
+                );
+                startTimer();
+              },
+              onError: () => {
+                Alert.alert(
+                  'Error',
+                  'Unable to send verification code. Please try again later.'
+                );
+              },
+            });
+          }}
+        >
+          <Text
+            style={[styles.buttonText, timer > 0 && styles.disabledButtonText]}
+          >
+            {timer > 0
+              ? `Resend available in ${timer}s`
+              : "Didn't receive a verification code?"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -160,6 +212,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: Colors.primary,
     fontSize: 18,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  disabledButtonText: {
+    color: '#888',
   },
   codeFieldRoot: {
     marginTop: 20,
