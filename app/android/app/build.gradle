@@ -171,6 +171,7 @@ dependencies {
     implementation("com.facebook.react:react-android")
 
     implementation project(':react-native-contacts')
+    implementation 'com.google.mediapipe:tasks-vision:latest.release'
 
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
