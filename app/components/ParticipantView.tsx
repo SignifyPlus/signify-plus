@@ -8,7 +8,7 @@ import GestureOverlay from './GestureOverlay';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import { ML_WEBSOCKET_URL,  } from '@/constants/Config';
+import { ML_WEBSOCKET_URL } from '@/constants/Config';
 
 interface ParticipantViewProps {
   participantId: string;
@@ -24,47 +24,86 @@ export const ParticipantView: React.FC<ParticipantViewProps> = ({
   const { webcamStream, webcamOn, displayName } = useParticipant(participantId);
   const [predictions, setPredictions] = useState([]);
 
-   // Skip rendering AI_MODEL participants
-   if (displayName === 'AI_MODEL') {
+  // Skip rendering AI_MODEL participants
+  if (displayName === 'AI_MODEL') {
     return null;
   }
 
-  // Monitor predictions changes
+  // Set up WebSocket connection for predictions (simplified)
   useEffect(() => {
-    // console.log('Predictions updated:', predictions);
-  }, [predictions]);
-
-   // Set up WebSocket connection for predictions
-   useEffect(() => {
-    const ws = new WebSocket(ML_WEBSOCKET_URL);
-    ws.onopen = () => {
-      console.log('WebSocket Connected!');
-    };
-    ws.onmessage = (event) => {
-      // console.log('Received message:', event.data);
+    let ws: WebSocket | null = null;
+    let isConnecting = true;
+    
+    const connectToML = () => {
+      if (!isConnecting) return;
+      
       try {
-        const response = JSON.parse(event.data);
-        // console.log('Parsed response:', response);
-        if (response.status === 'success') {
-          console.log('Setting predictions:', response.predictions);
-          setPredictions(response.predictions);
-        }
+        // Attempt to connect to ML server with timeout
+        ws = new WebSocket(ML_WEBSOCKET_URL);
+        
+        // Set connection timeout
+        const connectionTimeout = setTimeout(() => {
+          if (ws && ws.readyState !== WebSocket.OPEN) {
+            console.log('ML connection timeout (non-critical)');
+            try {
+              ws.close();
+            } catch (e) {
+              // Ignore cleanup errors
+            }
+            ws = null;
+          }
+        }, 3000); // 3 second timeout
+        
+        ws.onopen = () => {
+          clearTimeout(connectionTimeout);
+          console.log('ML connection established');
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const response = JSON.parse(event.data);
+            if (response.status === 'success') {
+              setPredictions(response.predictions);
+            }
+          } catch (error) {
+            // Silently ignore parse errors
+            console.log('Parse error (non-critical)');
+          }
+        };
+        
+        // Silent error handlers - just log and continue
+        ws.onerror = () => {
+          clearTimeout(connectionTimeout);
+          console.log('ML connection error (non-critical)');
+        };
+        
+        ws.onclose = () => {
+          clearTimeout(connectionTimeout);
+          console.log('ML connection closed (non-critical)');
+        };
       } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+        // Silently ignore connection errors
+        console.log('ML connection failed (non-critical)');
       }
     };
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    ws.onclose = (event) => {
-      console.log('WebSocket closed:', event.code, event.reason);
-    };
+    
+    // Try to connect
+    connectToML();
+  
+    // Clean up on unmount
     return () => {
-      console.log('Cleaning up WebSocket connection...');
-      ws.close();
+      isConnecting = false;
+      if (ws) {
+        try {
+          ws.close();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
     };
   }, []);
 
+  // Render video component (core functionality)
   return webcamOn && webcamStream ? (
     <View style={{ ...style }}>
       <RTCView

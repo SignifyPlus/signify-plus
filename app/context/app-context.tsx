@@ -81,6 +81,7 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
     [isConnected]
   );
 
+  // Modified sendMeetingIdToPython function with error handling
   const sendMeetingIdToPython = useCallback(
     async (meetingId: string) => {
       try {
@@ -89,10 +90,21 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ meetingId }),
         });
-        const result = await response.json();
-        console.log('Meeting ID sent to Python:', result);
+        
+        // Check if the response is successful and content-type is application/json
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const result = await response.json();
+          console.log('Meeting ID sent to Python:', result);
+        } else {
+          // Non-JSON response, likely HTML error page
+          console.log('ML server returned non-JSON response (likely offline)');
+          // Continue with regular call without error
+        }
       } catch (error) {
-        console.error('Error sending meeting ID to Python:', error);
+        // Log the error but don't throw it, allowing regular call to proceed
+        console.error('ML connection failed (non-critical):', error);
+        // Continue with regular call without error
       }
     },
     []
@@ -149,10 +161,17 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
         callee: targetPhoneNumber,
       });
       sendMeetingId(meetingId, sanitizedTargetPhone, type === 'voice');
+      
       switch (type) {
         case 'video':
           router.push(`/video-call?meetingId=${meetingId}`);
-          await sendMeetingIdToPython(meetingId);
+          // Try to send to ML server but continue even if it fails
+          try {
+            await sendMeetingIdToPython(meetingId);
+          } catch (error) {
+            // Silently continue with regular call if ML server is unavailable
+            console.log('Continuing with regular call without ML features');
+          }
           break;
         case 'voice':
           router.push(`/voice-call?meetingId=${meetingId}`);
