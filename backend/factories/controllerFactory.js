@@ -66,7 +66,7 @@ class ControllerFactory {
     * @private
     * @type {CallHistoryController | null}
     */
-     static #callHistoryController = null;
+   static #callHistoryController = null;
 
    /**
     * @private
