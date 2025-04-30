@@ -22,6 +22,7 @@ const contactRoutes = require('../routes/ContactRoutes.js');
 const chatRoutes = require('../routes/ChatRoutes.js');
 const messageRoutes = require('../routes/MessageRoutes.js');
 const forumRoutes = require('../routes/ForumRoutes.js');
+const callHistoryRoutes = require('../routes/CallHistoryRoutes.js');
 const forumMemberRoutes = require('../routes/ForumMemberRoutes.js');
 const threadRoutes = require('../routes/ThreadRoutes.js');
 const commentRoutes = require('../routes/CommentRoutes.js');
@@ -99,6 +100,7 @@ function setupApplicationRoutes(signifyPlusAppServer) {
       signifyPlusAppServer.use('/forums', forumRoutes);
       signifyPlusAppServer.use('/forumMembers', forumMemberRoutes);
       signifyPlusAppServer.use('/threads', threadRoutes);
+      signifyPlusAppServer.use('/callHistory', callHistoryRoutes);
       signifyPlusAppServer.use('/comments', commentRoutes);
       signifyPlusAppServer.use('/settings', settingsRoutes);
       signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
