@@ -21,15 +21,16 @@ mockSocketUser1.on('connect', async () => {
       meetingId: '412532646',
       targetPhoneNumbers: ['213125466', '12415135135'],
       isVoiceCall: false,
+      isOnCall: true, //should be defaulted to true for the one who started the call
    });
 
    //declining from the first user
    //who initiated the call
-   mockSocketUser1.emit('meeting-id-decline', {
-      userPhoneNumber: '789067567',
-      meetingId: '412532646',
-      targetPhoneNumbers: ['213125466', '12415135135'],
-   });
+   // mockSocketUser1.emit('meeting-id-decline', {
+   //    userPhoneNumber: '789067567',
+   //    meetingId: '412532646',
+   //    targetPhoneNumbers: ['213125466', '12415135135'],
+   // });
 });
 
 mockSocketUser1.on('disconnect', () => {
@@ -43,9 +44,7 @@ mockSocketUser1.on('meeting-id-offer', (data) => {
 });
 
 mockSocketUser1.on('meeting-id-failed', (data) => {
-   console.log(
-      `mockSocketUser1 Meeting ID Offer received from server ${JSON.stringify(data)}`,
-   );
+   console.log(`mockSocketUser1 `);
 });
 
 mockSocketUser1.on('call-declined', (data) => {
@@ -77,14 +76,22 @@ mockSocketUser2.on('meeting-id-offer', (data) => {
    console.log(
       `mockSocketUser2 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
-   mockSocketUser2.emit('meeting-id-decline', {
-      userPhoneNumber: '213125466',
-      targetPhoneNumbers: data.targetPhoneNumbers,
-      meetingId: data.meetingId,
-   });
+   // mockSocketUser2.emit('meeting-id-decline', {
+   //    userPhoneNumber: '213125466',
+   //    targetPhoneNumbers: data.targetPhoneNumbers,
+   //    meetingId: data.meetingId,
+   // });
 
    //emit disconnect event
-   mockSocketUser2.disconnect();
+   // mockSocketUser2.disconnect();
+
+   mockSocketUser2.emit('meeting-accepted', {
+      userPhoneNumber: '213125466',
+      meetingId: data.meetingId,
+      isVoiceCall: data.isVoiceCall,
+      isOnCall: true,
+      targetPhoneNumbers: data.targetPhoneNumbers,
+   });
 });
 
 mockSocketUser2.on('call-declined', (data) => {
@@ -98,9 +105,7 @@ mockSocketUser2.on('user-disconnected-from-meeting', (data) => {
 });
 
 mockSocketUser2.on('meeting-id-failed', (data) => {
-   console.log(
-      `mockSocketUser2 Meeting ID Offer received from server ${JSON.stringify(data)}`,
-   );
+   console.log(`mockSocketUser2 Meeting ID Failed ${JSON.stringify(data)}`);
 });
 
 mockSocketUser2.on('meeting-id-decline-failed', (data) => {
@@ -126,13 +131,21 @@ mockSocketUser3.on('disconnect', () => {
 
 mockSocketUser3.on('meeting-id-offer', (data) => {
    console.log(
-      `mockSocketUser3 Meeting ID Offer received from server socket: ${data.senderSocketId} sender: ${data.senderPhoneNumber} meetingId: ${data.meetingId} isVoiceCall: ${data.isVoiceCall}`,
+      `mockSocketUser3 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
+   mockSocketUser3.emit('meeting-accepted', {
+      userPhoneNumber: '12415135135',
+      meetingId: data.meetingId,
+      isVoiceCall: data.isVoiceCall,
+      isOnCall: true,
+      targetPhoneNumbers: data.targetPhoneNumbers,
+   });
 });
 
 mockSocketUser3.on('meeting-id-failed', (data) => {
    console.log(
-      `mockSocketUser3 Meeting ID Offer received from server ${JSON.stringify(data)}`,
+      `mockSocketUser3 Meeting ID Failed ${JSON.stringify(data)}
+      }`,
    );
 });
 

@@ -9,9 +9,9 @@ class WebSocketManager {
       this.signifyPlusSocketIo = socketIo(server, {
          cors: { origin: '*' },
       });
-      this.userSocketMap = {};
-      this.callSocketMap = {};
-      this.meetingParticipantMap = {};
+      this.userSocketMap = new Map();
+      this.callSocketMap = new Map();
+      this.meetingParticipantMap = new Map();
       this.setupSocketEvents(
          this.userSocketMap,
          this.callSocketMap,
@@ -52,37 +52,14 @@ class WebSocketManager {
             `Socket with id ${disconnectedUserSocketId} disconnected`,
          );
 
-         this.userDisconnectEvent(
+         this.meetingSocket.participantDisconnectEvent(
+            this.signifyPlusSocketIo,
             disconnectedUserSocketId,
             userSocketMap,
             callSocketMap,
             meetingParticipantMap,
          );
       });
-   }
-
-   userDisconnectEvent(
-      disconnectedUserSocketId,
-      userSocketMap,
-      callSocketMap,
-      meetingParticipantMap,
-   ) {
-      //disseminate the meeting id event, if any
-      const disconnectedUser = callSocketMap[disconnectedUserSocketId];
-      if (disconnectedUser) {
-         const participants = meetingParticipantMap[disconnectedUser.meetingId];
-         participants.forEach((participant) => {
-            const socketId = userSocketMap[participant];
-            if (socketId && socketId != disconnectedUserSocketId) {
-               this.signifyPlusSocketIo
-                  .to(socketId)
-                  .emit(`user-disconnected-from-meeting`, {
-                     mesage: `User with the socketId: ${disconnectedUserSocketId} disconnected`,
-                     meetingId: disconnectedUser.meetingId,
-                  });
-            }
-         });
-      }
    }
 }
 

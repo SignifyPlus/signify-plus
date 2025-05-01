@@ -1,6 +1,7 @@
 const LoggerFactory = require('../factories/loggerFactory.js');
 const CallDto = require('../dtos/CallDto.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
+const EventConstants = require('../constants/eventConstants.js');
 class MeetingSocket {
    constructor(socket, userSocketMap, callSocketMap, meetingParticipantMap) {
       this.meetingIdEvent(
@@ -37,37 +38,46 @@ class MeetingSocket {
             data?.targetPhoneNumbers,
             data?.meetingId,
             data?.isVoiceCall,
+            data.isOnCall ?? true, //defaulting to not break the frontend during testing phase for others
          );
          LoggerFactory.getApplicationLogger.info(JSON.stringify(callDto));
          if (
             callDto.senderPhoneNumber == null ||
             callDto.targetPhoneNumbers == null ||
             callDto.isVoiceCall == null ||
-            callDto.meetingId == null
+            callDto.meetingId == null ||
+            callDto.isOnCall == null
          ) {
             LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, isVoiceCall, and meetingId are provided - One of them seems to be null!`,
+               `Please check if userPhoneNumber, targetPhoneNumbers, isVoiceCall, inOnCall and meetingId are provided - One of them seems to be null!`,
             );
             return;
          }
 
-         const sendersSocketId = userSocketMap[callDto.senderPhoneNumber];
+         const sendersSocketId = userSocketMap.get(callDto.senderPhoneNumber);
          if (!sendersSocketId) {
-            //if sender is undefined, exit
-            return;
+            socket.emit(`meeting-id-failed`, {
+               senderPhoneNumber: callDto.senderPhoneNumber,
+               message: `NO_USER_FOUND`,
+            });
          }
-         callSocketMap[sendersSocketId] = { meetingId: callDto.meetingId };
-         meetingParticipantMap[callDto.meetingId] = [
+         callSocketMap.set(sendersSocketId, {
+            meetingId: callDto.meetingId,
+            isOnCall: callDto.isOnCall,
+         });
+         meetingParticipantMap.set(callDto.meetingId, [
             callDto.senderPhoneNumber,
             ...callDto.targetPhoneNumbers,
-         ];
+         ]);
          LoggerFactory.getApplicationLogger.info(
             `Meeting ID: ${callDto.meetingId} callerPhoneNumber: ${callDto.senderPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${callDto.targetPhoneNumbers}`,
          );
          callDto.targetPhoneNumbers.forEach((phoneNumber) => {
-            const targetSocketId = userSocketMap[phoneNumber];
+            const targetSocketId = userSocketMap.get(phoneNumber);
             if (targetSocketId) {
-               callSocketMap[targetSocketId] = { meetingId: callDto.meetingId };
+               callSocketMap.set(targetSocketId, {
+                  meetingId: callDto.meetingId,
+               });
             }
             LoggerFactory.getApplicationLogger.info(
                `Iterating ${targetSocketId}`,
@@ -114,6 +124,7 @@ class MeetingSocket {
             data?.targetPhoneNumbers,
             data?.meetingId,
             data?.isVoiceCall,
+            data.isOnCall ?? false, //defaulting to not break the frontend during testing phase for others
          );
 
          LoggerFactory.getApplicationLogger.info(
@@ -123,10 +134,11 @@ class MeetingSocket {
          if (
             callDto.senderPhoneNumber == null ||
             callDto.targetPhoneNumbers == null ||
-            callDto.meetingId == null
+            callDto.meetingId == null ||
+            callDto.isOnCall == null
          ) {
             LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, and meetingId are provided - One of them seems to be null!`,
+               `Please check if userPhoneNumber, targetPhoneNumbers, meetingId and isOnCall are provided - One of them seems to be null!`,
             );
             return;
          }
@@ -135,7 +147,8 @@ class MeetingSocket {
          );
 
          callDto.targetPhoneNumbers.forEach((targetPhoneNumber) => {
-            const targetPhoneNumberSocketId = userSocketMap[targetPhoneNumber];
+            const targetPhoneNumberSocketId =
+               userSocketMap.get(targetPhoneNumber);
 
             const event = targetPhoneNumberSocketId
                ? 'call-declined'
@@ -172,6 +185,7 @@ class MeetingSocket {
             data?.targetPhoneNumbers,
             data?.meetingId,
             data?.isVoiceCall,
+            data.isOnCall ?? true, //defaulting to not break the frontend during testing phase for others
          );
 
          LoggerFactory.getApplicationLogger.info(
@@ -181,17 +195,35 @@ class MeetingSocket {
          if (
             callDto.senderPhoneNumber == null ||
             callDto.targetPhoneNumbers == null ||
-            callDto.meetingId == null
+            callDto.meetingId == null ||
+            callDto.isOnCall == null
          ) {
             LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, and meetingId are provided - One of them seems to be null!`,
+               `Please check if userPhoneNumber, targetPhoneNumbers, meetingId and isOnCall are provided - One of them seems to be null!`,
             );
             return;
          }
-         //TODO - start timer here, once you know all the participants have joined
+         const sendersSocketId = userSocketMap.get(callDto.senderPhoneNumber);
+         if (!sendersSocketId) {
+            socket.emit(`meeting-id-failed`, {
+               senderPhoneNumber: callDto.senderPhoneNumber,
+               message: `NO_USER_FOUND`,
+            });
+         }
+
+         callSocketMap.set(sendersSocketId, {
+            meetingId: callDto.meetingId,
+            isOnCall: callDto.isOnCall,
+         });
+
+         //continue tomorrow
+         console.log([...callSocketMap.values()]);
       });
    }
 
+   //ALSO SEEMS LIKE THIS EVENT WILL NOT BE HERE BECAUSE AS SOON AS THE USER ARE OFF THE CALL
+   //THE SOCKET CONNECTION DISAPPEARS/DISSOVLES, SO WE MIGHT NEED TO DO THIS OUTSIDE OF THIS CLASS (WHERE WE ARE DOING DISCONNECT, ETC)
+   //BUT WE'LL SEE TOMORROW
    meetingEndedEvent(
       socket,
       userSocketMap,
@@ -222,8 +254,35 @@ class MeetingSocket {
             return;
          }
          //TODO - Emit an event to log a call record in the call history table
-         EventDispatcher.dispatchEvent(EventCo);
+         EventDispatcher.dispatchEvent(EventConstants.CALL_LOG_EVENT, {});
       });
+   }
+
+   participantDisconnectEvent(
+      signifyPlusSocketIo,
+      disconnectedUserSocketId,
+      userSocketMap,
+      callSocketMap,
+      meetingParticipantMap,
+   ) {
+      //disseminate the meeting id event, if any
+      const disconnectedUser = callSocketMap.get(disconnectedUserSocketId);
+      if (disconnectedUser) {
+         const participants = meetingParticipantMap.get(
+            disconnectedUser.meetingId,
+         );
+         participants.forEach((participant) => {
+            const socketId = userSocketMap.get(participant);
+            if (socketId && socketId != disconnectedUserSocketId) {
+               signifyPlusSocketIo
+                  .to(socketId)
+                  .emit(`user-disconnected-from-meeting`, {
+                     mesage: `User with the socketId: ${disconnectedUserSocketId} disconnected`,
+                     meetingId: disconnectedUser.meetingId,
+                  });
+            }
+         });
+      }
    }
 }
 
