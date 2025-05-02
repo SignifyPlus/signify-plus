@@ -7,7 +7,7 @@ class Socket {
    socketRegistrationEvent(socket, userSocketMap) {
       socket.on('socket-registration', (data) => {
          //add userID and the socket id to the map
-         userSocketMap[data.userPhoneNumber] = socket.id;
+         userSocketMap.set(data.userPhoneNumber, socket.id);
          LoggerFactory.getApplicationLogger.info(
             `User ${data.userPhoneNumber} registered with socket ID: ${socket.id}`,
          );

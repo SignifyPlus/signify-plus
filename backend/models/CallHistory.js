@@ -11,7 +11,7 @@ const CallHistorySchema = new mongoose.Schema({
          type: mongoose.Schema.Types.ObjectId,
          ref: 'User',
          required: true,
-      }
+      },
    ], // the user Id from users table
    callType: { type: String, enum: ['voice', 'video'], required: true },
    callDuration: { type: Number, default: 0 },
