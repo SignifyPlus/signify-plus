@@ -225,7 +225,7 @@ class UserAuthenticationController {
       }
    }
 
-   async createDefaultUserAuthenticationRecord(userId) {
+   async createDefaultUserAuthenticationRecord(userData) {
       var mongooseSession = null;
       try {
          mongooseSession =
@@ -238,7 +238,7 @@ class UserAuthenticationController {
             `Creating Default User Authentication record...`,
          );
          const userIdValidation = await ExceptionHelper.validate(
-            userId,
+            userData?.userId,
             400,
             `userId is not provided.`,
          );
@@ -246,7 +246,10 @@ class UserAuthenticationController {
 
          const defaultUserAuthenticationRecord =
             await ServiceFactory.getUserAuthenticationService.saveDocument(
-               { userId: userId },
+               {
+                  userId: userData.userId,
+                  refreshToken: userData?.refreshToken,
+               },
                mongooseSession,
             );
          await ServiceFactory.getMongooseService.commitMongooseTransaction(

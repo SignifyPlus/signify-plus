@@ -122,18 +122,13 @@ class UserController {
          }
 
          //generate tokens
-         const accessToken =
-            await ManagerFactory.getJwtManager().generateAccessToken(
-               user._id.toString(),
-            );
-         const refreshToken =
-            await ManagerFactory.getJwtManager().generateRefreshToken(
-               user._id.toString(),
-            );
+         const tokens = await ManagerFactory.getJwtManager().generateTokens(
+            user._id.toString(),
+         );
 
          const authenticationData = await EventDispatcher.dispatchEvent(
             EventConstants.USER_AUTHENTICATION_UPDATE_EVENT,
-            { userId: user._id.toString(), refreshToken: refreshToken },
+            { userId: user._id.toString(), refreshToken: tokens.refreshToken },
          );
 
          // const userAuthenticationResult =
@@ -147,7 +142,7 @@ class UserController {
          const finalUser = {
             ...user.toObject(),
             authenticationData,
-            accessToken,
+            accessToken: tokens.accessToken,
          };
          response.json(finalUser);
       } catch (exception) {
@@ -196,26 +191,43 @@ class UserController {
             mongooseSession,
          );
 
+         const onlyUserObject =
+            userObject[ControllerConstants.ZERO_INDEX].toObject();
+
+         //Generate access/refresh tokens
+         const tokens = await ManagerFactory.getJwtManager().generateTokens(
+            onlyUserObject._id.toString(),
+         );
+
          //TODO - tie to a single transaction
          //use event-driven approach to also create user settings (via an event)
+         //keep this async
          EventDispatcher.dispatchEvent(
             EventConstants.ACCESSIBILITY_SETTINGS_EVENT,
-            userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
+            onlyUserObject._id.toString(),
          );
 
          //TODO - tie to a single transaction
          //use event-driven approach to also create default user authentication record (via an event)
          //(if want to use the result, simply use await to wait for the result which will be returned by the event :))
-         EventDispatcher.dispatchEvent(
+         const userAuthenticationRecord = await EventDispatcher.dispatchEvent(
             EventConstants.USER_AUTHENTICAITON_EVENT,
-            userObject[ControllerConstants.ZERO_INDEX]._id.toString(),
+            {
+               userId: onlyUserObject._id.toString(),
+               refreshToken: tokens.refreshToken,
+            },
          );
 
+         const finalUser = {
+            ...onlyUserObject,
+            userAuthenticationRecord,
+            accessToken: tokens.accessToken,
+         };
          //commit the transaction
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
-         response.json(userObject);
+         response.json(finalUser);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
