@@ -2,6 +2,7 @@ const LoggerFactory = require('../factories/loggerFactory.js');
 const CallDto = require('../dtos/CallDto.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const EventConstants = require('../constants/eventConstants.js');
+const TimeUtils = require('../utilities/timeUtils.js');
 class MeetingSocket {
    constructor(socket, userSocketMap, callSocketMap, meetingParticipantMap) {
       this.meetingIdEvent(
@@ -65,10 +66,12 @@ class MeetingSocket {
             meetingId: callDto.meetingId,
             isOnCall: callDto.isOnCall,
          });
-         meetingParticipantMap.set(callDto.meetingId, [
-            callDto.senderPhoneNumber,
-            ...callDto.targetPhoneNumbers,
-         ]);
+         meetingParticipantMap.set(callDto.meetingId, {
+            participants: [
+               callDto.senderPhoneNumber,
+               ...callDto.targetPhoneNumbers,
+            ],
+         });
          LoggerFactory.getApplicationLogger.info(
             `Meeting ID: ${callDto.meetingId} callerPhoneNumber: ${callDto.senderPhoneNumber} sendersSocketId: ${sendersSocketId} targets: ${callDto.targetPhoneNumbers}`,
          );
@@ -216,14 +219,23 @@ class MeetingSocket {
             isOnCall: callDto.isOnCall,
          });
 
-         //continue tomorrow
-         console.log([...callSocketMap.values()]);
+         //Creates an array, and then check if every object within the array has isOnCall set as true
+         const meetingSpecificCallSocketMap = [
+            ...callSocketMap.values(),
+         ].filter((value) => callDto.meetingId == value.meetingId);
+         const areAllParticipantsOnCall = meetingSpecificCallSocketMap.every(
+            (value) => callDto.meetingId == value.meetingId && value.isOnCall,
+         );
+         if (areAllParticipantsOnCall) {
+            meetingParticipantMap.set(callDto.meetingId, {
+               ...meetingParticipantMap.get(callDto.meetingId),
+               meetingBeginTime: TimeUtils.getCurrentTimeInMilliSeconds(),
+               isVoiceCall: callDto.isVoiceCall,
+            });
+         }
       });
    }
 
-   //ALSO SEEMS LIKE THIS EVENT WILL NOT BE HERE BECAUSE AS SOON AS THE USER ARE OFF THE CALL
-   //THE SOCKET CONNECTION DISAPPEARS/DISSOVLES, SO WE MIGHT NEED TO DO THIS OUTSIDE OF THIS CLASS (WHERE WE ARE DOING DISCONNECT, ETC)
-   //BUT WE'LL SEE TOMORROW
    meetingEndedEvent(
       socket,
       userSocketMap,
@@ -268,10 +280,10 @@ class MeetingSocket {
       //disseminate the meeting id event, if any
       const disconnectedUser = callSocketMap.get(disconnectedUserSocketId);
       if (disconnectedUser) {
-         const participants = meetingParticipantMap.get(
+         const participantsObject = meetingParticipantMap.get(
             disconnectedUser.meetingId,
          );
-         participants.forEach((participant) => {
+         participantsObject.participants.forEach((participant) => {
             const socketId = userSocketMap.get(participant);
             if (socketId && socketId != disconnectedUserSocketId) {
                signifyPlusSocketIo
