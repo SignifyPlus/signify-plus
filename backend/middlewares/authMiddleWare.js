@@ -34,13 +34,11 @@ class AuthMiddleWare {
       const accessTokenVerification =
          await ManagerFactory.getJwtManager().verifyAccessToken(token);
       if (accessTokenVerification.exception) {
-         return response
-            .status(AuthConstants.UNAUTHORIZED)
-            .json({
-               exception: accessTokenVerification.exception,
-               customMessage: `Either login again, or refresh the access token by sending refresh token to the endpoint jwt/refresh`,
-               code: 'ACCESS_TOKEN_EXPIRED'
-            });
+         return response.status(AuthConstants.UNAUTHORIZED).json({
+            exception: accessTokenVerification.exception,
+            customMessage: `Either login again, or refresh the access token by sending refresh token to the endpoint jwt/refresh`,
+            code: 'ACCESS_TOKEN_EXPIRED',
+         });
       }
 
       LoggerFactory.getApplicationLogger.info(

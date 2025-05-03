@@ -74,7 +74,11 @@ class UserController {
          //add the authenticationrecord - converts the mongoose document to an object, and then add the authentication record (with the same name)
          //spreads over all the properties of user object first
          const userAuthenticationRecord = userAuthenticationResult.data;
-         const finalUser = { ...user.toObject(), 'userAuthenticationRecord': userAuthenticationRecord[CommonConstants.ZERO_INDEX] };
+         const finalUser = {
+            ...user.toObject(),
+            userAuthenticationRecord:
+               userAuthenticationRecord[CommonConstants.ZERO_INDEX],
+         };
          response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
@@ -133,7 +137,8 @@ class UserController {
          );
          const finalUser = {
             ...user.toObject(),
-            "userAuthenticationRecord": userAuthenticationRecord[CommonConstants.FIRST_ENTRY].data,
+            userAuthenticationRecord:
+               userAuthenticationRecord[CommonConstants.FIRST_ENTRY].data,
             accessToken: tokens.accessToken,
          };
          response.json(finalUser);
@@ -212,7 +217,8 @@ class UserController {
 
          const finalUser = {
             ...onlyUserObject,
-            "userAuthenticationRecord": userAuthenticationRecord[CommonConstants.FIRST_ENTRY].data,
+            userAuthenticationRecord:
+               userAuthenticationRecord[CommonConstants.FIRST_ENTRY].data,
             accessToken: tokens.accessToken,
          };
          //commit the transaction

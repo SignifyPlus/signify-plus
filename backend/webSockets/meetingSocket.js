@@ -293,7 +293,7 @@ class MeetingSocket {
                   .emit(`user-disconnected-from-meeting`, {
                      mesage: `User with the socketId: ${disconnectedUserSocketId} disconnected`,
                      meetingId: disconnectedUser.meetingId,
-               });
+                  });
             }
          });
       }

@@ -256,7 +256,9 @@ class UserAuthenticationController {
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
-         return new SignifyResult(defaultUserAuthenticationRecord[CommonConstants.FIRST_ENTRY]);
+         return new SignifyResult(
+            defaultUserAuthenticationRecord[CommonConstants.FIRST_ENTRY],
+         );
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
