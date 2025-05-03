@@ -80,7 +80,7 @@ class UserController {
       }
    };
 
-   getUserByPhoneNumberForLogin = async (request, response) => {
+   login = async (request, response) => {
       try {
          const phoneNumberValidation = await ExceptionHelper.validate(
             request.body.phoneNumber,

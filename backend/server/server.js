@@ -14,6 +14,7 @@ const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const TwilioAdmin = require('../managers/twilio/models/TwilioAdmin.js');
+const Authentication = require('../middlewares/authMiddleWare.js');
 
 //routes
 const userRoutes = require('../routes/UserRoutes.js');
@@ -31,10 +32,8 @@ const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js'
 const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
 const amazonS3Routes = require('../routes/AmazonS3Routes.js');
 const jwtRoutes = require('../routes/JwtRoutes.js');
-
-const signifyPlusApp = express();
-signifyPlusApp.use(express.json());
-const mainServer = http.createServer(signifyPlusApp);
+const authRoutes = require('../routes/AuthRoutes.js');
+const AuthMiddleWare = require('../middlewares/authMiddleWare.js');
 
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
@@ -42,11 +41,14 @@ const port = process.env.PORT;
 //setup a logger
 setupApplicationLogger(ServerConstants.LOG_LEVEL_DEBUG);
 
-//setup Server
-setupServer();
+//setup managers
+setupManagers();
 
 //routes
-setupApplicationRoutes(signifyPlusApp);
+const signifyPlusApp = setupRoutes();
+
+//setup Server
+const mainServer = http.createServer(signifyPlusApp);
 
 //connect to the database
 ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
@@ -59,7 +61,7 @@ mainServer.listen(port, async () => {
    const websocketManager = new WebSocketManager(mainServer);
 });
 
-async function setupServer() {
+async function setupManagers() {
    try {
       //initialize RabbitMQ
       await ManagerFactory.getRabbitMqQueueManager().establishConnection();
@@ -90,23 +92,34 @@ async function setupServer() {
    }
 }
 
-function setupApplicationRoutes(signifyPlusAppServer) {
+function setupRoutes() {
    try {
-      signifyPlusAppServer.use('/users', userRoutes);
-      signifyPlusAppServer.use('/', homeRoutes);
-      signifyPlusAppServer.use('/contacts', contactRoutes);
-      signifyPlusAppServer.use('/chats', chatRoutes);
-      signifyPlusAppServer.use('/messages', messageRoutes);
-      signifyPlusAppServer.use('/forums', forumRoutes);
-      signifyPlusAppServer.use('/forumMembers', forumMemberRoutes);
-      signifyPlusAppServer.use('/threads', threadRoutes);
-      signifyPlusAppServer.use('/callHistory', callHistoryRoutes);
-      signifyPlusAppServer.use('/comments', commentRoutes);
-      signifyPlusAppServer.use('/settings', settingsRoutes);
-      signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
-      signifyPlusAppServer.use('/twilio', twilioOtpRoutes);
-      signifyPlusAppServer.use('/amazon', amazonS3Routes);
-      signifyPlusAppServer.use('/jwt', jwtRoutes);
+      const signifyPlusApp = express();
+      signifyPlusApp.use(express.json());
+
+      //auth middleware
+      const authMiddleWare = new AuthMiddleWare();
+      signifyPlusApp.use(async (request, response, next) => {
+         await authMiddleWare.authenticate(request, response, next);
+      });
+
+      signifyPlusApp.use('/', homeRoutes);
+      signifyPlusApp.use('/users', userRoutes);
+      signifyPlusApp.use('/contacts', contactRoutes);
+      signifyPlusApp.use('/chats', chatRoutes);
+      signifyPlusApp.use('/messages', messageRoutes);
+      signifyPlusApp.use('/forums', forumRoutes);
+      signifyPlusApp.use('/forumMembers', forumMemberRoutes);
+      signifyPlusApp.use('/threads', threadRoutes);
+      signifyPlusApp.use('/callHistory', callHistoryRoutes);
+      signifyPlusApp.use('/comments', commentRoutes);
+      signifyPlusApp.use('/settings', settingsRoutes);
+      signifyPlusApp.use('/userAuthentication', userAuthenticationRoutes);
+      signifyPlusApp.use('/twilio', twilioOtpRoutes);
+      signifyPlusApp.use('/amazon', amazonS3Routes);
+      signifyPlusApp.use('/jwt', jwtRoutes);
+      signifyPlusApp.use('/auth', authRoutes);
+      return signifyPlusApp;
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -135,8 +148,8 @@ async function setupJwtManager() {
       await CommonUtils.decodeFromBase64(
          process.env.JWT_SECRET_REFRESH_TOKEN_SECRET_KEY,
       ),
-      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_SECONDS,
-      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_SECONDS,
+      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_HOURS,
+      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_HOURS,
    );
 }
 
