@@ -81,13 +81,12 @@ class KerasInferenceService:
         return True
 
     def load_model(self):
-        """Load the Keras model from the specified path, without trying to re‐compile."""
+        """Load the Keras model from the specified path."""
         try:
-            # compile=False skips requiring your custom loss_fn
-            self.model = tf.keras.models.load_model(self.model_path, compile=False)
-            print(f"✅ Loaded model from {self.model_path}")
+            self.model = tf.keras.models.load_model(self.model_path)
+            print(f"Loaded model from {self.model_path}")
         except Exception as e:
-            print(f"❌ Failed to load model from {self.model_path}: {e}")
+            print(f"Failed to load model from {self.model_path}: {e}")
             raise
     
     def load_class_names(self):
