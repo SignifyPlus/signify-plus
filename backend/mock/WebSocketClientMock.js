@@ -194,9 +194,9 @@ mockSocketUser4.on('connect', async () => {
    //declining from the first user
    //who initiated the call
    // mockSocketUser4.emit('meeting-id-decline', {
-   //    userPhoneNumber: '789067567',
-   //    meetingId: '412532646',
-   //    targetPhoneNumbers: ['213125466', '12415135135'],
+   //    userPhoneNumber: '12412512515',
+   //    meetingId: '125125126126',
+   //    targetPhoneNumbers: ['547648648'],
    // });
 });
 
@@ -243,22 +243,22 @@ mockSocketUser5.on('meeting-id-offer', (data) => {
    console.log(
       `mockSocketUser5 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
-   // mockSocketUser5.emit('meeting-id-decline', {
-   //    userPhoneNumber: '213125466',
-   //    targetPhoneNumbers: data.targetPhoneNumbers,
-   //    meetingId: data.meetingId,
-   // });
+   mockSocketUser5.emit('meeting-id-decline', {
+      userPhoneNumber: '213125466',
+      targetPhoneNumbers: data.targetPhoneNumbers,
+      meetingId: data.meetingId,
+   });
 
    //emit disconnect event
-   // mockSocketUser5.disconnect();
+   mockSocketUser5.disconnect();
 
-   mockSocketUser5.emit('meeting-accepted', {
-      userPhoneNumber: '547648648',
-      meetingId: data.meetingId,
-      isVoiceCall: data.isVoiceCall,
-      isOnCall: true,
-      targetPhoneNumbers: data.targetPhoneNumbers,
-   });
+   // mockSocketUser5.emit('meeting-accepted', {
+   //    userPhoneNumber: '213125466',
+   //    meetingId: data.meetingId,
+   //    isVoiceCall: data.isVoiceCall,
+   //    isOnCall: true,
+   //    targetPhoneNumbers: data.targetPhoneNumbers,
+   // });
 });
 
 mockSocketUser5.on('call-declined', (data) => {

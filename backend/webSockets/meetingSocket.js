@@ -277,12 +277,14 @@ class MeetingSocket {
       callSocketMap,
       meetingParticipantMap,
    ) {
-      //disseminate the meeting id event, if any
       const disconnectedUser = callSocketMap.get(disconnectedUserSocketId);
+      console.log(disconnectedUser);
       if (disconnectedUser) {
          const participantsObject = meetingParticipantMap.get(
             disconnectedUser.meetingId,
          );
+         //update it here - who has disconnected
+         console.log(participantsObject);
          participantsObject.participants.forEach((participant) => {
             const socketId = userSocketMap.get(participant);
             if (socketId && socketId != disconnectedUserSocketId) {
@@ -291,7 +293,7 @@ class MeetingSocket {
                   .emit(`user-disconnected-from-meeting`, {
                      mesage: `User with the socketId: ${disconnectedUserSocketId} disconnected`,
                      meetingId: disconnectedUser.meetingId,
-                  });
+               });
             }
          });
       }

@@ -4,6 +4,7 @@ const LoggerFactory = require('../factories/loggerFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const UserAuthenticationDto = require('../dtos/UpdateUserAuthenticationDto.js');
+const CommonConstants = require('../constants/commonConstants.js');
 class UserAuthenticationController {
    constructor() {}
 
@@ -255,7 +256,7 @@ class UserAuthenticationController {
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );
-         return new SignifyResult(defaultUserAuthenticationRecord);
+         return new SignifyResult(defaultUserAuthenticationRecord[CommonConstants.FIRST_ENTRY]);
       } catch (exception) {
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
