@@ -79,12 +79,13 @@ class KerasInferenceService:
         return True
 
     def load_model(self):
-        """Load the Keras model from the specified path."""
+        """Load the Keras model from the specified path, without trying to re‐compile."""
         try:
-            self.model = tf.keras.models.load_model(self.model_path)
-            print(f"Loaded model from {self.model_path}")
+            # compile=False skips requiring your custom loss_fn
+            self.model = tf.keras.models.load_model(self.model_path, compile=False)
+            print(f"✅ Loaded model from {self.model_path}")
         except Exception as e:
-            print(f"Failed to load model from {self.model_path}: {e}")
+            print(f"❌ Failed to load model from {self.model_path}: {e}")
             raise
     
     def load_class_names(self):
@@ -249,8 +250,27 @@ class KerasInferenceService:
                     pad_length = self.sequence_length - len(self.sequence_buffer)
                     self.sequence_buffer.extend([self.sequence_buffer[-1]] * pad_length)
                
-                # Make prediction
+                # Make prediction: build input_data
                 input_data = np.expand_dims(np.array(self.sequence_buffer, dtype=np.float32), axis=0)
+            
+                # === BEGIN FEATURE‐DIM SHAPE FIX ===
+                # force last dimension to match what the LSTM expects
+                expected_dim = self.model.input_shape[2]   # e.g. 100
+                curr_dim     = input_data.shape[2]
+                if curr_dim > expected_dim:
+                    # too many features → truncate
+                    input_data = input_data[:, :, :expected_dim]
+                elif curr_dim < expected_dim:
+                    # too few features → pad with zeros on the right
+                    pad_width = expected_dim - curr_dim
+                    pad       = np.zeros((input_data.shape[0],
+                                           input_data.shape[1],
+                                           pad_width),
+                                          dtype=input_data.dtype)
+                    input_data = np.concatenate([input_data, pad], axis=-1)
+                # === END FEATURE‐DIM SHAPE FIX ===
+            
+                # now safely call predict
                 predictions = self.model.predict(input_data, verbose=0)[0]
                
                 # Process prediction
