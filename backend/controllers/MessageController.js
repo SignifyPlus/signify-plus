@@ -80,7 +80,6 @@ class MessageController {
                   $all: targetUserIds,
                   $size: targetUsers.length,
                },
-               isDeleted: false, // Only consider non-deleted chats
             });
 
          // Determine the chat ID with proper null checking
@@ -483,7 +482,6 @@ class MessageController {
                   $all: targetUserIds,
                   $size: targetUserIds.length,
                },
-               isDeleted: false, // Only consider non-deleted chats
             });
 
          let chatId;
@@ -493,7 +491,6 @@ class MessageController {
                mainUserId: senderId,
                participants: targetUserIds,
                lastActivity: new Date(),
-               isDeleted: false,
             });
             chatId = newChat[0]._id.toString();
          } else {
