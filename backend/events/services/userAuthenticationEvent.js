@@ -6,7 +6,7 @@ class UserAuthenticationEvent {
    constructor() {
       EventDispatcher.registerListener(
          EventConstants.USER_AUTHENTICAITON_EVENT,
-         this.createDefaultUserAuthenticationRecord.bind(this),
+         this.createUserAuthenticationRecord.bind(this),
       );
 
       EventDispatcher.registerListener(
@@ -15,13 +15,13 @@ class UserAuthenticationEvent {
       );
    }
 
-   async createDefaultUserAuthenticationRecord(userId) {
+   async createUserAuthenticationRecord(userData) {
       LoggerFactory.getApplicationLogger.info(
-         `Creating default user authentication record for the user ${userId} via the user authentication event...`,
+         `Creating default user authentication record for the user ${JSON.stringify(userData)} via the user authentication event...`,
       );
       const response =
          await ControllerFactory.getUserAuthenticationController().createDefaultUserAuthenticationRecord(
-            userId,
+            userData,
          );
       return response;
    }

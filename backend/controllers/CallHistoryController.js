@@ -13,7 +13,13 @@ class CallHistoryController {
    constructor() {}
 
    getCallHistoryByUserId = async (request, response) => {
+      var mongooseSession = null;
       try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
          const callHistoryByUserId = request.params.id;
          const callHistory =
             await ServiceFactory.getCallHistoryService.getDocumentById(
@@ -21,7 +27,53 @@ class CallHistoryController {
             );
          response.json(callHistory);
       } catch (exception) {
-         response.status(500).json({ error: exception.message });
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
+   logCallRecord = async (callLogDto) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         return new SignifyResult();
+      } catch (exception) {
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
+   };
+
+   createCallHistoryRecord = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         response.json({ callHistory });
+      } catch (exception) {
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
       }
    };
 }

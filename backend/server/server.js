@@ -54,7 +54,7 @@ ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 mainServer.listen(port, async () => {
    await CommonUtils.waitForVariableToBecomeNonNull(getApplicationLogger);
    LoggerFactory.getApplicationLogger.info(
-      `SignifyPlus Server is Up & Running on http://localhost:${port}`,
+      `SignifyPlus Server is Up & Running on ${process.env.PRODUCTION_URL}:${port}`,
    );
    const websocketManager = new WebSocketManager(mainServer);
 });

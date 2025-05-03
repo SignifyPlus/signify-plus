@@ -1,6 +1,7 @@
 const LoggerFactory = require('../../factories/loggerFactory.js');
 const JsonWebToken = require('jsonwebtoken');
 const JWT = require('./models/jwt.js');
+const Tokens = require('./models/tokens.js');
 const SignifyResult = require('../../dtos/SignifyResult.js');
 class JwtManager {
    /**
@@ -94,6 +95,13 @@ class JwtManager {
          );
          return new SignifyResult(null, exception);
       }
+   }
+
+   async generateTokens(userId) {
+      return new Tokens(
+         await this.generateAccessToken(userId),
+         await this.generateRefreshToken(userId),
+      );
    }
 }
 

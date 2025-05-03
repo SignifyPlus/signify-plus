@@ -9,6 +9,7 @@ class CommonConstants {
    static EXTENSION_TO_MIME_TYPE_MAP = {
       '.png': 'image/png',
       '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
       '.gif': 'image/gif',
       '.bmp': 'image/bmp',
       '.webp': 'image/webp',

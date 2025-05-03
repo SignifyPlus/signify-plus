@@ -12,6 +12,14 @@ callHistoryRouter.get('/', async (request, response) => {
    );
 });
 
-callHistoryRouter.get('/:phoneNumber', ContollerFactory.getCallHistoryController().getCallHistoryByUserId);
+callHistoryRouter.get(
+   '/:phoneNumber',
+   ContollerFactory.getCallHistoryController().getCallHistoryByUserId,
+);
+
+callHistoryRouter.get(
+   '/create',
+   ContollerFactory.getCallHistoryController().createCallHistoryRecord,
+);
 
 module.exports = callHistoryRouter;

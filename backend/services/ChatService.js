@@ -81,7 +81,7 @@ class ChatService extends AbstractService {
          { _id: chatId },
          {
             isDeleted: true,
-            $addToSet: { isDeletedBy: userId }, //ensures we dont overwrite the previous array + addToSet ensures the array/set is unique
+            $addToSet: { deletedBy: userId }, //ensures we dont overwrite the previous array + addToSet ensures the array/set is unique
             lastActivity: new Date(),
          },
          session,
