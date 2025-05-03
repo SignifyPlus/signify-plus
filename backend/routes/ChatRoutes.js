@@ -14,11 +14,6 @@ chatRouter.get('/', async (request, response) => {
 });
 
 chatRouter.get(
-   '/:phoneNumber',
-   ControllerFactory.getChatController().getChatByPhoneNumber,
-);
-
-chatRouter.get(
    '/custom/id/:chatId',
    ControllerFactory.getChatController().getChatHistoryById,
 );
@@ -37,5 +32,10 @@ chatRouter.delete(
 chatRouter.post('/pin', ControllerFactory.getChatController().pinChat);
 
 chatRouter.post('/archive', ControllerFactory.getChatController().archiveChat);
+
+chatRouter.get(
+   '/:phoneNumber',
+   ControllerFactory.getChatController().getChatByPhoneNumber,
+);
 
 module.exports = chatRouter;

@@ -253,7 +253,7 @@ class ChatController {
          // Soft delete the chat
          const updatedChat = await ServiceFactory.getChatService.softDeleteChat(
             chat._id.toString(),
-            user._id,
+            user._id.toString(),
             mongooseSession,
          );
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
