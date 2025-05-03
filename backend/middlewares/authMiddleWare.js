@@ -39,6 +39,7 @@ class AuthMiddleWare {
             .json({
                exception: accessTokenVerification.exception,
                customMessage: `Either login again, or refresh the access token by sending refresh token to the endpoint jwt/refresh`,
+               code: 'ACCESS_TOKEN_EXPIRED'
             });
       }
 
