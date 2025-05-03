@@ -148,8 +148,8 @@ async function setupJwtManager() {
       await CommonUtils.decodeFromBase64(
          process.env.JWT_SECRET_REFRESH_TOKEN_SECRET_KEY,
       ),
-      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_HOURS,
-      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_HOURS,
+      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_DAYS,
+      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_DAYS,
    );
 }
 
