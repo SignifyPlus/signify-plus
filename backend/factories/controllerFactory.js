@@ -9,6 +9,7 @@ const MessageController = require('../controllers/MessageController.js');
 const UserController = require('../controllers/UserController.js');
 const ContactController = require('../controllers/ContactController.js');
 const UserActivityController = require('../controllers/UserActivityController.js');
+const CallHistoryController = require('../controllers/CallHistoryController.js');
 const ForumController = require('../controllers/ForumController.js');
 const ForumMemberController = require('../controllers/ForumMemberController.js');
 const ThreadController = require('../controllers/ThreadController.js');
@@ -60,6 +61,12 @@ class ControllerFactory {
     * @type {UserActivityController | null}
     */
    static #userActivityController = null;
+
+   /**
+    * @private
+    * @type {CallHistoryController | null}
+    */
+   static #callHistoryController = null;
 
    /**
     * @private
@@ -167,6 +174,13 @@ class ControllerFactory {
          ControllerFactory.#commentController = new CommentController();
       }
       return ControllerFactory.#commentController;
+   }
+
+   static getCallHistoryController() {
+      if (!ControllerFactory.#callHistoryController) {
+         ControllerFactory.#callHistoryController = new CallHistoryController();
+      }
+      return ControllerFactory.#callHistoryController;
    }
 
    static getSettingsController() {

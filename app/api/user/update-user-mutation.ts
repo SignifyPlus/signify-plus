@@ -27,8 +27,7 @@ export const useUpdateUserMutation = () => {
         throw new Error('Failed to update user');
       }
 
-      const data = await response.json();
-      return data as User;
+      return (await response.json()) as User;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

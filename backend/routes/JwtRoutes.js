@@ -7,9 +7,6 @@ jwtRouter.get('/', async (request, response) => {
    return await ExceptionHelper.validate(null, 400, `Invalid path`, response);
 });
 
-jwtRouter.post(
-   '/validate/',
-   ControllerFactory.getJwtController().validateTokens,
-);
+jwtRouter.post('/refresh/', ControllerFactory.getJwtController().refreshToken);
 
 module.exports = jwtRouter;

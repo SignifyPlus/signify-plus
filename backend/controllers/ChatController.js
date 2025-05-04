@@ -44,7 +44,6 @@ class ChatController {
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: request.params.phoneNumber,
             });
-
          const userValidation = await ExceptionHelper.validate(
             userObject,
             400,
@@ -59,7 +58,6 @@ class ChatController {
                   { mainUserId: userObject._id.toString() },
                   { participants: userObject._id.toString() },
                ],
-               isDeleted: false, // Only return non-deleted chats
             });
          const chats = await chatsQuery
             .populate({
@@ -98,12 +96,6 @@ class ChatController {
          if (!chat) {
             return response.status(404).json({
                error: 'Chat not found',
-            });
-         }
-
-         if (chat.isDeleted) {
-            return response.status(404).json({
-               error: 'This chat has been deleted',
             });
          }
 
@@ -253,7 +245,7 @@ class ChatController {
          // Soft delete the chat
          const updatedChat = await ServiceFactory.getChatService.softDeleteChat(
             chat._id.toString(),
-            user._id,
+            user._id.toString(),
             mongooseSession,
          );
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
@@ -622,7 +614,6 @@ class ChatController {
             $all: participantsIdMap,
             $size: participantsIdMap.length,
          },
-         isDeleted: false, // Only consider non-deleted chats
       });
    }
 

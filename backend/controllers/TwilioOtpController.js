@@ -68,7 +68,6 @@ class TwilioOtpController {
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: otpDto.phoneNumber,
             });
-         console.log(`user: ${JSON.stringify(user)}`);
          const userValidation = await ExceptionHelper.validate(
             user,
             400,

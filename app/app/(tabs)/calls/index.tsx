@@ -1,7 +1,20 @@
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useAppContext } from '@/context/app-context';
+import { useEffect } from 'react';
 
-const calls = [
+type Call = {
+  id: string;
+  name: string;
+  type: 'incoming' | 'outgoing' | 'missed';
+  time: string;
+  missed: boolean;
+  avatar: string;
+  isVideo: boolean;
+  participants: string[];
+};
+
+const _calls: Call[] = [
   {
     id: '1',
     name: 'John Doe',
@@ -119,7 +132,7 @@ const calls = [
   },
 ];
 
-const CallItem = ({ item }: { item: (typeof calls)[0] }) => {
+const CallItem = ({ item }: { item: Call }) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16 }}>
       <Image
@@ -149,6 +162,26 @@ const CallItem = ({ item }: { item: (typeof calls)[0] }) => {
 };
 
 const Page = () => {
+  const { callSearchQuery, setCallSearchQuery } = useAppContext();
+
+  const calls = _calls.filter((call) => {
+    if (callSearchQuery === '') return true;
+
+    const searchLower = callSearchQuery.toLowerCase();
+    return (
+      call.name.toLowerCase().includes(searchLower) ||
+      call.participants.some((participant) =>
+        participant.toLowerCase().includes(searchLower)
+      )
+    );
+  });
+
+  useEffect(() => {
+    return () => {
+      setCallSearchQuery('');
+    };
+  }, [setCallSearchQuery]);
+
   return (
     <ScrollView>
       {calls.map((item, index) => (

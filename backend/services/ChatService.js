@@ -80,8 +80,7 @@ class ChatService extends AbstractService {
       return await super.updateDocument(
          { _id: chatId },
          {
-            isDeleted: true,
-            $addToSet: { isDeletedBy: userId }, //ensures we dont overwrite the previous array + addToSet ensures the array/set is unique
+            $addToSet: { deletedBy: userId }, //ensures we dont overwrite the previous array + addToSet ensures the array/set is unique
             lastActivity: new Date(),
          },
          session,
@@ -178,9 +177,8 @@ class ChatService extends AbstractService {
       return await this.schemaModel
          .find({
             $or: [{ mainUserId: userId }, { participants: userId }],
-            isDeleted: false,
          })
-         .sort({ isPinned: -1, lastActivity: -1 })
+         .sort({ lastActivity: -1 })
          .populate({
             path: 'mainUserId participants',
             select: 'phoneNumber name',

@@ -38,7 +38,7 @@ class MessageSocket {
                messageDto.targetPhoneNumbers.length == 0
             ) {
                socket.emit('message-failure', {
-                  error: `targetPhoneNumbers is not provided - receiver info: Number:${messageDto.senderPhoneNumber} SocketId:${userSocketMap[messageDto.senderPhoneNumber]}`,
+                  error: `targetPhoneNumbers is not provided - receiver info: Number:${messageDto.senderPhoneNumber} SocketId:${userSocketMap.get(messageDto.senderPhoneNumber)}`,
                });
                return;
             }
@@ -68,13 +68,13 @@ class MessageSocket {
                   : messageDto.chatId;
             ///use event driven approach
             messageDto.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
-               if (userSocketMap[targetPhoneNumber] == null) {
+               if (userSocketMap.get(targetPhoneNumber) == null) {
                   LoggerFactory.getApplicationLogger.info(
                      `targetPhoneNumber is not registered to the socket - ${targetPhoneNumber} terminating the event`,
                   );
                   return;
                }
-               socket.to(userSocketMap[targetPhoneNumber]).emit('message', {
+               socket.to(userSocketMap.get(targetPhoneNumber)).emit('message', {
                   message: messageDto.message,
                   chatId: messageDto.chatId,
                   replyToId: messageDto.replyToId, // Add reply info to emit event
@@ -156,9 +156,9 @@ class MessageSocket {
                const targetPhoneNumbers =
                   await MessageSocketUtils.getMessageRecipients(data.messageId);
                targetPhoneNumbers.forEach((phoneNumber) => {
-                  if (userSocketMap[phoneNumber]) {
+                  if (userSocketMap.get(phoneNumber)) {
                      socket
-                        .to(userSocketMap[phoneNumber])
+                        .to(userSocketMap.get(phoneNumber))
                         .emit('message-edited', {
                            messageId: data.messageId,
                            newContent: data.newContent,
@@ -214,9 +214,9 @@ class MessageSocket {
                const targetPhoneNumbers =
                   await MessageSocketUtils.getMessageRecipients(data.messageId);
                targetPhoneNumbers.forEach((phoneNumber) => {
-                  if (userSocketMap[phoneNumber]) {
+                  if (userSocketMap.get(phoneNumber)) {
                      socket
-                        .to(userSocketMap[phoneNumber])
+                        .to(userSocketMap.get(phoneNumber))
                         .emit('message-deleted', {
                            messageId: data.messageId,
                            chatId: deletedMessage.chatId,
@@ -270,9 +270,9 @@ class MessageSocket {
             const targetPhoneNumbers =
                await MessageSocketUtils.getChatParticipants(result.data.chatId);
             targetPhoneNumbers.forEach((phoneNumber) => {
-               if (userSocketMap[phoneNumber]) {
+               if (userSocketMap.get(phoneNumber)) {
                   socket
-                     .to(userSocketMap[phoneNumber])
+                     .to(userSocketMap.get(phoneNumber))
                      .emit('message-pin-updated', {
                         messageId: data.messageId,
                         isPinned: data.isPinned,
@@ -310,8 +310,9 @@ class MessageSocket {
       );
       if (chatData.exception) {
          LoggerFactory.getApplicationLogger.error(
-            `Exception Occured when creating a new Chat: ${chatData.exception}`,
+            `Exception Occured when creating a new Chat: ${JSON.stringify(chatData.exception)}`,
          );
+         return chatData.exception;
       }
       return chatData.data[CommonConstants.FIRST_ENTRY]._id.toString();
    }

@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
 import { chatsQueryKey } from './chats-query';
+import { getToken } from '../axios';
+import { fetchWithAuth } from '..';
 
 export interface CreateChatParams {
   mainUserPhoneNumber: string;
@@ -12,10 +14,11 @@ export const useCreateChatMutation = () => {
 
   return useMutation({
     mutationFn: async (params: CreateChatParams) => {
-      const response = await fetch(`${API_URL}/chats/create`, {
+      const response = await fetchWithAuth(`${API_URL}/chats/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: await getToken(),
         },
         body: JSON.stringify(params),
       });
@@ -24,8 +27,7 @@ export const useCreateChatMutation = () => {
         throw new Error('Failed to create chat');
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({

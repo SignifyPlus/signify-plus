@@ -8,6 +8,8 @@
  *  - getTimeInSeconds(): converts any time in milliseconds to seconds
  * - isTimeDifferenceGreaterThanElapsedLimit(): Returns true/false depending on if the time difference is greater than elapsedLimit
  */
+const { format } = require('date-fns');
+const LoggerFactory = require('../factories/loggerFactory.js');
 class TimeUtils {
    static getCurrentTimeInMilliSeconds() {
       return Date.now();
@@ -33,6 +35,17 @@ class TimeUtils {
          elapsedLimitInSeconds >
          this.getTimeDifferenceInSecondsFromNow(fromInSeconds)
       );
+   }
+
+   static getDateFromTimeStamp(timeStamp, dateFromat) {
+      try {
+         const date = new Date(timeStamp);
+         return format(date, dateFromat);
+      } catch (exception) {
+         LoggerFactory.getApplicationLogger.error(
+            `Failed to format the date ${date} to: ${dateFormat} - exception occured: ${exception}`,
+         );
+      }
    }
 }
 

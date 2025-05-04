@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
 import { contactsQueryKey } from '@/api/contacts-query';
+import { getToken } from './axios';
+import { fetchWithAuth } from '.';
 
 export interface PostContactsParams {
   userPhoneNumber: string;
@@ -12,10 +14,11 @@ export const usePostContactsMutation = () => {
 
   return useMutation({
     mutationFn: async (params: PostContactsParams) => {
-      const response = await fetch(`${API_URL}/contacts/create`, {
+      const response = await fetchWithAuth(`${API_URL}/contacts/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: await getToken(),
         },
         body: JSON.stringify(params),
       });

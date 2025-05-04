@@ -9,11 +9,13 @@ const MessageEvent = require('../events/services/messageEvent.js');
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
 const UserAuthenticationEvent = require('../events/services/userAuthenticationEvent.js');
 const UserEvent = require('../events/services/userEvent.js');
+const CallLogEvent = require('../events/services/callLogEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const TwilioAdmin = require('../managers/twilio/models/TwilioAdmin.js');
+const AuthMiddleWare = require('../middlewares/authMiddleWare.js');
 
 //routes
 const userRoutes = require('../routes/UserRoutes.js');
@@ -22,6 +24,7 @@ const contactRoutes = require('../routes/ContactRoutes.js');
 const chatRoutes = require('../routes/ChatRoutes.js');
 const messageRoutes = require('../routes/MessageRoutes.js');
 const forumRoutes = require('../routes/ForumRoutes.js');
+const callHistoryRoutes = require('../routes/CallHistoryRoutes.js');
 const forumMemberRoutes = require('../routes/ForumMemberRoutes.js');
 const threadRoutes = require('../routes/ThreadRoutes.js');
 const commentRoutes = require('../routes/CommentRoutes.js');
@@ -30,10 +33,7 @@ const userAuthenticationRoutes = require('../routes/UserAuthenticationRoutes.js'
 const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
 const amazonS3Routes = require('../routes/AmazonS3Routes.js');
 const jwtRoutes = require('../routes/JwtRoutes.js');
-
-const signifyPlusApp = express();
-signifyPlusApp.use(express.json());
-const mainServer = http.createServer(signifyPlusApp);
+const authRoutes = require('../routes/AuthRoutes.js');
 
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
@@ -41,11 +41,14 @@ const port = process.env.PORT;
 //setup a logger
 setupApplicationLogger(ServerConstants.LOG_LEVEL_DEBUG);
 
-//setup Server
-setupServer();
+//setup managers
+setupManagers();
 
 //routes
-setupApplicationRoutes(signifyPlusApp);
+const signifyPlusApp = setupRoutes();
+
+//setup Server
+const mainServer = http.createServer(signifyPlusApp);
 
 //connect to the database
 ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
@@ -53,12 +56,12 @@ ServiceFactory.getMongooseService.connectToMongoDB(mongoDburl);
 mainServer.listen(port, async () => {
    await CommonUtils.waitForVariableToBecomeNonNull(getApplicationLogger);
    LoggerFactory.getApplicationLogger.info(
-      `SignifyPlus Server is Up & Running on http://localhost:${port}`,
+      `SignifyPlus Server is Up & Running on ${process.env.PRODUCTION_URL}:${port}`,
    );
    const websocketManager = new WebSocketManager(mainServer);
 });
 
-async function setupServer() {
+async function setupManagers() {
    try {
       //initialize RabbitMQ
       await ManagerFactory.getRabbitMqQueueManager().establishConnection();
@@ -68,6 +71,7 @@ async function setupServer() {
          new AccessibilitySettingsEvent();
       EventFactory.setUserEvent = new UserEvent();
       EventFactory.setUserAuthenticationEvent = new UserAuthenticationEvent();
+      EventFactory.setCallLogEvent = new CallLogEvent();
       //setup processors, if any
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),
@@ -89,22 +93,34 @@ async function setupServer() {
    }
 }
 
-function setupApplicationRoutes(signifyPlusAppServer) {
+function setupRoutes() {
    try {
-      signifyPlusAppServer.use('/users', userRoutes);
-      signifyPlusAppServer.use('/', homeRoutes);
-      signifyPlusAppServer.use('/contacts', contactRoutes);
-      signifyPlusAppServer.use('/chats', chatRoutes);
-      signifyPlusAppServer.use('/messages', messageRoutes);
-      signifyPlusAppServer.use('/forums', forumRoutes);
-      signifyPlusAppServer.use('/forumMembers', forumMemberRoutes);
-      signifyPlusAppServer.use('/threads', threadRoutes);
-      signifyPlusAppServer.use('/comments', commentRoutes);
-      signifyPlusAppServer.use('/settings', settingsRoutes);
-      signifyPlusAppServer.use('/userAuthentication', userAuthenticationRoutes);
-      signifyPlusAppServer.use('/twilio', twilioOtpRoutes);
-      signifyPlusAppServer.use('/amazon', amazonS3Routes);
-      signifyPlusAppServer.use('/jwt', jwtRoutes);
+      const signifyPlusApp = express();
+      signifyPlusApp.use(express.json());
+
+      //auth middleware
+      const authMiddleWare = new AuthMiddleWare();
+      signifyPlusApp.use(async (request, response, next) => {
+         await authMiddleWare.authenticate(request, response, next);
+      });
+
+      signifyPlusApp.use('/', homeRoutes);
+      signifyPlusApp.use('/users', userRoutes);
+      signifyPlusApp.use('/contacts', contactRoutes);
+      signifyPlusApp.use('/chats', chatRoutes);
+      signifyPlusApp.use('/messages', messageRoutes);
+      signifyPlusApp.use('/forums', forumRoutes);
+      signifyPlusApp.use('/forumMembers', forumMemberRoutes);
+      signifyPlusApp.use('/threads', threadRoutes);
+      signifyPlusApp.use('/callHistory', callHistoryRoutes);
+      signifyPlusApp.use('/comments', commentRoutes);
+      signifyPlusApp.use('/settings', settingsRoutes);
+      signifyPlusApp.use('/userAuthentication', userAuthenticationRoutes);
+      signifyPlusApp.use('/twilio', twilioOtpRoutes);
+      signifyPlusApp.use('/amazon', amazonS3Routes);
+      signifyPlusApp.use('/jwt', jwtRoutes);
+      signifyPlusApp.use('/auth', authRoutes);
+      return signifyPlusApp;
    } catch (exception) {
       LoggerFactory.getApplicationLogger.error(
          `Exception Occured ${exception}`,
@@ -133,8 +149,8 @@ async function setupJwtManager() {
       await CommonUtils.decodeFromBase64(
          process.env.JWT_SECRET_REFRESH_TOKEN_SECRET_KEY,
       ),
-      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_SECONDS,
-      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_SECONDS,
+      process.env.JWT_ACCESS_TOKEN_EXPIRATION_IN_DAYS,
+      process.env.JWT_REFRESH_TOKEN_EXPIRATION_IN_DAYS,
    );
 }
 

@@ -1,0 +1,130 @@
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useChatsQuery } from '@/api/chat/chats-query';
+import { useAppContext } from '@/context/app-context';
+import { ChatRow, ChatRowProps } from '@/components/ChatRow';
+import { useUpdateContacts } from '@/context/use-update-contacts';
+import { Ionicons } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
+import { Link } from 'expo-router';
+import { Fragment } from 'react';
+import { defaultStyles } from '@/constants/Styles';
+
+const Page = () => {
+  const { phoneNumber, chatsSearchQuery, user } = useAppContext();
+
+  const { contacts } = useUpdateContacts({ phoneNumber });
+  const { data } = useChatsQuery({ phoneNumber });
+
+  const archivedChats =
+    data?.filter((chat) => user && chat.archivedBy.includes(user._id)) ?? [];
+
+  const chatRows: ChatRowProps[] = archivedChats
+    .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
+    .map((chat) => {
+      const fromParticipants = chat.participants.filter(
+        (p) => p._id !== user?._id
+      );
+      const from = fromParticipants.map((p) => p.phoneNumber)[0]!;
+      const fromContact = contacts.find(
+        (c) => c.phoneNumbers[0]?.number === from
+      );
+
+      return {
+        id: chat._id,
+        from: fromContact
+          ? fromContact.givenName + fromContact.familyName
+          : from,
+        date: chat.createdAt,
+        img: fromParticipants[0]?.profilePicture ?? '',
+        msg: chat.lastMessage,
+        read: true,
+        unreadCount: 0,
+      } satisfies ChatRowProps;
+    })
+    .filter((chatRow) => {
+      if (chatsSearchQuery === '') return true;
+      const from = chatRow.from.toLowerCase();
+      // const msg = chatRow.msg.toLowerCase();
+      const searchQuery = chatsSearchQuery.toLowerCase();
+      return from.includes(searchQuery);
+    });
+
+  return (
+    <View>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{
+          backgroundColor: '#fff',
+          height: '100%',
+          width: '100%',
+        }}
+      >
+        {chatRows.length === 0 ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              backgroundColor: '#f9f9f9',
+              padding: 20,
+              height: '100%',
+              width: '100%',
+            }}
+          >
+            <Ionicons name="archive-outline" color={Colors.gray} size={150} />
+            <Text style={styles.title}>No Archived Chats</Text>
+            <Text style={styles.subtitle}>
+              You haven’t archived any chats yet.
+            </Text>
+            <Link href="/(tabs)/chats" asChild>
+              <TouchableOpacity style={styles.button}>
+                <Text style={styles.buttonText}>Go to Chats</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
+        ) : (
+          chatRows.map((chat) => (
+            <Fragment key={chat.id}>
+              <ChatRow {...chat} isArchived />
+              <View style={[defaultStyles.separator, { marginLeft: 90 }]} />
+            </Fragment>
+          ))
+        )}
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  button: {
+    marginTop: 20,
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
+
+export default Page;
