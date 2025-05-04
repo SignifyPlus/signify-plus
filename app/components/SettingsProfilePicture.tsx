@@ -1,12 +1,22 @@
 import { useAppContext } from '@/context/app-context';
-import { View, Image, Pressable } from 'react-native';
+import {
+  View,
+  Image,
+  Pressable,
+  Text,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useUploadProfilePictureMutation } from '@/api/user/upload-profile-picture-mutation';
 import { useUpdateUserMutation } from '@/api/user/update-user-mutation';
+import { useState } from 'react';
 
 export const SettingsProfilePicture = () => {
   const { user, setUser } = useAppContext();
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const { mutateAsync: uploadProfilePicture } =
     useUploadProfilePictureMutation();
@@ -36,13 +46,12 @@ export const SettingsProfilePicture = () => {
         phoneNumber: user!.phoneNumber,
       });
 
-      console.log('Uploaded to:', publicUrl);
-
-      if (user)
+      if (user) {
         setUser({
           ...user,
           profilePicture: publicUrl,
         });
+      }
 
       await mutateAsync(
         {
@@ -51,7 +60,6 @@ export const SettingsProfilePicture = () => {
         },
         {
           onSuccess: (data) => {
-            console.log('data', JSON.stringify(data, null, 2));
             setUser({ ...user, ...data });
           },
         }
@@ -59,36 +67,77 @@ export const SettingsProfilePicture = () => {
     }
   };
 
+  const handleImagePress = () => {
+    if (user?.profilePicture) {
+      setModalVisible(true);
+    }
+  };
+
   return (
-    <Pressable onPress={pickAndUploadImage}>
-      {user?.profilePicture ? (
-        <Image
-          source={{ uri: user.profilePicture }}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            backgroundColor: '#ddd',
-            marginRight: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        />
-      ) : (
-        <View
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            backgroundColor: '#ddd',
-            marginRight: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Ionicons name="person-outline" size={28} color="#555" />
-        </View>
+    <View style={{ alignItems: 'center' }}>
+      <Pressable onPress={handleImagePress}>
+        {user?.profilePicture ? (
+          <Image
+            source={{ uri: user.profilePicture }}
+            style={styles.profileImage}
+          />
+        ) : (
+          <View style={styles.profileImage}>
+            <Ionicons name="person-outline" size={28} color="#555" />
+          </View>
+        )}
+      </Pressable>
+      <Pressable onPress={pickAndUploadImage}>
+        <Text style={{ color: '#007AFF', fontSize: 14 }}>Edit</Text>
+      </Pressable>
+
+      {user?.profilePicture && (
+        <Modal visible={isModalVisible} transparent>
+          <View style={styles.modalContainer}>
+            <Image
+              source={{ uri: user.profilePicture }}
+              style={styles.fullscreenImage}
+              resizeMode="contain"
+            />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Ionicons name="close" size={32} color="white" />
+            </TouchableOpacity>
+          </View>
+        </Modal>
       )}
-    </Pressable>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  profileImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#ddd',
+    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 20,
+  },
+});

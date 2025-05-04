@@ -10,11 +10,12 @@ export const useGetOtpMutation = () => {
   return useMutation({
     mutationFn: async (phoneNumber: string): Promise<GetOtpResponse> => {
       const response = await fetch(`${API_URL}/twilio/getOtp/${phoneNumber}`, {
-        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-
       if (!response.ok) {
-        throw new Error('Failed to fetch OTP');
+        throw new Error('Failed to get OTP');
       }
 
       return (await response.json()) as GetOtpResponse;

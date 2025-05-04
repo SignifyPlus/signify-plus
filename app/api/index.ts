@@ -1,4 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
+import { DevSettings } from 'react-native';
+import { setAsyncStorageValue } from '@/context/async-storage';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,8 +29,6 @@ export const createMeeting = async () => {
   return roomId;
 };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export const signUpWithPhoneNumber = async (
   _phoneNumber: string
 ): Promise<void> => {
@@ -55,34 +55,14 @@ export const prepareFirstFactorVerification = async (_options: {
   // await sleep(300); // Simulates the network delay
 };
 
-export const attemptPhoneNumberVerificationForSignUp = async (
-  _code: string
-): Promise<void> => {
-  await sleep(300);
-};
+export async function fetchWithAuth(input: RequestInfo, init?: RequestInit) {
+  const response = await fetch(input, init);
 
-export const activateUserSessionAfterSignUp = async (): Promise<void> => {
-  await sleep(300);
-};
+  if (response.status === 401) {
+    await setAsyncStorageValue('user', '');
+    DevSettings.reload();
+    throw new Error('Unauthorized');
+  }
 
-export const attemptFirstFactorVerificationForSignIn = async (
-  _code: string
-): Promise<void> => {
-  await sleep(300);
-};
-
-export const activateUserSessionAfterSignIn = async (): Promise<void> => {
-  await sleep(300);
-};
-
-export const resendSignUpVerificationCode = async (
-  _phone: string
-): Promise<void> => {
-  await sleep(300);
-};
-
-export const resendSignInVerificationCode = async (
-  _phone: string
-): Promise<void> => {
-  await sleep(300);
-};
+  return response;
+}

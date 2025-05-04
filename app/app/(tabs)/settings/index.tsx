@@ -19,9 +19,10 @@ import { EditableField } from '@/components/EditableField';
 import { validatePasswordsMatch, validatePasswordStrength } from '@/app/signup';
 import { queryClient } from '@/api';
 import { SettingsProfilePicture } from '@/components/SettingsProfilePicture';
+import { setAsyncStorageValue } from '@/context/async-storage';
 
 const Page = () => {
-  const { phoneNumber, user, setUser } = useAppContext();
+  const { phoneNumber, user, setUser, reset } = useAppContext();
   const { data: settings, isLoading } = useSettingsQuery({ phoneNumber });
   // const { mutate: updateSettings } = useUpdateSettingsMutation();
   const { mutate: updateUser } = useUpdateUserMutation();
@@ -44,8 +45,11 @@ const Page = () => {
   // };
 
   const handleLogout = () => {
-    router.replace('/');
-    queryClient.removeQueries();
+    setAsyncStorageValue('user', '').then(() => {
+      reset();
+      router.replace('/');
+      queryClient.removeQueries();
+    });
   };
 
   const handleChangePassword = () => {
@@ -260,6 +264,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
+    gap: 12,
   },
   userText: {
     flex: 1,

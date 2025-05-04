@@ -20,7 +20,8 @@
     "no-unused-vars": "off",
     "react-native/sort-styles": "off",
     "react-native/no-color-literals": "off",
-    "no-console": "error"
+    "no-console": "error",
+    "react/prop-types": "off"
   },
   "settings": {
     "react": {

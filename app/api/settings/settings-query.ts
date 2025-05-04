@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
+import { getToken } from '../axios';
+import { fetchWithAuth } from '..';
 
 export type UserSettings = {
   _id: string;
@@ -27,17 +29,25 @@ export const useSettingsQuery = (params: { phoneNumber?: string }) => {
     queryKey: settingsQueryKey(params),
     enabled: !!params.phoneNumber,
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/settings/${params.phoneNumber}`);
+      const response = await fetchWithAuth(
+        `${API_URL}/settings/${params.phoneNumber}`,
+        {
+          headers: {
+            Authorization: await getToken(),
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch settings');
       }
-      const body = await response.json();
 
-      if (!Array.isArray(body) || body.length === 0) {
+      const data = await response.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
         throw new Error('No settings found');
       }
 
-      return body[0] as UserSettings;
+      return data[0] as UserSettings;
     },
   });
 };
