@@ -1,3 +1,5 @@
+const LoggerFactory = require('../factories/loggerFactory');
+
 class AbstractService {
    constructor(schemaModel) {
       this.schemaModel = schemaModel;
@@ -103,7 +105,27 @@ class AbstractService {
               );
          return document;
       } catch (exception) {
+         LoggerFactory.getApplicationLogger.error(`Exception!! ${exception}`);
          throw new Error(`Error Updating the Document: ${exception.message}`);
+      }
+   }
+
+   async updateDocuments(filterConditions, updateFields, session = null) {
+      try {
+         const documents = session
+            ? await this.schemaModel.updateMany(
+                 filterConditions,
+                 updateFields,
+                 { new: true, session },
+              )
+            : await this.schemaModel.updateMany(
+                 filterConditions,
+                 updateFields,
+                 { new: true },
+              );
+         return documents;
+      } catch (exception) {
+         throw new Error(`Error updating the Documents: ${exception.message}`);
       }
    }
 

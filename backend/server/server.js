@@ -9,6 +9,7 @@ const MessageEvent = require('../events/services/messageEvent.js');
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
 const UserAuthenticationEvent = require('../events/services/userAuthenticationEvent.js');
 const UserEvent = require('../events/services/userEvent.js');
+const ChatEvent = require('../events/services/chatEvent.js');
 const CallLogEvent = require('../events/services/callLogEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
@@ -72,6 +73,7 @@ async function setupManagers() {
       EventFactory.setUserEvent = new UserEvent();
       EventFactory.setUserAuthenticationEvent = new UserAuthenticationEvent();
       EventFactory.setCallLogEvent = new CallLogEvent();
+      EventFactory.setChatEvet = new ChatEvent();
       //setup processors, if any
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),

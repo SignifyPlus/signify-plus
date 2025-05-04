@@ -23,6 +23,7 @@ const MessageSchema = new mongoose.Schema({
    content: { type: String, required: true },
    status: { type: Boolean }, //delivered or not
    createdAt: { type: Date, required: true, default: Date.now },
+   updatedAt: { type: Date, required: true, default: Date.now },
    // New fields for reply functionality
    replyToId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -32,6 +33,7 @@ const MessageSchema = new mongoose.Schema({
    isEdited: { type: Boolean, default: false }, // Track if message was edited
    isPinned: { type: Boolean, default: false }, // Track if message is pinned
    isDeleted: { type: Boolean, default: false }, // Soft delete flag
+   deletedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], //Users who deleted this chat
    isRead: { type: Boolean, default: false }, // Read status
 });
 

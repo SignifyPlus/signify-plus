@@ -10,6 +10,7 @@ const UpdateUserDto = require('../dtos/UpdateUserDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const ManagerFactory = require('../factories/managerFactory.js');
 const CommonConstants = require('../constants/commonConstants.js');
+const CommonUtils = require('../utilities/commonUtils.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -371,6 +372,51 @@ class UserController {
          response.status(500).json({ error: exception.message });
       }
    };
+
+   async getUserIds(phoneNumbers) {
+      var mongooseSession = null;
+      var userIds = [];
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         if (
+            (await CommonUtils.isValueNull(phoneNumbers)) ||
+            phoneNumbers.length == 0
+         ) {
+            LoggerFactory.getApplicationLogger.error(
+               `phoneNumbers are either null or the array does not contain any valid data`,
+            );
+            return new SignifyResult(userIds);
+         }
+
+         for (var i = 0; i < phoneNumbers.length; i++) {
+            const user =
+               await ServiceFactory.getUserService.getDocumentByCustomFilters(
+                  { phoneNumber: phoneNumbers[i] },
+                  mongooseSession,
+               );
+            if (user == null) {
+               continue;
+            }
+            userIds.push(user._id.toString());
+         }
+
+         return new SignifyResult(userIds);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
+   }
 
    async #getUserAuthenticationRecord(user) {
       const userAuthenticationRecord =

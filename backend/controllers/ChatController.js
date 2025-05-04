@@ -4,6 +4,7 @@ const SignifyException = require('../exception/SignifyException.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const mongoose = require('mongoose');
 const ControllerConstants = require('../constants/controllerConstants.js');
+const CommonUtils = require('../utilities/commonUtils.js');
 class ChatController {
    constructor() {}
 
@@ -580,7 +581,7 @@ class ChatController {
 
    //Helper Methods
    async filterChat(cachedChats, phoneNumbers) {
-      var chatId = null;
+      var chat = null;
       for (var i = 0; i < cachedChats.length; i++) {
          ///the best way is to combine mainPhoneNumber and targetPhoneNumbers in an array
          //and match them with the array from the chat (mainuserIdPhoneNumber and participantsPhoneNumbers)
@@ -589,7 +590,11 @@ class ChatController {
             ...cachedChats[i].participants,
             cachedChats[i].mainUserId,
          ];
-         chatPhoneNumbers.sort();
+         //cases where mainUserId is a participant
+         //no need to worry, since both arrays will have the phone numbers in the same format, so should be consistent
+         chatPhoneNumbers.sort((a, b) =>
+            a.phoneNumber.localeCompare(b.phoneNumber),
+         );
          phoneNumbers.sort();
          //since sorted, the comparision will work
          //once compared, please also check that the length is exact or not - we should not be returning a chat where there are extra participants but the above two phoneNumbers are part of that chat
@@ -600,11 +605,21 @@ class ChatController {
                (value, index) => value == chatPhoneNumbers[index].phoneNumber,
             );
          if (perfectMatch) {
-            chatId = cachedChats[i]._id.toString();
+            chat = cachedChats[i];
             break;
          }
       }
-      return chatId;
+      return chat;
+   }
+
+   async filterChatById(cachedChats, chatId) {
+      var chat = null;
+      for (var i = 0; i < cachedChats.length; i++) {
+         if (cachedChats[i]._id.toString() == chatId) {
+            return cachedChats[i];
+         }
+      }
+      return chat;
    }
 
    async #getExistingChats(mainUserPhoneNumberId, participantsIdMap) {
@@ -630,6 +645,51 @@ class ChatController {
       }
 
       return false;
+   }
+
+   async updateChat(chatData) {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         if (
+            (await CommonUtils.isValueNull(chatData)) ||
+            (await CommonUtils.isValueNull(chatData._id))
+         ) {
+            LoggerFactory.getApplicationLogger.error(
+               `Chat data or chatId is null!`,
+            );
+            return new SignifyResult(null);
+         }
+         // Update chat
+         const updatedChat = await ServiceFactory.getChatService.updateDocument(
+            chatData._id,
+            {
+               pinnedBy: chatData.pinnedBy,
+               archivedBy: chatData.archivedBy,
+               deletedBy: chatData.deletedBy,
+            },
+            mongooseSession,
+         );
+         console.log(updatedChat);
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
+         );
+         return new SignifyResult(updatedChat);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
    }
 }
 module.exports = ChatController;

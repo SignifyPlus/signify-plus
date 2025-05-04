@@ -103,6 +103,14 @@ class MessageService extends AbstractService {
       );
    }
 
+   async softDeleteMessages(filterConditions, updateFields, session = null) {
+      return await super.updateDocuments(
+         filterConditions,
+         updateFields,
+         session,
+      );
+   }
+
    async pinMessage(messageId, isPinned = true, session = null) {
       return await super.updateDocument(
          { _id: messageId },

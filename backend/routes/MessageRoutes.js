@@ -13,11 +13,6 @@ messageRouter.delete(
 );
 
 // New Routes
-messageRouter.post(
-   '/soft-delete',
-   ControllerFactory.getMessageController().softDeleteMessage,
-);
-
 messageRouter.put(
    '/edit',
    ControllerFactory.getMessageController().editMessage,

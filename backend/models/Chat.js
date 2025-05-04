@@ -10,6 +10,7 @@ const ChatSchema = new mongoose.Schema({
       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
    ], //User table - foreign key
    createdAt: { type: Date, required: true, default: Date.now },
+   updatedAt: { type: Date, required: true, default: Date.now },
    // New fields
    pinnedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who pinned this chat
    lastActivity: { type: Date, default: Date.now }, // For sorting

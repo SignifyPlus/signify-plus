@@ -25,6 +25,7 @@ class MessageSocket {
       socket.on('message', async (data) => {
          this.#databaseCachedChats = await this.#databaseCachedChats;
          var pingWasSuccesful = true;
+         var chat = null;
          const messageDto = new WebSocketMessageDto(
             data?.chatId,
             data?.senderPhoneNumber,
@@ -48,24 +49,34 @@ class MessageSocket {
                );
             }
 
-            //TODO -- an edge case - where both the sender and receiver register at the same time - chat id for both the cases will be null
-            //think about how to deal with it. Maybe a temp chat id, and use that in mongodb later? not sure if possible, but mull/think over it
             //find the chat now
-            messageDto.chatId =
-               messageDto.chatId == null
-                  ? await MessageSocketUtils.filterChat(
-                       this.#databaseCachedChats,
-                       messageDto.targetPhoneNumbers,
-                       messageDto.senderPhoneNumber,
-                    )
-                  : messageDto.chatId;
-            messageDto.chatId =
-               messageDto.chatId == null
-                  ? await this.createNewChat(
-                       messageDto.senderPhoneNumber,
-                       messageDto.targetPhoneNumbers,
-                    )
-                  : messageDto.chatId;
+            if (messageDto.chatId == null || messageDto.chatId == undefined) {
+               //chat cannot be null - if doesn't exist, creates a new one
+               chat = await this.#getChat(
+                  messageDto.senderPhoneNumber,
+                  messageDto.targetPhoneNumbers,
+               );
+               messageDto.chatId = chat._id.toString();
+            } else {
+               //still get the chat by chatId to undelete the user (if the user is in the delete array)
+               chat = await MessageSocketUtils.filterChatById(
+                  this.#databaseCachedChats,
+                  messageDto.chatId,
+               );
+            }
+
+            //if any sender or participant has their id in deleted By, remove it (do it async please, no need to await on a websocket)
+            EventDispatcher.dispatchEvent(
+               EventConstants.UNDELETED_USER_FROM_CHAT_EVENT,
+               {
+                  chat: chat,
+                  participants: [
+                     messageDto.senderPhoneNumber,
+                     ...messageDto.targetPhoneNumbers,
+                  ],
+               },
+            );
+
             ///use event driven approach
             messageDto.targetPhoneNumbers.forEach(async (targetPhoneNumber) => {
                if (userSocketMap.get(targetPhoneNumber) == null) {
@@ -88,23 +99,6 @@ class MessageSocket {
          }
 
          if (pingWasSuccesful) {
-            //aww this worked!! - blocks the execution
-            //comment this out for now and directly ping - via an event - the message controller to add the record directly to the database (to test the delays with rabbitMQ)
-
-            //await CommonUtils.waitForVariableToBecomeNonNull(
-            //ManagerFactory.getRabbitMqQueueManager,
-            //);
-
-            //send stringified data - otherwise causes issue
-
-            //await ManagerFactory.getRabbitMqQueueManager().queueMessage(
-            //this.#messageQueueName,
-            //RabbitMqConstants.APPLICATION_JSON_CONTENT_TYPE,
-            //CommonConstants.BUFFER_ENCODING,
-            //JSON.stringify(
-            //await MessageSocketUtils.prepareChatQueueData(data, chatId),
-            ///),
-            //);
             LoggerFactory.getApplicationLogger.info(
                `MessageDTO: ${JSON.stringify(messageDto)}`,
             );
@@ -314,7 +308,17 @@ class MessageSocket {
          );
          return chatData.exception;
       }
-      return chatData.data[CommonConstants.FIRST_ENTRY]._id.toString();
+      return chatData.data[CommonConstants.FIRST_ENTRY];
+   }
+
+   async #getChat(senderPhoneNumber, targetPhoneNumbers) {
+      return (
+         (await MessageSocketUtils.filterChat(
+            this.#databaseCachedChats,
+            targetPhoneNumbers,
+            senderPhoneNumber,
+         )) ?? (await this.createNewChat(senderPhoneNumber, targetPhoneNumbers))
+      );
    }
 }
 
