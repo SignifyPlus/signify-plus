@@ -31,11 +31,11 @@ jest.mock('../../../factories/serviceFactory', () => ({
         abandonMongooseTransaction: jest.fn(),
     },
 }));
-  
+
 jest.mock('../../../exception/ExceptionHelper', () => ({
     validate: jest.fn(),
 }));
-  
+
 describe('ChatController Unit Test', () => {
     let chatController;
     let reqMock;

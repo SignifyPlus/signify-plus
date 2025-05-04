@@ -1,3 +1,16 @@
+process.env.JWT_ACCESS_TOKEN_SECRET = 'testsecret';
+
+jest.mock('../../factories/managerFactory', () => ({
+  getJwtManager: () => ({
+    accessTokenSecret: process.env.JWT_ACCESS_TOKEN_SECRET,
+    refreshTokenSecret: process.env.JWT_REFRESH_TOKEN_SECRET || 'testrefresh',
+    signAccessToken: jest.fn(() => 'mocked.jwt.token'),
+    signRefreshToken: jest.fn(() => 'mocked.refresh.token'),
+    generateAccessToken: jest.fn(() => 'mocked.jwt.token'),
+    generateRefreshToken: jest.fn(() => 'mocked.refresh.token'),
+  }),
+}));
+
 const UserController = require('../../controllers/UserController');
 const ServiceFactory = require('../../factories/serviceFactory');
 const Encrypt = require('../../utilities/encrypt');
@@ -5,6 +18,9 @@ const httpMocks = require('node-mocks-http');
 
 jest.mock('../../factories/serviceFactory');
 jest.mock('../../utilities/encrypt');
+jest.mock('jsonwebtoken', () => ({
+  sign: jest.fn(() => 'mocked.jwt.token'),
+}));
 
 describe('UserController - getUserByPhoneNumberForLogin (Unit)', () => {
   let controller;
@@ -59,7 +75,11 @@ describe('UserController - getUserByPhoneNumberForLogin (Unit)', () => {
   });
 
   it('should return 200 and the user if login is successful', async () => {
-    const mockUser = { _id: '123', phoneNumber: '+1234567890', password: 'hashed' };
+    const rawUser = { _id: '123', phoneNumber: '+1234567890', password: 'hashed' };
+    const mockUser = {
+      ...rawUser,
+      toObject: () => rawUser,
+    };
     ServiceFactory.getUserService = {
       getDocumentByCustomFilters: jest.fn().mockResolvedValue(mockUser),
     };
@@ -67,7 +87,9 @@ describe('UserController - getUserByPhoneNumberForLogin (Unit)', () => {
 
     await controller.getUserByPhoneNumberForLogin(mockRequest, mockResponse);
 
-    expect(mockResponse.json).toHaveBeenCalledWith(mockUser);
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({ _id: '123', phoneNumber: '+1234567890' })
+    );
     expect(mockResponse.status).not.toHaveBeenCalled();
   });
 

@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../../tests/security/expressApp');
 
-describe('🛡️ Injection Security Tests', () => {
+describe('Injection Security Tests', () => {
 
     it('should not allow NoSQL injection via login route', async () => {
         const maliciousInput = {
