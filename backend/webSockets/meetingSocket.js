@@ -2,6 +2,8 @@ const LoggerFactory = require('../factories/loggerFactory.js');
 const CallDto = require('../dtos/CallDto.js');
 const EventDispatcher = require('../events/eventDispatcher.js');
 const EventConstants = require('../constants/eventConstants.js');
+const MeetingSocketConstants = require('./constants/meetingSocketConstants.js');
+const MeetingSocketUtils = require('./utils/meetingSocketUtils.js');
 const TimeUtils = require('../utilities/timeUtils.js');
 class MeetingSocket {
    constructor(socket, userSocketMap, callSocketMap, meetingParticipantMap) {
@@ -213,24 +215,24 @@ class MeetingSocket {
                message: `NO_USER_FOUND`,
             });
          }
-
          callSocketMap.set(sendersSocketId, {
             meetingId: callDto.meetingId,
             isOnCall: callDto.isOnCall,
          });
 
-         //Creates an array, and then check if every object within the array has isOnCall set as true
-         const meetingSpecificCallSocketMap = [
-            ...callSocketMap.values(),
-         ].filter((value) => callDto.meetingId == value.meetingId);
-         const areAllParticipantsOnCall = meetingSpecificCallSocketMap.every(
-            (value) => callDto.meetingId == value.meetingId && value.isOnCall,
-         );
-         if (areAllParticipantsOnCall) {
+         if (
+            MeetingSocketUtils.areAllParticipantsOnCall(
+               callSocketMap,
+               callDto.meetingId,
+            )
+         ) {
             meetingParticipantMap.set(callDto.meetingId, {
                ...meetingParticipantMap.get(callDto.meetingId),
-               meetingBeginTime: TimeUtils.getCurrentTimeInMilliSeconds(),
-               isVoiceCall: callDto.isVoiceCall,
+               ...MeetingSocketUtils.createCallHistoryDto(callDto),
+               remainingParticipants: meetingParticipantMap.get(
+                  callDto.meetingId,
+               ).participants.length,
+               caller: callDto.senderPhoneNumber,
             });
          }
       });
@@ -278,13 +280,29 @@ class MeetingSocket {
       meetingParticipantMap,
    ) {
       const disconnectedUser = callSocketMap.get(disconnectedUserSocketId);
-      console.log(disconnectedUser);
       if (disconnectedUser) {
+         meetingParticipantMap.set(disconnectedUser.meetingId, {
+            ...meetingParticipantMap.get(disconnectedUser.meetingId),
+            remainingParticipants:
+               meetingParticipantMap.get(disconnectedUser.meetingId)
+                  .remainingParticipants - 1,
+         });
          const participantsObject = meetingParticipantMap.get(
             disconnectedUser.meetingId,
          );
-         //update it here - who has disconnected
-         console.log(participantsObject);
+
+         //normal call history log (accepted, on call, and then left the meeting)
+         if (
+            participantsObject.allParticipantsOncall &&
+            participantsObject.remainingParticipants == 0
+         ) {
+            const callHistoryDto =
+               MeetingSocketUtils.updateCallHistoryDtoForSuccessfulCall(
+                  participantsObject,
+               );
+            console.log(callHistoryDto);
+         }
+
          participantsObject.participants.forEach((participant) => {
             const socketId = userSocketMap.get(participant);
             if (socketId && socketId != disconnectedUserSocketId) {

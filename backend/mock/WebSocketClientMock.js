@@ -198,6 +198,10 @@ mockSocketUser4.on('connect', async () => {
    //    meetingId: '125125126126',
    //    targetPhoneNumbers: ['547648648'],
    // });
+
+   await new Promise((resolve) => setTimeout(resolve, 3000));
+
+   mockSocketUser4.disconnect();
 });
 
 mockSocketUser4.on('disconnect', () => {
@@ -239,26 +243,29 @@ mockSocketUser5.on('disconnect', () => {
    console.log('mockSocketUser5 Disconnected from server');
 });
 
-mockSocketUser5.on('meeting-id-offer', (data) => {
+mockSocketUser5.on('meeting-id-offer', async (data) => {
    console.log(
       `mockSocketUser5 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
-   mockSocketUser5.emit('meeting-id-decline', {
-      userPhoneNumber: '213125466',
-      targetPhoneNumbers: data.targetPhoneNumbers,
+   // mockSocketUser5.emit('meeting-id-decline', {
+   //    userPhoneNumber: '213125466',
+   //    targetPhoneNumbers: data.targetPhoneNumbers,
+   //    meetingId: data.meetingId,
+   // });
+
+   mockSocketUser5.emit('meeting-accepted', {
+      userPhoneNumber: '547648648',
       meetingId: data.meetingId,
+      isVoiceCall: data.isVoiceCall,
+      isOnCall: true,
+      targetPhoneNumbers: data.targetPhoneNumbers,
    });
+
+   //simulate that the user is on call
+   await new Promise((resolve) => setTimeout(resolve, 1000));
 
    //emit disconnect event
    mockSocketUser5.disconnect();
-
-   // mockSocketUser5.emit('meeting-accepted', {
-   //    userPhoneNumber: '213125466',
-   //    meetingId: data.meetingId,
-   //    isVoiceCall: data.isVoiceCall,
-   //    isOnCall: true,
-   //    targetPhoneNumbers: data.targetPhoneNumbers,
-   // });
 });
 
 mockSocketUser5.on('call-declined', (data) => {

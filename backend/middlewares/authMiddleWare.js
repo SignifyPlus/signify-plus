@@ -9,11 +9,13 @@ class AuthMiddleWare {
          AuthConstants.AUTH_USERS_CREATE,
          AuthConstants.AUTH_USERS_LOGIN,
          AuthConstants.JWT_REFRESH,
+         AuthConstants.TWILIO_GET,
+         AuthConstants.TWILIO_VERIFY,
       ];
    }
 
    async authenticate(request, response, next) {
-      if (this.#excludedPaths.includes(request.path)) {
+      if (this.#excludedPaths.some((path) => request.path.includes(path))) {
          LoggerFactory.getApplicationLogger.info(
             `Skipping Path: ${request.path}`,
          );
