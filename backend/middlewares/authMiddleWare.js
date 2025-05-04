@@ -11,6 +11,7 @@ class AuthMiddleWare {
          AuthConstants.JWT_REFRESH,
          AuthConstants.TWILIO_GET,
          AuthConstants.TWILIO_VERIFY,
+         AuthConstants.UPDATE_USER
       ];
    }
 
