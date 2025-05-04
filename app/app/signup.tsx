@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   StyleSheet,
@@ -7,8 +9,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Alert,
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import { Link, useRouter } from 'expo-router';
@@ -18,6 +18,7 @@ import { useAppContext } from '@/context/app-context';
 import { sanitizePhoneNumber } from '@/constants/utils';
 import { Ionicons } from '@expo/vector-icons';
 import PhoneInput from 'react-native-phone-number-input';
+import { setAsyncStorageValue } from '@/context/async-storage';
 
 const welcome_image = Image.resolveAssetSource(welcomeImage).uri;
 
@@ -62,9 +63,10 @@ const SignupScreen = () => {
       createUser(
         { name, phoneNumber: sanitizedPhoneNumber, password },
         {
-          onSuccess: (data) => {
-            setUser(data[0]!);
+          onSuccess: async (data) => {
+            setUser(data);
             setPhoneNumberInContext(sanitizedPhoneNumber);
+            await setAsyncStorageValue('user', JSON.stringify(data));
             setName('');
             setPhoneNumber('');
             setPassword('');
@@ -128,6 +130,7 @@ const SignupScreen = () => {
           borderRadius: 10,
         }}
         textInputStyle={{
+          marginTop: 4.5,
           height: 60,
           alignItems: 'center',
           justifyContent: 'center',

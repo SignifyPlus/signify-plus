@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
+import { getToken } from '../axios';
+import { fetchWithAuth } from '..';
 
 type User = {
   _id: string;
@@ -17,6 +19,10 @@ export type Chat = {
   createdAt: string;
   __v: number;
   lastMessage: string;
+  archivedBy: string[];
+  pinnedBy: string[];
+  isPinned: boolean;
+  deletedBy: string[];
 };
 
 export const chatsQueryKey = (params: { phoneNumber?: string }) => [
@@ -30,15 +36,21 @@ export const useChatsQuery = (params: { phoneNumber?: string }) => {
     queryKey: chatsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
-      const response = await fetch(`${API_URL}/chats/${params.phoneNumber}`);
+
+      const response = await fetchWithAuth(
+        `${API_URL}/chats/${params.phoneNumber}`,
+        {
+          headers: {
+            Authorization: await getToken(),
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch chats');
       }
-      const body = await response.json();
-      if (!Array.isArray(body)) {
-        return [];
-      }
-      return (body ?? []) as Chat[];
+
+      const data = (await response.json()) as Chat[];
+      return Array.isArray(data) ? data : [];
     },
   });
 };

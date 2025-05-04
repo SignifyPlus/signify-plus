@@ -1,45 +1,31 @@
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { ChatRow, ChatRowProps } from '@/components/ChatRow';
-import { defaultStyles } from '@/constants/Styles';
-import { Fragment } from 'react';
 import { useChatsQuery } from '@/api/chat/chats-query';
 import { useAppContext } from '@/context/app-context';
+import { ChatRow, ChatRowProps } from '@/components/ChatRow';
 import { useUpdateContacts } from '@/context/use-update-contacts';
-import { useContactsQuery } from '@/api/contacts-query';
-import { Link, useRouter } from 'expo-router';
-import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import Colors from '@/constants/Colors';
+import { Link } from 'expo-router';
+import { Fragment } from 'react';
+import { defaultStyles } from '@/constants/Styles';
 
 const Page = () => {
   const { phoneNumber, chatsSearchQuery, user } = useAppContext();
 
-  const router = useRouter();
   const { contacts } = useUpdateContacts({ phoneNumber });
-  const { data, isPending } = useChatsQuery({ phoneNumber });
-  const { isPending: isPendingContacts } = useContactsQuery({
-    phoneNumber,
-  });
+  const { data } = useChatsQuery({ phoneNumber });
 
   const archivedChats =
     data?.filter((chat) => user && chat.archivedBy.includes(user._id)) ?? [];
 
-  const chatRows: ChatRowProps[] = (data ?? [])
+  const chatRows: ChatRowProps[] = archivedChats
     .filter((chat) => chat.totalNumberOfMessagesInChat > 0)
-    .filter(
-      (chat) =>
-        !(
-          user &&
-          (chat.archivedBy.includes(user?._id) ||
-            chat.deletedBy.includes(user?._id))
-        )
-    )
     .map((chat) => {
       const fromParticipants = chat.participants.filter(
         (p) => p._id !== user?._id
@@ -59,8 +45,6 @@ const Page = () => {
         msg: chat.lastMessage,
         read: true,
         unreadCount: 0,
-        isPinned: chat.isPinned,
-        pinnedBy: chat.pinnedBy,
       } satisfies ChatRowProps;
     })
     .filter((chatRow) => {
@@ -69,33 +53,10 @@ const Page = () => {
       // const msg = chatRow.msg.toLowerCase();
       const searchQuery = chatsSearchQuery.toLowerCase();
       return from.includes(searchQuery);
-    })
-    .sort((a, b) => {
-      // Sort pinned chats to the top
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return 0;
     });
 
-  if (isPending || isPendingContacts)
-    return (
-      <ActivityIndicator
-        color={Colors.primary}
-        style={{
-          height: '100%',
-          width: '100%',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      />
-    );
-
   return (
-    <View
-      style={{
-        flex: 1,
-      }}
-    >
+    <View>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
@@ -105,71 +66,42 @@ const Page = () => {
         }}
       >
         {chatRows.length === 0 ? (
-          <View style={styles.container}>
-            <Ionicons
-              name="chatbubbles-outline"
-              color={Colors.gray}
-              size={150}
-            />
-            <Text style={styles.title}>No Chats Yet</Text>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              backgroundColor: '#f9f9f9',
+              padding: 20,
+              height: '100%',
+              width: '100%',
+            }}
+          >
+            <Ionicons name="archive-outline" color={Colors.gray} size={150} />
+            <Text style={styles.title}>No Archived Chats</Text>
             <Text style={styles.subtitle}>
-              Tap below to start a new conversation.
+              You haven’t archived any chats yet.
             </Text>
-            <Link href="/(modals)/new-chat" asChild>
+            <Link href="/(tabs)/chats" asChild>
               <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Start a Chat</Text>
+                <Text style={styles.buttonText}>Go to Chats</Text>
               </TouchableOpacity>
             </Link>
           </View>
         ) : (
           chatRows.map((chat) => (
             <Fragment key={chat.id}>
-              <ChatRow
-                {...chat}
-                isPinned={user && chat.pinnedBy?.includes(user._id)}
-              />
+              <ChatRow {...chat} isArchived />
               <View style={[defaultStyles.separator, { marginLeft: 90 }]} />
             </Fragment>
           ))
         )}
       </ScrollView>
-      {archivedChats.length > 0 ? (
-        <TouchableOpacity
-          onPress={() => {
-            router.push('/(tabs)/chats/archived');
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              padding: 12,
-              backgroundColor: '#fff',
-              borderTopWidth: 1,
-              gap: 12,
-              borderTopColor: Colors.lightGray,
-              alignContent: 'center',
-            }}
-          >
-            <Ionicons name="archive" size={24} />
-            <Text>{`Archived Chats (${archivedChats.length})`}</Text>
-          </View>
-        </TouchableOpacity>
-      ) : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    padding: 20,
-    height: '100%',
-    width: '100%',
-  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',

@@ -1,56 +1,55 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
-import { chatsQueryKey } from './chats-query';
-import { queryClient } from '@/api';
+import { getToken } from '@/api/axios';
+import { fetchWithAuth } from '..';
 
-export interface ArchiveChatParams {
+interface ArchiveChatPayload {
+  userPhoneNumber: string;
   chatId: string;
-  mainUserPhoneNumber: string;
+  isArchived: boolean;
 }
 
-// Normal async function to archive a chat manually
-export async function archiveChat(chatId: string) {
-  const response = await fetch(`${API_URL}/chats/${chatId}/archive`, {
-    method: 'POST', // or PATCH if your backend prefers
+interface Chat {
+  _id: string;
+  mainUserId: string;
+  participants: string[];
+  isPinned: boolean;
+  pinnedBy: string[];
+  lastActivity: string;
+  isDeleted: boolean;
+  deletedBy: string[];
+  isArchived: boolean;
+  archivedBy: string[];
+  createdAt: string;
+  __v: number;
+}
+
+interface ArchiveChatResponse {
+  message: string;
+  chat: Chat;
+}
+
+export const archiveChat = async (
+  payload: ArchiveChatPayload
+): Promise<ArchiveChatResponse> => {
+  const response = await fetchWithAuth(`${API_URL}/chats/archive`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: await getToken(),
+    },
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     throw new Error('Failed to archive chat');
   }
 
-  const data = await response.json();
+  return await response.json();
+};
 
-  await queryClient.invalidateQueries({
-    queryKey: ['chats'],
-  });
-
-  return data;
-}
-
-// React Query mutation hook for archiving
 export const useArchiveChatMutation = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (params: ArchiveChatParams) => {
-      const response = await fetch(
-        `${API_URL}/chats/${params.chatId}/archive`,
-        {
-          method: 'POST', // or PATCH
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to archive chat');
-      }
-
-      const data = await response.json();
-      return data;
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: chatsQueryKey({ phoneNumber: variables.mainUserPhoneNumber }),
-      });
-    },
+    mutationFn: archiveChat,
   });
 };

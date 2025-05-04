@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   StyleSheet,
@@ -11,12 +12,16 @@ import {
 import Colors from '@/constants/Colors';
 import { Link, router } from 'expo-router';
 import logoImage from '@/assets/images/logo.jpeg';
-import { useLoginUserMutation } from '@/api/user/login-user-mutation';
+import { useLoginUserMutation, User } from '@/api/user/login-user-mutation';
 import { useAppContext } from '@/context/app-context';
-import { setAsyncStorageValue } from '@/context/async-storage';
+import {
+  getAsyncStorageValue,
+  setAsyncStorageValue,
+} from '@/context/async-storage';
 import { sanitizePhoneNumber } from '@/constants/utils';
 import { Ionicons } from '@expo/vector-icons';
 import PhoneInput from 'react-native-phone-number-input';
+import { useUserVerificationMutation } from '@/api/user/user-verification-mutation';
 
 const logo_image = Image.resolveAssetSource(logoImage).uri;
 
@@ -24,12 +29,16 @@ const LoginScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isJwtChecked, setIsJwtChecked] = useState<
+    'pending' | 'checked' | 'failed'
+  >('pending');
 
   const [phoneError, setPhoneError] = useState('');
   const [loginError, setLoginError] = useState('');
 
   const { mutate, isPending } = useLoginUserMutation();
   const { setPhoneNumber: setPhoneNumberInContext, setUser } = useAppContext();
+  const { mutateAsync: userVerificationMutate } = useUserVerificationMutation();
 
   const validatePhoneNumber = (number: string) => {
     const phoneRegex = /^\+(?:[0-9] ?){6,14}[0-9]$/;
@@ -52,7 +61,7 @@ const LoginScreen = () => {
           setUser(data);
           setPhoneNumberInContext(santizedPhoneNumber);
           await setAsyncStorageValue('user', JSON.stringify(data));
-          if (data.authenticationData[0]?.data?.isVerified) {
+          if (data.userAuthenticationRecord?.isVerified) {
             router.replace(`/(tabs)/chats`);
           } else {
             router.replace(`/verify/${phoneNumber}`);
@@ -66,6 +75,46 @@ const LoginScreen = () => {
   };
 
   const isInvalid = !(phoneNumber && password && !phoneError);
+
+  useEffect(() => {
+    (async () => {
+      const user = await getAsyncStorageValue('user');
+      if (user) {
+        try {
+          const parsedUser = JSON.parse(user) as User;
+          const result = await userVerificationMutate({
+            phoneNumber: parsedUser.phoneNumber,
+          });
+          if (result.isVerified) {
+            setPhoneNumberInContext(parsedUser.phoneNumber);
+            setUser(parsedUser);
+            await setAsyncStorageValue('user', JSON.stringify(parsedUser));
+            router.replace(`/(tabs)/chats`);
+          } else {
+            router.replace(`/verify/${parsedUser.phoneNumber}`);
+          }
+          setIsJwtChecked('checked');
+        } catch (e) {
+          setIsJwtChecked('failed');
+        }
+      } else {
+        setIsJwtChecked('failed');
+      }
+    })();
+  }, [setPhoneNumberInContext, setUser, userVerificationMutate]);
+
+  if (isJwtChecked === 'pending') {
+    return (
+      <ActivityIndicator
+        color={Colors.primary}
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    );
+  }
 
   return (
     <KeyboardAvoidingView style={styles.container}>
@@ -100,6 +149,7 @@ const LoginScreen = () => {
           borderRadius: 10,
         }}
         textInputStyle={{
+          marginTop: 4.5,
           height: 60,
           alignItems: 'center',
           justifyContent: 'center',
@@ -127,6 +177,13 @@ const LoginScreen = () => {
         </TouchableOpacity>
       </View>
 
+      <Link href={'/forgot-password'} replace asChild>
+        <TouchableOpacity style={{ width: '100%', alignItems: 'flex-end' }}>
+          <Text style={[styles.linkText, { fontSize: 14 }]}>
+            Forgot Password?
+          </Text>
+        </TouchableOpacity>
+      </Link>
       {loginError && <Text style={styles.errorText}>{loginError}</Text>}
 
       <TouchableOpacity
@@ -176,7 +233,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.gray,
     borderRadius: 10,
     paddingHorizontal: 15,
-    marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

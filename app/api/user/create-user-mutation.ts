@@ -13,7 +13,7 @@ export const useCreateUserMutation = () => {
 
   return useMutation({
     mutationFn: async (params: CreateUserParams) => {
-      const response = await fetch(`${API_URL}/users/create`, {
+      const response = await fetch(`${API_URL}/auth/users/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,8 +25,7 @@ export const useCreateUserMutation = () => {
         throw new Error('Failed to create user');
       }
 
-      const data = (await response.json()) as User[];
-      return data;
+      return (await response.json()) as User;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });

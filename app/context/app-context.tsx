@@ -47,6 +47,9 @@ type AppContextType = {
   incomingCallUser: Contact | string | undefined;
   callingUser: string | undefined;
   callUser: (type: 'voice' | 'video', targetPhoneNumber: string) => void;
+  callSearchQuery: string;
+  setCallSearchQuery: (query: string) => void;
+  reset: () => void;
 };
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -61,6 +64,7 @@ export const useAppContext = () => {
 
 export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const [chatsSearchQuery, setChatsSearchQuery] = useState('');
+  const [callSearchQuery, setCallSearchQuery] = useState('');
   const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -68,6 +72,15 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
   const [call, setCall] = useState<CallType | null>(null);
   const router = useRouter();
   const [user, setUser] = useState<User | undefined>();
+
+  const reset = useCallback(() => {
+    // setPhoneNumber(undefined);
+    // setIsConnected(false);
+    // setCall(null);
+    // setUser(undefined);
+    // setChatsSearchQuery('');
+    // setCallSearchQuery('');
+  }, []);
 
   // means to fetch earlier than required so we can see the list instantly
   useContactsQuery({ phoneNumber });
@@ -277,8 +290,11 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       user,
       chatsSearchQuery,
       setChatsSearchQuery,
+      callSearchQuery,
+      setCallSearchQuery,
       incomingCallUser,
       callingUser: call?.caller,
+      reset,
     }),
     [
       phoneNumber,
@@ -290,7 +306,9 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       sendMessage,
       user,
       chatsSearchQuery,
+      callSearchQuery,
       incomingCallUser,
+      reset,
     ]
   );
 

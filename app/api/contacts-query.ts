@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
+import { getToken } from './axios';
+import { fetchWithAuth } from '.';
 
 export interface Contact {
   id: string;
@@ -33,7 +35,14 @@ export const useContactsQuery = (params: { phoneNumber?: string }) => {
     queryKey: contactsQueryKey(params),
     queryFn: async () => {
       if (!params.phoneNumber) return [];
-      const response = await fetch(`${API_URL}/contacts/${params.phoneNumber}`);
+      const response = await fetchWithAuth(
+        `${API_URL}/contacts/${params.phoneNumber}`,
+        {
+          headers: {
+            Authorization: await getToken(),
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
       }
