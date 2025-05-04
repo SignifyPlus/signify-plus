@@ -9,12 +9,13 @@ const MessageEvent = require('../events/services/messageEvent.js');
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
 const UserAuthenticationEvent = require('../events/services/userAuthenticationEvent.js');
 const UserEvent = require('../events/services/userEvent.js');
+const CallLogEvent = require('../events/services/callLogEvent.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const CommonUtils = require('../utilities/commonUtils.js');
 const ServerConstants = require('../constants/serverConstants.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const TwilioAdmin = require('../managers/twilio/models/TwilioAdmin.js');
-const Authentication = require('../middlewares/authMiddleWare.js');
+const AuthMiddleWare = require('../middlewares/authMiddleWare.js');
 
 //routes
 const userRoutes = require('../routes/UserRoutes.js');
@@ -33,7 +34,6 @@ const twilioOtpRoutes = require('../routes/TwilioVerifyRoutes.js');
 const amazonS3Routes = require('../routes/AmazonS3Routes.js');
 const jwtRoutes = require('../routes/JwtRoutes.js');
 const authRoutes = require('../routes/AuthRoutes.js');
-const AuthMiddleWare = require('../middlewares/authMiddleWare.js');
 
 const mongoDburl = process.env.MONGO_DB_URL;
 const port = process.env.PORT;
@@ -71,6 +71,7 @@ async function setupManagers() {
          new AccessibilitySettingsEvent();
       EventFactory.setUserEvent = new UserEvent();
       EventFactory.setUserAuthenticationEvent = new UserAuthenticationEvent();
+      EventFactory.setCallLogEvent = new CallLogEvent();
       //setup processors, if any
       await ManagerFactory.getRabbitMqProcessorManager().executeMessageProcessor(
          ManagerFactory.getRabbitMqQueueManager().getRabbitMqChannel(),

@@ -25,13 +25,6 @@ class MeetingSocket {
          callSocketMap,
          meetingParticipantMap,
       );
-
-      this.meetingEndedEvent(
-         socket,
-         userSocketMap,
-         callSocketMap,
-         meetingParticipantMap,
-      );
    }
 
    meetingIdEvent(socket, userSocketMap, callSocketMap, meetingParticipantMap) {
@@ -238,40 +231,6 @@ class MeetingSocket {
       });
    }
 
-   meetingEndedEvent(
-      socket,
-      userSocketMap,
-      callSocketMap,
-      meetingParticipantMap,
-   ) {
-      //this must be call only ONCE - emitted by the frontend that the call is done
-      socket.on('meeting-ended', (data) => {
-         const callDto = new CallDto(
-            data?.userPhoneNumber,
-            data?.targetPhoneNumbers,
-            data?.meetingId,
-            data?.isVoiceCall,
-         );
-
-         LoggerFactory.getApplicationLogger.info(
-            `Meeting ended event: ${JSON.stringify(callDto)}`,
-         );
-
-         if (
-            callDto.senderPhoneNumber == null ||
-            callDto.targetPhoneNumbers == null ||
-            callDto.meetingId == null
-         ) {
-            LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, and meetingId are provided - One of them seems to be null!`,
-            );
-            return;
-         }
-         //TODO - Emit an event to log a call record in the call history table
-         EventDispatcher.dispatchEvent(EventConstants.CALL_LOG_EVENT, {});
-      });
-   }
-
    participantDisconnectEvent(
       signifyPlusSocketIo,
       disconnectedUserSocketId,
@@ -300,7 +259,10 @@ class MeetingSocket {
                MeetingSocketUtils.updateCallHistoryDtoForSuccessfulCall(
                   participantsObject,
                );
-            console.log(callHistoryDto);
+            EventDispatcher.dispatchEvent(
+               EventConstants.CALL_LOG_EVENT,
+               callHistoryDto,
+            );
          }
 
          participantsObject.participants.forEach((participant) => {
