@@ -26,7 +26,7 @@ mockSocketUser1.on('connect', async () => {
       callinitiator: '+905343096627',
       meetingId: '412532646',
       targetPhoneNumbers: ['+905343096626', '+905343096625'],
-      isVoiceCall: false,
+      isVoiceCall: true,
       isOnCall: true, //should be defaulted to true for the one who started the call
    });
 

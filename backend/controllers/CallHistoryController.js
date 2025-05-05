@@ -203,7 +203,7 @@ class CallHistoryController {
                {
                   initiatorId: mainUser[ControllerConstants.ZERO_INDEX]._id,
                   participants: participantsIds,
-                  callType: await this.#getCallType(callLogDto.isVoiceCall),
+                  callType: await this.#getCallType(callLogDto?.isVoiceCall),
                   callDurationInSeconds: callLogDto?.totalDurationInSeconds,
                   initiatedAt: callLogDto?.BeginDateTime,
                   callStatus: callLogDto?.status,
@@ -227,9 +227,7 @@ class CallHistoryController {
    };
 
    async #getCallType(callType) {
-      return callType?.isVoiceCall
-         ? ControllerConstants.VOICE
-         : ControllerConstants.VIDEO;
+      return callType ? ControllerConstants.VOICE : ControllerConstants.VIDEO;
    }
 
    //we dont store this info in the database, require another table to store more detailed responses
