@@ -15,15 +15,16 @@ mockSocketUser1.on('connect', async () => {
    );
 
    mockSocketUser1.emit('socket-registration', {
-      userPhoneNumber: '789067567', //user 1 registration from front end on connection
+      userPhoneNumber: '+905343096627', //user 1 registration from front end on connection
    });
 
    await new Promise((resolve) => setTimeout(resolve, 1000));
 
    mockSocketUser1.emit('meeting-id', {
-      userPhoneNumber: '789067567',
+      userPhoneNumber: '+905343096627',
+      callinitiator: '+905343096627',
       meetingId: '412532646',
-      targetPhoneNumbers: ['213125466', '12415135135'],
+      targetPhoneNumbers: ['+905343096626', '+905343096625'],
       isVoiceCall: false,
       isOnCall: true, //should be defaulted to true for the one who started the call
    });
@@ -31,9 +32,9 @@ mockSocketUser1.on('connect', async () => {
    //declining from the first user
    //who initiated the call
    // mockSocketUser1.emit('meeting-id-decline', {
-   //    userPhoneNumber: '789067567',
+   //    userPhoneNumber: '+905343096627',
    //    meetingId: '412532646',
-   //    targetPhoneNumbers: ['213125466', '12415135135'],
+   //    targetPhoneNumbers: ['+905343096626', '+905343096625'],
    // });
 });
 
@@ -68,7 +69,7 @@ mockSocketUser2.on('connect', () => {
    );
 
    mockSocketUser2.emit('socket-registration', {
-      userPhoneNumber: '213125466', //user 2 registration from front end on connection
+      userPhoneNumber: '+905343096626', //user 2 registration from front end on connection
    });
 });
 
@@ -81,7 +82,7 @@ mockSocketUser2.on('meeting-id-offer', (data) => {
       `mockSocketUser2 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
    // mockSocketUser2.emit('meeting-id-decline', {
-   //    userPhoneNumber: '213125466',
+   //    userPhoneNumber: '+905343096626',
    //    targetPhoneNumbers: data.targetPhoneNumbers,
    //    meetingId: data.meetingId,
    // });
@@ -90,10 +91,11 @@ mockSocketUser2.on('meeting-id-offer', (data) => {
    // mockSocketUser2.disconnect();
 
    mockSocketUser2.emit('meeting-accepted', {
-      userPhoneNumber: '213125466',
+      userPhoneNumber: '+905343096626',
       meetingId: data.meetingId,
       isVoiceCall: data.isVoiceCall,
       isOnCall: true,
+      callinitiator: data.callinitiator,
       targetPhoneNumbers: data.targetPhoneNumbers,
    });
 });
@@ -125,7 +127,7 @@ mockSocketUser3.on('connect', () => {
    );
 
    mockSocketUser3.emit('socket-registration', {
-      userPhoneNumber: '12415135135', //user 2 registration from front end on connection
+      userPhoneNumber: '+905343096625', //user 2 registration from front end on connection
    });
 });
 
@@ -138,9 +140,10 @@ mockSocketUser3.on('meeting-id-offer', (data) => {
       `mockSocketUser3 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
    mockSocketUser3.emit('meeting-accepted', {
-      userPhoneNumber: '12415135135',
+      userPhoneNumber: '+905343096625',
       meetingId: data.meetingId,
       isVoiceCall: data.isVoiceCall,
+      callinitiator: data.callinitiator,
       isOnCall: true,
       targetPhoneNumbers: data.targetPhoneNumbers,
    });
@@ -178,25 +181,26 @@ mockSocketUser4.on('connect', async () => {
    );
 
    mockSocketUser4.emit('socket-registration', {
-      userPhoneNumber: '12412512515', //user 1 registration from front end on connection
+      userPhoneNumber: '+905343096624', //user 1 registration from front end on connection
    });
 
    await new Promise((resolve) => setTimeout(resolve, 1000));
 
    mockSocketUser4.emit('meeting-id', {
-      userPhoneNumber: '12412512515',
+      userPhoneNumber: '+905343096624',
       meetingId: '125125126126',
-      targetPhoneNumbers: ['547648648'],
+      targetPhoneNumbers: ['+905343096623'],
       isVoiceCall: false,
+      callinitiator: '+905343096624',
       isOnCall: true, //should be defaulted to true for the one who started the call
    });
 
    //declining from the first user
    //who initiated the call
    // mockSocketUser4.emit('meeting-id-decline', {
-   //    userPhoneNumber: '12412512515',
+   //    userPhoneNumber: '+905343096624',
    //    meetingId: '125125126126',
-   //    targetPhoneNumbers: ['547648648'],
+   //    targetPhoneNumbers: ['+905343096623'],
    // });
 
    await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -235,7 +239,7 @@ mockSocketUser5.on('connect', () => {
    );
 
    mockSocketUser5.emit('socket-registration', {
-      userPhoneNumber: '547648648', //user 2 registration from front end on connection
+      userPhoneNumber: '+905343096623', //user 2 registration from front end on connection
    });
 });
 
@@ -248,16 +252,17 @@ mockSocketUser5.on('meeting-id-offer', async (data) => {
       `mockSocketUser5 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
    // mockSocketUser5.emit('meeting-id-decline', {
-   //    userPhoneNumber: '213125466',
+   //    userPhoneNumber: '+905343096626',
    //    targetPhoneNumbers: data.targetPhoneNumbers,
    //    meetingId: data.meetingId,
    // });
 
    mockSocketUser5.emit('meeting-accepted', {
-      userPhoneNumber: '547648648',
+      userPhoneNumber: '+905343096623',
       meetingId: data.meetingId,
       isVoiceCall: data.isVoiceCall,
       isOnCall: true,
+      callinitiator: data.callinitiator,
       targetPhoneNumbers: data.targetPhoneNumbers,
    });
 
