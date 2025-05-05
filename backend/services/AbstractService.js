@@ -137,6 +137,7 @@ class AbstractService {
             : await this.schemaModel.create(data);
          return entity;
       } catch (exception) {
+         console.log(exception);
          throw new Error(`Error Saving the Document: ${exception.message}`);
       }
    }

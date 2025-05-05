@@ -5,14 +5,14 @@ class CallDto {
       meetingId,
       isVoiceCall,
       isOnCall,
-      callTime = 0,
+      callinitiator,
    ) {
       this.senderPhoneNumber = senderPhoneNumber;
       this.targetPhoneNumbers = targetPhoneNumbers;
       this.meetingId = meetingId;
       this.isVoiceCall = isVoiceCall;
       this.isOnCall = isOnCall;
-      this.callTime = callTime;
+      this.callinitiator = callinitiator;
    }
 }
 

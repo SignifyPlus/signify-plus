@@ -675,7 +675,6 @@ class ChatController {
             },
             mongooseSession,
          );
-         console.log(updatedChat);
          await ServiceFactory.getMongooseService.commitMongooseTransaction(
             mongooseSession,
          );

@@ -35,6 +35,7 @@ class MeetingSocket {
             data?.meetingId,
             data?.isVoiceCall,
             data.isOnCall ?? true, //defaulting to not break the frontend during testing phase for others
+            data?.callinitiator,
          );
          LoggerFactory.getApplicationLogger.info(JSON.stringify(callDto));
          if (
@@ -42,10 +43,11 @@ class MeetingSocket {
             callDto.targetPhoneNumbers == null ||
             callDto.isVoiceCall == null ||
             callDto.meetingId == null ||
-            callDto.isOnCall == null
+            callDto.isOnCall == null ||
+            callDto.callinitiator == null
          ) {
             LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, isVoiceCall, inOnCall and meetingId are provided - One of them seems to be null!`,
+               `(meeting-id) Please check if userPhoneNumber, targetPhoneNumbers, isVoiceCall, inOnCall, callinitiator and meetingId are provided - One of them seems to be null!`,
             );
             return;
          }
@@ -98,6 +100,7 @@ class MeetingSocket {
                     ],
                     meetingId: callDto.meetingId,
                     isVoiceCall: callDto.isVoiceCall,
+                    callinitiator: callDto.callinitiator,
                  }
                : {
                     targetPhoneNumber: phoneNumber,
@@ -123,6 +126,7 @@ class MeetingSocket {
             data?.meetingId,
             data?.isVoiceCall,
             data.isOnCall ?? false, //defaulting to not break the frontend during testing phase for others
+            data?.callinitiator,
          );
 
          LoggerFactory.getApplicationLogger.info(
@@ -133,10 +137,11 @@ class MeetingSocket {
             callDto.senderPhoneNumber == null ||
             callDto.targetPhoneNumbers == null ||
             callDto.meetingId == null ||
-            callDto.isOnCall == null
+            callDto.isOnCall == null ||
+            callDto.callinitiator == null
          ) {
             LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, meetingId and isOnCall are provided - One of them seems to be null!`,
+               `(meeting-id-decline) Please check if userPhoneNumber, targetPhoneNumbers, meetingId, callInitiator and isOnCall are provided - One of them seems to be null!`,
             );
             return;
          }
@@ -158,6 +163,7 @@ class MeetingSocket {
                ? {
                     sender: socket.id,
                     declinedUsersPhoneNumber: data.userPhoneNumber,
+                    callIniator: data.callinitiator,
                     message: 'Call Declined!',
                  }
                : {
@@ -184,6 +190,7 @@ class MeetingSocket {
             data?.meetingId,
             data?.isVoiceCall,
             data.isOnCall ?? true, //defaulting to not break the frontend during testing phase for others
+            data?.callinitiator,
          );
 
          LoggerFactory.getApplicationLogger.info(
@@ -194,10 +201,11 @@ class MeetingSocket {
             callDto.senderPhoneNumber == null ||
             callDto.targetPhoneNumbers == null ||
             callDto.meetingId == null ||
-            callDto.isOnCall == null
+            callDto.isOnCall == null ||
+            callDto.callinitiator == null
          ) {
             LoggerFactory.getApplicationLogger.error(
-               `Please check if userPhoneNumber, targetPhoneNumbers, meetingId and isOnCall are provided - One of them seems to be null!`,
+               `(meeting-accepted) Please check if userPhoneNumber, targetPhoneNumbers, meetingId, callInitiator and isOnCall are provided - One of them seems to be null!`,
             );
             return;
          }
@@ -225,7 +233,7 @@ class MeetingSocket {
                remainingParticipants: meetingParticipantMap.get(
                   callDto.meetingId,
                ).participants.length,
-               caller: callDto.senderPhoneNumber,
+               callinitiator: callDto.callinitiator,
             });
          }
       });

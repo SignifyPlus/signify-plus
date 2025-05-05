@@ -14,7 +14,7 @@ callHistoryRouter.get('/', async (request, response) => {
 
 callHistoryRouter.get(
    '/:phoneNumber',
-   ContollerFactory.getCallHistoryController().getCallHistoryByUserId,
+   ContollerFactory.getCallHistoryController().getCallHistoryLogsByPhoneNumber,
 );
 
 callHistoryRouter.get(
