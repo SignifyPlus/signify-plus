@@ -7,6 +7,7 @@ const mockSocketUser3 = io('http://localhost:3001');
 //diff users
 const mockSocketUser4 = io('http://localhost:3001');
 const mockSocketUser5 = io('http://localhost:3001');
+const mockSocketUser6 = io('http://localhost:3001');
 
 //Mock User 1
 mockSocketUser1.on('connect', async () => {
@@ -36,6 +37,10 @@ mockSocketUser1.on('connect', async () => {
    //    meetingId: '412532646',
    //    targetPhoneNumbers: ['+905343096626', '+905343096625'],
    // });
+
+   await new Promise((resolve) => setTimeout(resolve, 5000));
+
+   mockSocketUser1.disconnect();
 });
 
 mockSocketUser1.on('disconnect', () => {
@@ -77,7 +82,7 @@ mockSocketUser2.on('disconnect', () => {
    console.log('mockSocketUser2 Disconnected from server');
 });
 
-mockSocketUser2.on('meeting-id-offer', (data) => {
+mockSocketUser2.on('meeting-id-offer', async (data) => {
    console.log(
       `mockSocketUser2 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
@@ -98,6 +103,10 @@ mockSocketUser2.on('meeting-id-offer', (data) => {
       callinitiator: data.callinitiator,
       targetPhoneNumbers: data.targetPhoneNumbers,
    });
+
+   await new Promise((resolve) => setTimeout(resolve, 4000));
+
+   mockSocketUser2.disconnect();
 });
 
 mockSocketUser2.on('call-declined', (data) => {
@@ -135,7 +144,7 @@ mockSocketUser3.on('disconnect', () => {
    console.log('mockSocketUser3 disconnected from server');
 });
 
-mockSocketUser3.on('meeting-id-offer', (data) => {
+mockSocketUser3.on('meeting-id-offer', async (data) => {
    console.log(
       `mockSocketUser3 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
@@ -147,6 +156,10 @@ mockSocketUser3.on('meeting-id-offer', (data) => {
       isOnCall: true,
       targetPhoneNumbers: data.targetPhoneNumbers,
    });
+
+   await new Promise((resolve) => setTimeout(resolve, 4000));
+
+   mockSocketUser3.disconnect();
 });
 
 mockSocketUser3.on('meeting-id-failed', (data) => {
@@ -184,12 +197,12 @@ mockSocketUser4.on('connect', async () => {
       userPhoneNumber: '+905343096624', //user 1 registration from front end on connection
    });
 
-   await new Promise((resolve) => setTimeout(resolve, 1000));
+   await new Promise((resolve) => setTimeout(resolve, 2000));
 
    mockSocketUser4.emit('meeting-id', {
       userPhoneNumber: '+905343096624',
       meetingId: '125125126126',
-      targetPhoneNumbers: ['+905343096623'],
+      targetPhoneNumbers: ['+905343096623', '+905343096622'],
       isVoiceCall: false,
       callinitiator: '+905343096624',
       isOnCall: true, //should be defaulted to true for the one who started the call
@@ -251,23 +264,26 @@ mockSocketUser5.on('meeting-id-offer', async (data) => {
    console.log(
       `mockSocketUser5 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
    );
-   // mockSocketUser5.emit('meeting-id-decline', {
-   //    userPhoneNumber: '+905343096626',
-   //    targetPhoneNumbers: data.targetPhoneNumbers,
-   //    meetingId: data.meetingId,
-   // });
-
-   mockSocketUser5.emit('meeting-accepted', {
+   mockSocketUser5.emit('meeting-id-decline', {
       userPhoneNumber: '+905343096623',
       meetingId: data.meetingId,
       isVoiceCall: data.isVoiceCall,
-      isOnCall: true,
+      isOnCall: false,
       callinitiator: data.callinitiator,
       targetPhoneNumbers: data.targetPhoneNumbers,
    });
 
+   // mockSocketUser5.emit('meeting-accepted', {
+   //    userPhoneNumber: '+905343096623',
+   //    meetingId: data.meetingId,
+   //    isVoiceCall: data.isVoiceCall,
+   //    isOnCall: true,
+   //    callinitiator: data.callinitiator,
+   //    targetPhoneNumbers: data.targetPhoneNumbers,
+   // });
+
    //simulate that the user is on call
-   await new Promise((resolve) => setTimeout(resolve, 1000));
+   await new Promise((resolve) => setTimeout(resolve, 2000));
 
    //emit disconnect event
    mockSocketUser5.disconnect();
@@ -290,5 +306,69 @@ mockSocketUser5.on('meeting-id-failed', (data) => {
 mockSocketUser5.on('meeting-id-decline-failed', (data) => {
    console.log(
       `mockSocketUser5 No target user found to forward the decline ${data.senderPhoneNumber} ${data.message}`,
+   );
+});
+
+//Mock User 6
+mockSocketUser6.on('connect', () => {
+   console.log(
+      `mockSocketUser6 Connected to MocketSocket http://localhost:3001`,
+   );
+
+   mockSocketUser6.emit('socket-registration', {
+      userPhoneNumber: '+905343096622', //user 2 registration from front end on connection
+   });
+});
+
+mockSocketUser6.on('disconnect', () => {
+   console.log('mockSocketUser6 Disconnected from server');
+});
+
+mockSocketUser6.on('meeting-id-offer', async (data) => {
+   console.log(
+      `mockSocketUser6 Meeting ID Offer received from server socket: ${JSON.stringify(data)}`,
+   );
+   mockSocketUser6.emit('meeting-id-decline', {
+      userPhoneNumber: '+905343096622',
+      meetingId: data.meetingId,
+      isVoiceCall: data.isVoiceCall,
+      isOnCall: false,
+      callinitiator: data.callinitiator,
+      targetPhoneNumbers: data.targetPhoneNumbers,
+   });
+
+   // mockSocketUser5.emit('meeting-accepted', {
+   //    userPhoneNumber: '+905343096623',
+   //    meetingId: data.meetingId,
+   //    isVoiceCall: data.isVoiceCall,
+   //    isOnCall: true,
+   //    callinitiator: data.callinitiator,
+   //    targetPhoneNumbers: data.targetPhoneNumbers,
+   // });
+
+   //simulate that the user is on call
+   await new Promise((resolve) => setTimeout(resolve, 3000));
+
+   //emit disconnect event
+   mockSocketUser6.disconnect();
+});
+
+mockSocketUser6.on('call-declined', (data) => {
+   console.log(
+      `mockSocketUser6 Call declined from: ${data.declinedUsersPhoneNumber}`,
+   );
+});
+
+mockSocketUser6.on('user-disconnected-from-meeting', (data) => {
+   console.log(`For mockSocketUser6: ${JSON.stringify(data)}`);
+});
+
+mockSocketUser6.on('meeting-id-failed', (data) => {
+   console.log(`mockSocketUser6 Meeting ID Failed ${JSON.stringify(data)}`);
+});
+
+mockSocketUser6.on('meeting-id-decline-failed', (data) => {
+   console.log(
+      `mockSocketUser6 No target user found to forward the decline ${data.senderPhoneNumber} ${data.message}`,
    );
 });

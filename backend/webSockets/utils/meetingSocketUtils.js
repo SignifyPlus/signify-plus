@@ -20,7 +20,18 @@ class MeetingSocketUtils {
       return participantsDto;
    }
 
-   static createCallHistoryDto(callDto) {
+   static updateCallHistoryDtoForDeclinedCall(participantsDto) {
+      participantsDto.meetingEndTime = 0;
+      participantsDto.totalDurationInSeconds = 0;
+      participantsDto.BeginDateTime = TimeUtils.getDateFromTimeStamp(
+         participantsDto.meetingBeginTime,
+         MeetingSocketConstants.DATE_FORMAT,
+      );
+      participantsDto.status = MeetingSocketConstants.DECLINED;
+      return participantsDto;
+   }
+
+   static createAcceptedCallHistoryDto(callDto) {
       return {
          meetingBeginTime: TimeUtils.getCurrentTimeInMilliSeconds(),
          allParticipantsOncall: true,
@@ -28,12 +39,40 @@ class MeetingSocketUtils {
       };
    }
 
+   static createDeclineCallHistoryDto(callDto) {
+      return {
+         meetingBeginTime: TimeUtils.getCurrentTimeInMilliSeconds(),
+         allParticipantsOncall: false,
+         isVoiceCall: callDto.isVoiceCall,
+      };
+   }
+
    static areAllParticipantsOnCall(callSocketMap, meetingId) {
-      const meetingSpecificCallSocketMap = [...callSocketMap.values()].filter(
+      const meetingSpecificCallSocketMap =
+         MeetingSocketUtils.#getMeetingSpecificSocket(callSocketMap, meetingId);
+      return meetingSpecificCallSocketMap.every((value) => value.isOnCall);
+   }
+
+   static areAllTargetPhoneNumbersNotOnCall(callSocketMap, meetingId) {
+      const meetingSpecificCallSocketMap =
+         MeetingSocketUtils.#getMeetingSpecificSocket(callSocketMap, meetingId);
+      //first filter, then use every!
+      return meetingSpecificCallSocketMap
+         .filter((user) => user.callInitiator != user.senderPhoneNumber)
+         .every((value) => !value.isOnCall);
+   }
+
+   static isSenderNotOnTheCall(callSocketMap, meetingId) {
+      const meetingSpecificCallSocketMap =
+         MeetingSocketUtils.#getMeetingSpecificSocket(callSocketMap, meetingId);
+      return meetingSpecificCallSocketMap
+         .filter((user) => user.callInitiator == user.senderPhoneNumber)
+         .every((value) => !value.isOnCall);
+   }
+
+   static #getMeetingSpecificSocket(callSocketMap, meetingId) {
+      return [...callSocketMap.values()].filter(
          (value) => meetingId == value.meetingId,
-      );
-      return meetingSpecificCallSocketMap.every(
-         (value) => meetingId == value.meetingId && value.isOnCall,
       );
    }
 }

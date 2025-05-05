@@ -62,6 +62,8 @@ class MeetingSocket {
          callSocketMap.set(sendersSocketId, {
             meetingId: callDto.meetingId,
             isOnCall: callDto.isOnCall,
+            callInitiator: callDto.callinitiator,
+            senderPhoneNumber: callDto.senderPhoneNumber,
          });
          meetingParticipantMap.set(callDto.meetingId, {
             participants: [
@@ -77,6 +79,8 @@ class MeetingSocket {
             if (targetSocketId) {
                callSocketMap.set(targetSocketId, {
                   meetingId: callDto.meetingId,
+                  callInitiator: callDto.callinitiator,
+                  senderPhoneNumber: callDto.phoneNumber,
                });
             }
             LoggerFactory.getApplicationLogger.info(
@@ -149,6 +153,41 @@ class MeetingSocket {
             `decline offer from: ${callDto.senderPhoneNumber} meetingId: ${callDto.meetingId} target: ${callDto.targetPhoneNumbers}`,
          );
 
+         const sendersSocketId = userSocketMap.get(callDto.senderPhoneNumber);
+         if (!sendersSocketId) {
+            socket.emit(`meeting-id-failed`, {
+               senderPhoneNumber: callDto.senderPhoneNumber,
+               message: `NO_USER_FOUND`,
+            });
+         }
+
+         callSocketMap.set(sendersSocketId, {
+            meetingId: callDto.meetingId,
+            isOnCall: callDto.isOnCall,
+            callInitiator: callDto.callinitiator,
+            senderPhoneNumber: callDto.senderPhoneNumber,
+         });
+
+         if (
+            MeetingSocketUtils.areAllTargetPhoneNumbersNotOnCall(
+               callSocketMap,
+               callDto.meetingId,
+            ) ||
+            MeetingSocketUtils.isSenderNotOnTheCall(
+               callSocketMap,
+               callDto.meetingId,
+            )
+         ) {
+            meetingParticipantMap.set(callDto.meetingId, {
+               ...meetingParticipantMap.get(callDto.meetingId),
+               ...MeetingSocketUtils.createDeclineCallHistoryDto(callDto),
+               remainingParticipants: meetingParticipantMap.get(
+                  callDto.meetingId,
+               ).participants.length,
+               callinitiator: callDto.callinitiator,
+            });
+         }
+
          callDto.targetPhoneNumbers.forEach((targetPhoneNumber) => {
             const targetPhoneNumberSocketId =
                userSocketMap.get(targetPhoneNumber);
@@ -219,8 +258,9 @@ class MeetingSocket {
          callSocketMap.set(sendersSocketId, {
             meetingId: callDto.meetingId,
             isOnCall: callDto.isOnCall,
+            callInitiator: callDto.callinitiator,
+            senderPhoneNumber: callDto.senderPhoneNumber,
          });
-
          if (
             MeetingSocketUtils.areAllParticipantsOnCall(
                callSocketMap,
@@ -229,7 +269,7 @@ class MeetingSocket {
          ) {
             meetingParticipantMap.set(callDto.meetingId, {
                ...meetingParticipantMap.get(callDto.meetingId),
-               ...MeetingSocketUtils.createCallHistoryDto(callDto),
+               ...MeetingSocketUtils.createAcceptedCallHistoryDto(callDto),
                remainingParticipants: meetingParticipantMap.get(
                   callDto.meetingId,
                ).participants.length,
@@ -258,13 +298,28 @@ class MeetingSocket {
             disconnectedUser.meetingId,
          );
 
-         //normal call history log (accepted, on call, and then left the meeting)
+         //accepted
          if (
             participantsObject.allParticipantsOncall &&
             participantsObject.remainingParticipants == 0
          ) {
             const callHistoryDto =
                MeetingSocketUtils.updateCallHistoryDtoForSuccessfulCall(
+                  participantsObject,
+               );
+            EventDispatcher.dispatchEvent(
+               EventConstants.CALL_LOG_EVENT,
+               callHistoryDto,
+            );
+         }
+
+         //declined
+         if (
+            !participantsObject.allParticipantsOncall &&
+            participantsObject.remainingParticipants == 0
+         ) {
+            const callHistoryDto =
+               MeetingSocketUtils.updateCallHistoryDtoForDeclinedCall(
                   participantsObject,
                );
             EventDispatcher.dispatchEvent(
