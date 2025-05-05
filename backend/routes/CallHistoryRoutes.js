@@ -17,9 +17,9 @@ callHistoryRouter.get(
    ContollerFactory.getCallHistoryController().getCallHistoryLogsByPhoneNumber,
 );
 
-callHistoryRouter.get(
-   '/create',
-   ContollerFactory.getCallHistoryController().createCallHistoryRecord,
+callHistoryRouter.delete(
+   '/delete',
+   ContollerFactory.getCallHistoryController().deleteCallHistoryLogs,
 );
 
 module.exports = callHistoryRouter;

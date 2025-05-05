@@ -57,7 +57,7 @@ class ChatController {
                $or: [
                   //checks in both mainUserId + participants!
                   { mainUserId: userObject._id.toString() },
-                  { participants: userObject._id.toString() },
+                  { participants: { $in: [userObject._id.toString()] } },
                ],
             });
          const chats = await chatsQuery

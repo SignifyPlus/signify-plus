@@ -32,8 +32,9 @@ class CallHistoryController {
          );
          if (initiatorValidation) return initiatorValidation;
          const callHistoryLogs =
-            ServiceFactory.getCallHistoryService.getDocumentsByCustomFiltersQuery(
+            ServiceFactory.getCallHistoryService.findLogsInOrderByCreatedAtQuery(
                { initiatorId: mainUser._id },
+               1, //ascending order
                mongooseSession,
             );
          const finalCallHistoryLogs = await callHistoryLogs
@@ -54,6 +55,95 @@ class CallHistoryController {
       }
    };
 
+   deleteCallHistoryLogs = async (request, response) => {
+      var mongooseSession = null;
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+         const userPhoneNumberValidation = await ExceptionHelper.validate(
+            request.body.phoneNumber,
+            400,
+            `phoneNumber is required!`,
+            response,
+         );
+         if (userPhoneNumberValidation) return userPhoneNumberValidation;
+
+         const callHistoryLogIdValidation = await ExceptionHelper.validate(
+            request.body.callHistoryLogIds,
+            400,
+            `callHistoryLogIds array is not provided! - ['681800701e32d226922d24f0', '681800701e32d226922d24f1']`,
+            response,
+         );
+         if (callHistoryLogIdValidation) return callHistoryLogIdValidation;
+
+         if (!Array.isArray(request.body.callHistoryLogIds)) {
+            const signifyException = new SignifyException(
+               400,
+               `callHistoryLogIds is not an array!!`,
+            );
+            return response
+               .status(signifyException.status)
+               .json(signifyException.loadResult());
+         }
+
+         // Get user by phone number
+         const user =
+            await ServiceFactory.getUserService.getDocumentByCustomFilters({
+               phoneNumber: request.body.phoneNumber,
+            });
+         const userValidation = await ExceptionHelper.validate(
+            user,
+            400,
+            `phoneNumber doesn't exist in the user table!`,
+            response,
+         );
+         if (userValidation) return userValidation;
+
+         const callHistoryLogs =
+            await ServiceFactory.getCallHistoryService.getDocumentsByCustomFilters(
+               {
+                  _id: { $in: request.body.callHistoryLogIds },
+                  $or: [
+                     { initiatorId: user._id },
+                     { allParticipantsId: { $in: [user._id] } },
+                  ],
+               },
+               mongooseSession,
+            );
+
+         //we can either throw this error, or silently remove the ones that are valid - for now, ill throw the error
+         //revisit later if needed
+         if (request.body.callHistoryLogIds.length != callHistoryLogs.length) {
+            const signifyException = new SignifyException(
+               400,
+               `Not all callHistoryLogIds are valid - please remove the ones that dont exist!`,
+            );
+            return response
+               .status(signifyException.status)
+               .json(signifyException.loadResult());
+         }
+
+         const callHistoryLogIds = callHistoryLogs.filter((log) => log._id);
+         const updatedCallHistoryLogs =
+            await ServiceFactory.getCallHistoryService.updateDocuments(
+               { _id: { $in: callHistoryLogIds } },
+               { $addToSet: { deletedBy: user._id } },
+            );
+         response.json(updatedCallHistoryLogs);
+      } catch (exception) {
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return response
+            .status(signifyException.status)
+            .json(signifyException.loadResult());
+      }
+   };
+
    logCallRecord = async (callLogDto) => {
       var mongooseSession = null;
       try {
@@ -62,7 +152,6 @@ class CallHistoryController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
-         console.log(callLogDto);
          const callInitiatorValidation = await ExceptionHelper.validate(
             callLogDto.callinitiator,
             400,
@@ -87,7 +176,6 @@ class CallHistoryController {
             });
 
          if (participants.length != callLogDto.participants.length) {
-            console.log('Failed!');
             const signifyException = new SignifyException(
                400,
                `Not all phoneNumbers are registered to the User table!`,
@@ -120,7 +208,6 @@ class CallHistoryController {
          );
          return new SignifyResult(callHistoryLog);
       } catch (exception) {
-         console.log(exception);
          await ServiceFactory.getMongooseService.abandonMongooseTransaction(
             mongooseSession,
          );
@@ -129,27 +216,6 @@ class CallHistoryController {
             `Exception Occured: ${exception.message}`,
          );
          return new SignifyResult(null, signifyException);
-      }
-   };
-
-   createCallHistoryRecord = async (request, response) => {
-      var mongooseSession = null;
-      try {
-         mongooseSession =
-            await ServiceFactory.getMongooseService.getMongooseSession();
-         await ServiceFactory.getMongooseService.startMongooseTransaction(
-            mongooseSession,
-         );
-
-         response.json({});
-      } catch (exception) {
-         const signifyException = new SignifyException(
-            500,
-            `Exception Occured: ${exception.message}`,
-         );
-         return response
-            .status(signifyException.status)
-            .json(signifyException.loadResult());
       }
    };
 

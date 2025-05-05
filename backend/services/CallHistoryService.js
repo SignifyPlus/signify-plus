@@ -57,6 +57,17 @@ class CallHistoryService extends AbstractService {
    getDocumentsQuery(session = null) {
       return super.getDocumentsQuery(session);
    }
+
+   findLogsInOrderByCreatedAtQuery(
+      filterConditions,
+      order = 1,
+      session = null,
+   ) {
+      return this.schemaModel
+         .find(filterConditions)
+         .session(session)
+         .sort({ createdAt: order }); //ascending order
+   }
 }
 
 module.exports = CallHistoryService;

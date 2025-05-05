@@ -21,6 +21,9 @@ const CallHistorySchema = new mongoose.Schema({
       required: true,
    },
    initiatedAt: { type: String, required: true },
+   deletedBy: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+   ],
    createdAt: { type: Date, required: true, default: Date.now },
    updatedAt: { type: Date, required: true, default: Date.now },
 });
