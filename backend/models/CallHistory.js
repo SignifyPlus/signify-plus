@@ -6,7 +6,7 @@ const CallHistorySchema = new mongoose.Schema({
       ref: 'User',
       required: true,
    }, // the user Id from users table
-   allParticipantsId: [
+   participants: [
       {
          type: mongoose.Schema.Types.ObjectId,
          ref: 'User',

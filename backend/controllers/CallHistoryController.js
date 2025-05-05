@@ -20,12 +20,12 @@ class CallHistoryController {
          await ServiceFactory.getMongooseService.startMongooseTransaction(
             mongooseSession,
          );
-         const mainUser =
+         const user =
             await ServiceFactory.getUserService.getDocumentByCustomFilters({
                phoneNumber: request.params.phoneNumber,
             });
          const initiatorValidation = await ExceptionHelper.validate(
-            mainUser,
+            user,
             400,
             `User doesnt Exist in the user table!`,
             response,
@@ -33,17 +33,24 @@ class CallHistoryController {
          if (initiatorValidation) return initiatorValidation;
          const callHistoryLogs =
             ServiceFactory.getCallHistoryService.findLogsInOrderByCreatedAtQuery(
-               { initiatorId: mainUser._id },
+               {
+                  $or: [
+                     { initiatorId: user._id },
+                     { participants: { $in: [user._id] } },
+                  ],
+               },
                1, //ascending order
                mongooseSession,
             );
          const finalCallHistoryLogs = await callHistoryLogs
             .populate({
-               path: 'initiatorId allParticipantsId',
-               select: 'phoneNumber name',
+               path: 'initiatorId participants',
+               select: 'phoneNumber name profilePicture',
             })
             .lean();
-         response.json(finalCallHistoryLogs);
+         const preprocessedLogs =
+            await this.#preprocessLogs(finalCallHistoryLogs);
+         response.json(preprocessedLogs);
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
@@ -108,7 +115,7 @@ class CallHistoryController {
                   _id: { $in: request.body.callHistoryLogIds },
                   $or: [
                      { initiatorId: user._id },
-                     { allParticipantsId: { $in: [user._id] } },
+                     { participants: { $in: [user._id] } },
                   ],
                },
                mongooseSession,
@@ -195,7 +202,7 @@ class CallHistoryController {
             await ServiceFactory.getCallHistoryService.saveDocument(
                {
                   initiatorId: mainUser[ControllerConstants.ZERO_INDEX]._id,
-                  allParticipantsId: participantsIds,
+                  participants: participantsIds,
                   callType: await this.#getCallType(callLogDto.isVoiceCall),
                   callDurationInSeconds: callLogDto?.totalDurationInSeconds,
                   initiatedAt: callLogDto?.BeginDateTime,
@@ -223,6 +230,21 @@ class CallHistoryController {
       return callType?.isVoiceCall
          ? ControllerConstants.VOICE
          : ControllerConstants.VIDEO;
+   }
+
+   //we dont store this info in the database, require another table to store more detailed responses
+   //for now we'll preprocess, and send to the frontend (due to time constraints)
+   async #preprocessLogs(callLogs) {
+      for (var i = 0; i < callLogs.length; i++) {
+         callLogs[i].participants.forEach((participant) => {
+            participant.type =
+               participant._id.toString() ==
+               callLogs[i].initiatorId._id.toString()
+                  ? ControllerConstants.OUTGOING
+                  : ControllerConstants.INCOMING;
+         });
+      }
+      return callLogs;
    }
 }
 

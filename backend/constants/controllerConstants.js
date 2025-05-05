@@ -8,6 +8,10 @@ class ControllerConstants {
 
    static VIDEO = 'video';
 
+   static OUTGOING = 'outgoing';
+
+   static INCOMING = 'incoming';
+
    static ZERO_INDEX = 0;
 
    static TWILIO_VERIFY_CHANNEL = 'sms';
