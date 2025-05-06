@@ -5,6 +5,9 @@ import { useEffect } from 'react';
 import { useCallHistoryQuery } from '@/api/call/call-history-query';
 import Colors from '@/constants/Colors';
 import { CallLogItemAppleStyleSwipeableRow } from '@/components/CallLogItemAppleStyleSwipeableRow';
+import dayjs from 'dayjs';
+import { useUpdateContacts } from '@/context/use-update-contacts';
+import { sanitizePhoneNumber } from '@/constants/utils';
 
 type Call = {
   id: string;
@@ -62,10 +65,11 @@ const CallItem = ({ item }: { item: Call }) => {
               marginTop: 4,
             }}
           >
-            {item.type === 'incoming' ? 'Incoming' : 'Outgoing'} - {item.time}
+            {item.type === 'incoming' ? 'Incoming' : 'Outgoing'} -{' '}
+            {item.isVideo ? 'Video' : 'Voice'} Call
           </Text>
           <Text style={{ fontSize: 12, color: 'gray', marginTop: 2 }}>
-            {item.timeOfCall}
+            {dayjs(item.timeOfCall).format('hh:mm:ss a - DD/MM/YYYY')}
           </Text>
         </View>
         <TouchableOpacity
@@ -92,11 +96,19 @@ const Page = () => {
   const { callSearchQuery, setCallSearchQuery, phoneNumber, user } =
     useAppContext();
 
-  const { data: callData = [] } = useCallHistoryQuery(phoneNumber);
+  const { data: callData = [] } = useCallHistoryQuery({ phoneNumber });
+
+  const { contacts } = useUpdateContacts({
+    phoneNumber,
+  });
 
   const _calls: Call[] = callData
     .filter((callEntry) => {
-      return !(callEntry.deletedBy && callEntry.deletedBy.includes(user!._id));
+      if (callEntry.deletedBy && callEntry.deletedBy.includes(user!._id)) {
+        return false;
+      }
+
+      return true;
     })
     .map((callEntry) => {
       const [otherParticipant] = callEntry.participants.filter(
@@ -106,10 +118,19 @@ const Page = () => {
       return {
         id: callEntry._id,
         name:
-          otherParticipant?.name || otherParticipant?.phoneNumber || 'Unknown',
+          contacts.find((contact) =>
+            contact.phoneNumbers.some(
+              (phone) =>
+                sanitizePhoneNumber(phone.number) ===
+                otherParticipant!.phoneNumber
+            )
+          )?.displayName ??
+          (otherParticipant?.name ||
+            otherParticipant?.phoneNumber ||
+            'Unknown'),
         type: callEntry.callType as 'incoming' | 'outgoing' | 'missed',
         time: formatDuration(callEntry.callDurationInSeconds),
-        timeOfCall: callEntry.initiatedAt,
+        timeOfCall: callEntry.createdAt,
         missed: callEntry.callType === 'missed',
         avatar: otherParticipant?.profilePicture,
         isVideo: callEntry.callType === 'video',
@@ -117,7 +138,10 @@ const Page = () => {
           .map((it) => it.phoneNumber)
           .filter((it) => it !== phoneNumber),
       };
-    });
+    })
+    .sort((a, b) =>
+      dayjs(a.timeOfCall).isBefore(dayjs(b.timeOfCall)) ? 1 : -1
+    );
 
   const calls = _calls.filter((call) => {
     if (callSearchQuery === '') return true;

@@ -1,2 +1,2 @@
 // export const API_URL = 'https://signify-plus.onrender.com';
-export const API_URL = 'http://139.179.149.223:3001';
+export const API_URL = 'http://10.100.24.40:3001';
