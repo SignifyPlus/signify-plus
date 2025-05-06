@@ -29,16 +29,19 @@ export interface CallEntry {
   __v: number;
 }
 
-export const callHistoryQueryKey = (phoneNumber?: string) => [
-  'calls',
+export const callsQueryKey = (params: { phoneNumber?: string }) => [
   'callHistory',
-  phoneNumber,
+  params.phoneNumber,
 ];
 
-export const useCallHistoryQuery = (phoneNumber?: string) => {
+export const useCallHistoryQuery = ({
+  phoneNumber,
+}: {
+  phoneNumber?: string;
+}) => {
   return useQuery({
     refetchInterval: 500,
-    queryKey: callHistoryQueryKey(phoneNumber),
+    queryKey: callsQueryKey({ phoneNumber }),
     queryFn: async () => {
       if (!phoneNumber) {
         return [];
@@ -55,7 +58,7 @@ export const useCallHistoryQuery = (phoneNumber?: string) => {
         throw new Error('Failed to fetch call history');
       }
       const data = await response.json();
-      return data as CallEntry[];
+      return [...data] as CallEntry[];
     },
   });
 };

@@ -48,6 +48,7 @@ export const loginUser = async ({
 
   const data = await response.json();
 
+  console.log('Login response data:', data);
   return data as User;
 };
 

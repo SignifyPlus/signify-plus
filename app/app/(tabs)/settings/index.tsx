@@ -129,6 +129,7 @@ const Page = () => {
           <SettingsProfilePicture />
           <View style={styles.userText}>
             <EditableField
+              max={30}
               value={user?.name ?? ''}
               onSave={(newName) => {
                 if (!user) return;
@@ -149,6 +150,7 @@ const Page = () => {
               name="name"
             />
             <EditableField
+              max={100}
               value={user?.profileStatus ?? ''}
               onSave={(newStatus) => {
                 if (!user) return;

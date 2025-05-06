@@ -24,6 +24,8 @@ const welcome_image = Image.resolveAssetSource(welcomeImage).uri;
 
 const SignupScreen = () => {
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -55,10 +57,14 @@ const SignupScreen = () => {
     const strengthErr = validatePasswordStrength(password);
     const matchErr = validatePasswordsMatch(password, repeatPassword);
 
+    const currentNameError =
+      name.length > 30 ? 'Name must be at most 30 characters.' : '';
+
     setPhoneError(phoneErr);
     setPasswordError(strengthErr || matchErr);
+    setNameError(currentNameError);
 
-    if (!phoneErr && !strengthErr && !matchErr) {
+    if (!phoneErr && !strengthErr && !matchErr && !currentNameError) {
       const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
       createUser(
         { name, phoneNumber: sanitizedPhoneNumber, password },
@@ -71,7 +77,7 @@ const SignupScreen = () => {
             setPhoneNumber('');
             setPassword('');
             setRepeatPassword('');
-            router.replace(`/verify/${sanitizedPhoneNumber}`);
+            router.push(`/verify/${sanitizedPhoneNumber}`);
           },
           onError: (err) => {
             Alert.alert('Signup Failed', (err as Error).message);
@@ -86,6 +92,7 @@ const SignupScreen = () => {
     phoneNumber &&
     password &&
     repeatPassword &&
+    !nameError &&
     !validatePhoneNumber(phoneNumber) &&
     !validatePasswordStrength(password) &&
     !validatePasswordsMatch(password, repeatPassword);
@@ -99,8 +106,21 @@ const SignupScreen = () => {
         style={styles.input}
         placeholder="Name"
         value={name}
-        onChangeText={setName}
+        onChangeText={(text) => {
+          if (text.length > 30) {
+            setNameError('Name must be at most 30 characters.');
+          } else {
+            setName(text);
+            setNameError('');
+          }
+        }}
+        onBlur={() => {
+          if (name.length > 30) {
+            setNameError('Name must be at most 30 characters.');
+          }
+        }}
       />
+      {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
 
       <PhoneInput
         containerStyle={{
@@ -137,10 +157,18 @@ const SignupScreen = () => {
         }}
         defaultCode="TR"
         layout="first"
-        onChangeFormattedText={setPhoneNumber}
+        onChangeFormattedText={(text) => {
+          setPhoneNumber(text);
+          if (touchedFields.phone) {
+            const err = validatePhoneNumber(text);
+            setPhoneError(err);
+          }
+        }}
         textInputProps={{
           onBlur: () => {
             setTouchedFields((prev) => ({ ...prev, phone: true }));
+            const err = validatePhoneNumber(phoneNumber);
+            setPhoneError(err);
           },
         }}
       />
@@ -215,7 +243,7 @@ const SignupScreen = () => {
         )}
       </TouchableOpacity>
 
-      <Link href={'/'} replace asChild>
+      <Link href={'/'} asChild>
         <TouchableOpacity>
           <Text style={styles.linkText}>Already have an account? Log In</Text>
         </TouchableOpacity>
