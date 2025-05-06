@@ -19,60 +19,99 @@ import { EditableField } from '@/components/EditableField';
 import { validatePasswordsMatch, validatePasswordStrength } from '@/app/signup';
 import { queryClient } from '@/api';
 import { SettingsProfilePicture } from '@/components/SettingsProfilePicture';
+import { setAsyncStorageValue } from '@/context/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 const Page = () => {
-  const { phoneNumber, user, setUser } = useAppContext();
+  const { phoneNumber, user, setUser, reset } = useAppContext();
   const { data: settings, isLoading } = useSettingsQuery({ phoneNumber });
-  // const { mutate: updateSettings } = useUpdateSettingsMutation();
   const { mutate: updateUser } = useUpdateUserMutation();
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [editingPassword, setEditingPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // const updateSetting = <K extends keyof UserSettings>(
-  //   key: K,
-  //   value: UserSettings[K]
-  // ) => {
-  //   if (!settings) return;
-  //   updateSettings({
-  //     ...settings,
-  //     [key]: value,
-  //     phoneNumber: phoneNumber!,
-  //   });
-  // };
+  // Password validation errors
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [generalError, setGeneralError] = useState('');
 
   const handleLogout = () => {
-    router.replace('/');
-    queryClient.removeQueries();
+    setAsyncStorageValue('user', '').then(() => {
+      reset();
+      router.replace('/');
+      queryClient.removeQueries();
+    });
+  };
+
+  // Password field handlers
+  const handleNewPasswordChange = (text: string) => {
+    setNewPassword(text);
+  };
+
+  const handleConfirmPasswordChange = (text: string) => {
+    setConfirmPassword(text);
+  };
+
+  // Validation on blur
+  const handleNewPasswordBlur = () => {
+    const error = validatePasswordStrength(newPassword);
+    setPasswordError(error || '');
+  };
+
+  const handleConfirmPasswordBlur = () => {
+    const error = validatePasswordsMatch(newPassword, confirmPassword);
+    setConfirmPasswordError(error || '');
+  };
+
+  const resetPasswordFields = () => {
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+    setGeneralError('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setEditingPassword(false);
   };
 
   const handleChangePassword = () => {
     if (!user) return;
 
+    // Clear previous errors
+    setGeneralError('');
+
+    // Validate fields
     const strengthError = validatePasswordStrength(newPassword);
     const matchError = validatePasswordsMatch(newPassword, confirmPassword);
 
-    if (strengthError) {
-      setError(strengthError);
+    // Update error states
+    setPasswordError(strengthError || '');
+    setConfirmPasswordError(matchError || '');
+
+    // If any validation errors, don't proceed
+    if (strengthError || matchError) {
       return;
     }
 
-    if (matchError) {
-      setError(matchError);
-      return;
-    }
-
-    updateUser({
-      phoneNumber: user.phoneNumber,
-      password: newPassword,
-    });
-    setNewPassword('');
-    setConfirmPassword('');
-    setEditingPassword(false);
-    setError('');
-    alert('Password changed successfully');
+    updateUser(
+      {
+        phoneNumber: user.phoneNumber,
+        password: newPassword,
+      },
+      {
+        onSuccess: () => {
+          resetPasswordFields();
+          alert('Password changed successfully');
+        },
+        onError: (error) => {
+          setGeneralError('Failed to update password. Please try again.');
+          console.error('Password update error:', error);
+        },
+      }
+    );
   };
 
   if (isLoading || !settings) {
@@ -132,106 +171,104 @@ const Page = () => {
           </View>
         </View>
 
-        {/*<Text style={styles.title}>Accessibility Settings</Text>*/}
-
-        {/*<View style={styles.row}>*/}
-        {/*  <Text style={styles.label}>Enable Notifications</Text>*/}
-        {/*  <Switch*/}
-        {/*    value={settings.notificationEnabled}*/}
-        {/*    onValueChange={(value) =>*/}
-        {/*      updateSetting('notificationEnabled', value)*/}
-        {/*    }*/}
-        {/*    trackColor={{ false: '#ccc', true: Colors.primary }}*/}
-        {/*    thumbColor={Platform.OS === 'android' ? '#fff' : undefined}*/}
-        {/*  />*/}
-        {/*</View>*/}
-
-        {/*<View style={styles.row}>*/}
-        {/*  <Text style={styles.label}>Auto Download</Text>*/}
-        {/*  <Switch*/}
-        {/*    value={settings.autoDownload}*/}
-        {/*    onValueChange={(value) => updateSetting('autoDownload', value)}*/}
-        {/*    trackColor={{ false: '#ccc', true: Colors.primary }}*/}
-        {/*    thumbColor={Platform.OS === 'android' ? '#fff' : undefined}*/}
-        {/*  />*/}
-        {/*</View>*/}
-
-        {/*<View style={styles.row}>*/}
-        {/*  <View style={styles.textWrapper}>*/}
-        {/*    <Text style={styles.label}>ASL Translation Language</Text>*/}
-        {/*    <Text style={styles.subLabel}>*/}
-        {/*      Used for visual translation support*/}
-        {/*    </Text>*/}
-        {/*  </View>*/}
-        {/*  <View style={styles.dropdownWrapper}>*/}
-        {/*    <Picker*/}
-        {/*      selectedValue={settings.aslTranslationLanguage}*/}
-        {/*      onValueChange={(value) =>*/}
-        {/*        updateSetting('aslTranslationLanguage', value)*/}
-        {/*      }*/}
-        {/*      style={styles.picker}*/}
-        {/*    >*/}
-        {/*      <Picker.Item label="🇬🇧 English" value={0} />*/}
-        {/*      <Picker.Item label="🇹🇷 Turkish" value={1} />*/}
-        {/*    </Picker>*/}
-        {/*  </View>*/}
-        {/*</View>*/}
-
         <Text style={styles.title}>Account Settings</Text>
 
         <Text style={styles.label}>Phone</Text>
-        <Text
-          style={{
-            fontSize: 16,
-            color: '#666',
-            // paddingVertical: 8,
-            // borderBottomWidth: 1,
-            borderColor: '#ccc',
-            marginBottom: 20,
-          }}
-        >
-          {phoneNumber}
-        </Text>
+        <Text style={styles.valueText}>{phoneNumber}</Text>
 
         <Text style={styles.label}>Password</Text>
         {!editingPassword ? (
           <TouchableWithoutFeedback onPress={() => setEditingPassword(true)}>
-            <Text
-              style={{
-                fontSize: 16,
-                color: '#666',
-                paddingVertical: 8,
-                borderBottomWidth: 1,
-                borderColor: '#ccc',
-              }}
-            >
-              ********
-            </Text>
+            <Text style={styles.passwordPlaceholder}>********</Text>
           </TouchableWithoutFeedback>
         ) : (
           <View>
-            <TextInput
-              placeholder="New Password"
-              secureTextEntry
-              value={newPassword}
-              onChangeText={setNewPassword}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Confirm Password"
-              secureTextEntry
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              style={styles.input}
-            />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            <View>
+              <View
+                style={[
+                  styles.passwordContainer,
+                  passwordError ? styles.inputError : null,
+                ]}
+              >
+                <TextInput
+                  placeholder="New Password"
+                  secureTextEntry={!showNewPassword}
+                  value={newPassword}
+                  onChangeText={handleNewPasswordChange}
+                  onBlur={handleNewPasswordBlur}
+                  style={styles.passwordInput}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                >
+                  <Ionicons
+                    name={showNewPassword ? 'eye-off' : 'eye'}
+                    color={Colors.primary}
+                    size={24}
+                  />
+                </TouchableOpacity>
+              </View>
+              {passwordError ? (
+                <Text style={styles.errorText}>{passwordError}</Text>
+              ) : null}
+            </View>
+
+            <View>
+              <View
+                style={[
+                  styles.passwordContainer,
+                  confirmPasswordError ? styles.inputError : null,
+                ]}
+              >
+                <TextInput
+                  placeholder="Confirm Password"
+                  secureTextEntry={!showConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={handleConfirmPasswordChange}
+                  onBlur={handleConfirmPasswordBlur}
+                  style={styles.passwordInput}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off' : 'eye'}
+                    color={Colors.primary}
+                    size={24}
+                  />
+                </TouchableOpacity>
+              </View>
+              {confirmPasswordError ? (
+                <Text style={styles.errorText}>{confirmPasswordError}</Text>
+              ) : null}
+            </View>
+
+            {generalError ? (
+              <Text style={styles.errorText}>{generalError}</Text>
+            ) : null}
+
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[
+                styles.saveButton,
+                !newPassword ||
+                !confirmPassword ||
+                !!passwordError ||
+                !!confirmPasswordError
+                  ? styles.disabledButton
+                  : null,
+              ]}
               onPress={handleChangePassword}
+              disabled={
+                !newPassword ||
+                !confirmPassword ||
+                !!passwordError ||
+                !!confirmPasswordError
+              }
             >
               <Text style={styles.saveButtonText}>Change Password</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setEditingPassword(false)}>
+
+            <TouchableOpacity onPress={resetPasswordFields}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -260,6 +297,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
+    gap: 12,
   },
   userText: {
     flex: 1,
@@ -271,48 +309,51 @@ const styles = StyleSheet.create({
     marginTop: 32,
     marginBottom: 12,
   },
-  // row: {
-  //   paddingVertical: 16,
-  //   flexDirection: 'row',
-  //   justifyContent: 'space-between',
-  //   alignItems: 'center',
-  // },
   label: {
     fontSize: 16,
     color: '#111',
     fontWeight: '500',
     marginBottom: 8,
   },
-  // subLabel: {
-  //   fontSize: 13,
-  //   color: '#888',
-  //   marginTop: 4,
-  // },
-  // textWrapper: {
-  //   flex: 1,
-  //   paddingRight: 8,
-  // },
-  // dropdownWrapper: {
-  //   width: 140,
-  // },
-  // picker: {
-  //   height: 44,
-  //   width: '100%',
-  //   color: '#111',
-  // },
-  input: {
+  valueText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+  },
+  passwordPlaceholder: {
+    fontSize: 16,
+    color: '#666',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+    height: 48,
+  },
+  passwordInput: {
+    flex: 1,
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: '#d32f2f',
   },
   saveButton: {
     backgroundColor: Colors.primary,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 8,
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
   },
   saveButtonText: {
     color: '#fff',
@@ -335,7 +376,6 @@ const styles = StyleSheet.create({
     color: '#d32f2f',
     fontSize: 13,
     marginBottom: 8,
-    textAlign: 'center',
   },
 });
 

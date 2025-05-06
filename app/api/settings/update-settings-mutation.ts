@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
 import { settingsQueryKey } from './settings-query';
 import { UserSettings } from './settings-query';
+import { getToken } from '@/api/axios';
+import { fetchWithAuth } from '..';
 
 export interface UpdateSettingsParams {
   phoneNumber: string;
@@ -17,10 +19,11 @@ export const useUpdateSettingsMutation = () => {
 
   return useMutation({
     mutationFn: async (params: UpdateSettingsParams) => {
-      const response = await fetch(`${API_URL}/settings/update`, {
+      const response = await fetchWithAuth(`${API_URL}/settings/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: await getToken(),
         },
         body: JSON.stringify(params),
       });
@@ -29,8 +32,7 @@ export const useUpdateSettingsMutation = () => {
         throw new Error('Failed to update settings');
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     },
 
     onMutate: async (newSettings) => {

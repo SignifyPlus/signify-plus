@@ -10,12 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 export { ErrorBoundary } from 'expo-router';
 import { LogBox } from 'react-native';
 
-LogBox.ignoreLogs([
-  'Warning: Country',
-  'Warning: Flag',
-  'Warning: Main',
-  'Warning: HeaderModal:',
-]);
+LogBox.ignoreAllLogs(true);
+// LogBox.ignoreLogs(['Warning:']);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -75,6 +71,13 @@ const InitialLayout = () => {
             headerBackTitle: 'Edit number',
           }}
         />
+        <Stack.Screen
+          name="forgot-password"
+          options={{
+            title: 'Forgot Password',
+            headerShown: true,
+          }}
+        />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="(modals)/new-chat"
@@ -99,10 +102,6 @@ const InitialLayout = () => {
                 </TouchableOpacity>
               </Link>
             ),
-            headerSearchBarOptions: {
-              placeholder: 'Search name or number',
-              hideWhenScrolling: false,
-            },
           }}
         />
         <Stack.Screen

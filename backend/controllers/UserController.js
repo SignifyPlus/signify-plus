@@ -9,6 +9,8 @@ const EventConstants = require('../constants/eventConstants.js');
 const UpdateUserDto = require('../dtos/UpdateUserDto.js');
 const SignifyResult = require('../dtos/SignifyResult.js');
 const ManagerFactory = require('../factories/managerFactory.js');
+const CommonConstants = require('../constants/commonConstants.js');
+const CommonUtils = require('../utilities/commonUtils.js');
 class UserController {
    #saltRoundForEncryption = null;
    constructor() {
@@ -72,15 +74,19 @@ class UserController {
          }
          //add the authenticationrecord - converts the mongoose document to an object, and then add the authentication record (with the same name)
          //spreads over all the properties of user object first
-         const authenticationData = userAuthenticationResult.data;
-         const finalUser = { ...user.toObject(), authenticationData };
+         const userAuthenticationRecord = userAuthenticationResult.data;
+         const finalUser = {
+            ...user.toObject(),
+            userAuthenticationRecord:
+               userAuthenticationRecord[CommonConstants.ZERO_INDEX],
+         };
          response.json(finalUser);
       } catch (exception) {
          response.status(500).json({ error: exception.message });
       }
    };
 
-   getUserByPhoneNumberForLogin = async (request, response) => {
+   login = async (request, response) => {
       try {
          const phoneNumberValidation = await ExceptionHelper.validate(
             request.body.phoneNumber,
@@ -126,22 +132,14 @@ class UserController {
             user._id.toString(),
          );
 
-         const authenticationData = await EventDispatcher.dispatchEvent(
+         const userAuthenticationRecord = await EventDispatcher.dispatchEvent(
             EventConstants.USER_AUTHENTICATION_UPDATE_EVENT,
             { userId: user._id.toString(), refreshToken: tokens.refreshToken },
          );
-
-         // const userAuthenticationResult =
-         //    await this.#getUserAuthenticationRecord(user);
-         // if (userAuthenticationResult.exception) {
-         //    return response
-         //       .status(userAuthenticationResult.exception.status)
-         //       .json(userAuthenticationResult.exception.loadResult());
-         // }
-         // const authenticationData = userAuthenticationResult.data;
          const finalUser = {
             ...user.toObject(),
-            authenticationData,
+            userAuthenticationRecord:
+               userAuthenticationRecord[CommonConstants.FIRST_ENTRY].data,
             accessToken: tokens.accessToken,
          };
          response.json(finalUser);
@@ -220,7 +218,8 @@ class UserController {
 
          const finalUser = {
             ...onlyUserObject,
-            userAuthenticationRecord,
+            userAuthenticationRecord:
+               userAuthenticationRecord[CommonConstants.FIRST_ENTRY].data,
             accessToken: tokens.accessToken,
          };
          //commit the transaction
@@ -373,6 +372,51 @@ class UserController {
          response.status(500).json({ error: exception.message });
       }
    };
+
+   async getUserIds(phoneNumbers) {
+      var mongooseSession = null;
+      var userIds = [];
+      try {
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
+         );
+
+         if (
+            (await CommonUtils.isValueNull(phoneNumbers)) ||
+            phoneNumbers.length == 0
+         ) {
+            LoggerFactory.getApplicationLogger.error(
+               `phoneNumbers are either null or the array does not contain any valid data`,
+            );
+            return new SignifyResult(userIds);
+         }
+
+         for (var i = 0; i < phoneNumbers.length; i++) {
+            const user =
+               await ServiceFactory.getUserService.getDocumentByCustomFilters(
+                  { phoneNumber: phoneNumbers[i] },
+                  mongooseSession,
+               );
+            if (user == null) {
+               continue;
+            }
+            userIds.push(user._id.toString());
+         }
+
+         return new SignifyResult(userIds);
+      } catch (exception) {
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
+      }
+   }
 
    async #getUserAuthenticationRecord(user) {
       const userAuthenticationRecord =

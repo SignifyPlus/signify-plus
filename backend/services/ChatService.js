@@ -77,15 +77,22 @@ class ChatService extends AbstractService {
    // New methods for enhanced features
    // Soft delete a chat
    async softDeleteChat(chatId, userId, session = null) {
-      return await super.updateDocument(
+      const updatedChat = await super.updateDocument(
          { _id: chatId },
          {
-            isDeleted: true,
             $addToSet: { deletedBy: userId }, //ensures we dont overwrite the previous array + addToSet ensures the array/set is unique
             lastActivity: new Date(),
          },
          session,
       );
+
+      //trigger the event for the messages (no need to await. Should be async, since the user deleted the chat)
+      EventDispatcher.dispatchEvent(EventConstants.SOFT_DELETE_MESSAGE_EVENT, {
+         chatId: chatId,
+         userId: userId,
+      });
+
+      return updatedChat;
    }
 
    // Pin or unpin a chat
@@ -178,9 +185,8 @@ class ChatService extends AbstractService {
       return await this.schemaModel
          .find({
             $or: [{ mainUserId: userId }, { participants: userId }],
-            isDeleted: false,
          })
-         .sort({ isPinned: -1, lastActivity: -1 })
+         .sort({ lastActivity: -1 })
          .populate({
             path: 'mainUserId participants',
             select: 'phoneNumber name',

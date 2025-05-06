@@ -14,6 +14,26 @@ class MessageSocketUtils {
       );
    }
 
+   static async filterChatById(cachedChats, chatId) {
+      return await ControllerFactory.getChatController().filterChatById(
+         cachedChats,
+         chatId,
+      );
+   }
+
+   static async undeleteUser(chat, allParticipants) {
+      //set has a lookup of O(1) compared to O(n) of arrays when includes is used
+      const userIds =
+         await ControllerFactory.getUserController().getUserIds(
+            allParticipants,
+         );
+      const userIdsSet = new Set(userIds.data);
+      chat.deletedBy = chat.deletedBy.filter(
+         (id) => !userIdsSet.has(id.toString()),
+      );
+      return chat;
+   }
+
    static async createNewChat(mainUserPhoneNumber, participants) {
       return await ControllerFactory.getChatController().createAndPostProcessChats(
          mainUserPhoneNumber,
@@ -21,7 +41,6 @@ class MessageSocketUtils {
       );
    }
    // New utility methods for message actions
-
    static async validateMessageOwnership(messageId, senderPhoneNumber) {
       try {
          // Get sender user

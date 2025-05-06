@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/constants/Config';
 import { chatMessagesQueryKey } from '@/api/chat/chats-messages-query';
-// import { chatsQueryKey } from '../chat/chats-query';
+import { getToken } from '../axios';
+import { fetchWithAuth } from '..';
 
 export interface SendMessageParams {
   mainUserPhoneNumber: string;
@@ -15,10 +16,11 @@ export const useSendMessageMutation = () => {
 
   return useMutation({
     mutationFn: async (params: SendMessageParams) => {
-      const response = await fetch(`${API_URL}/messages/create`, {
+      const response = await fetchWithAuth(`${API_URL}/messages/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: await getToken(),
         },
         body: JSON.stringify(params),
       });
@@ -27,12 +29,10 @@ export const useSendMessageMutation = () => {
         throw new Error('Failed to send message');
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        // queryKey: chatsQueryKey({ phoneNumber: variables.mainUserPhoneNumber }),
         queryKey: chatMessagesQueryKey(variables.chatId),
       });
     },

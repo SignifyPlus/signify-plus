@@ -4,6 +4,8 @@
  */
 
 const AccessibilitySettingsEvent = require('../events/services/accessibilitySettingsEvent.js');
+const CallLogEvent = require('../events/services/callLogEvent.js');
+const ChatEvent = require('../events/services/chatEvent.js');
 const MessageEvent = require('../events/services/messageEvent.js');
 const UserAuthenticationEvent = require('../events/services/userAuthenticationEvent.js');
 const UserEvent = require('../events/services/userEvent.js');
@@ -15,6 +17,12 @@ class EventFactory {
     * @type {MessageEvent | null}
     */
    static #messageEvent = null;
+
+   /**
+    * @private
+    * @type {ChatEvent | null}
+    */
+   static #chatEvent = null;
 
    /**
     * @private
@@ -34,6 +42,12 @@ class EventFactory {
     */
    static #userEvent = null;
 
+   /**
+    * @private
+    * @type {CallLogEvent | null}
+    */
+   static #callLogEvent = null;
+
    static get getMessageEvent() {
       return EventFactory.#messageEvent;
    }
@@ -48,6 +62,14 @@ class EventFactory {
 
    static get getUserAuthenticationEvent() {
       return EventFactory.#userAuthenticationEvent;
+   }
+
+   static get getCallLogEvent() {
+      return EventFactory.#callLogEvent;
+   }
+
+   static get getChatEvent() {
+      return EventFactory.#chatEvent;
    }
 
    /**
@@ -76,6 +98,20 @@ class EventFactory {
     */
    static set setUserAuthenticationEvent(value) {
       EventFactory.#userAuthenticationEvent = value;
+   }
+
+   /**
+    * @param {(param: CallLogEvent) => void} value
+    */
+   static set setCallLogEvent(value) {
+      EventFactory.#callLogEvent = value;
+   }
+
+   /**
+    * @param {(param: ChatEvent) => void} value
+    */
+   static set setChatEvet(value) {
+      EventFactory.#chatEvent = value;
    }
 }
 

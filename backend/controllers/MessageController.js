@@ -6,6 +6,7 @@ const CommonUtils = require('../utilities/commonUtils.js');
 const ControllerConstants = require('../constants/controllerConstants.js');
 const LoggerFactory = require('../factories/loggerFactory.js');
 const mongoose = require('mongoose');
+const SignifyResult = require('../dtos/SignifyResult.js');
 
 class MessageController {
    constructor() {}
@@ -80,7 +81,6 @@ class MessageController {
                   $all: targetUserIds,
                   $size: targetUsers.length,
                },
-               isDeleted: false, // Only consider non-deleted chats
             });
 
          // Determine the chat ID with proper null checking
@@ -254,65 +254,51 @@ class MessageController {
    };
 
    // Improved soft delete message method
-   softDeleteMessage = async (request, response) => {
+   async softDeleteMessages(messageObject) {
+      var mongooseSession = null;
       try {
-         //request validations
-         const senderPhoneNumberValidation = await ExceptionHelper.validate(
-            request.body.senderPhoneNumber,
-            400,
-            `senderPhoneNumber is required!`,
-            response,
+         mongooseSession =
+            await ServiceFactory.getMongooseService.getMongooseSession();
+         await ServiceFactory.getMongooseService.startMongooseTransaction(
+            mongooseSession,
          );
-         if (senderPhoneNumberValidation) return senderPhoneNumberValidation;
 
-         const messageIdValidation = await ExceptionHelper.validate(
-            request.body.messageId,
-            400,
-            `messageId is not provided!`,
-            response,
-         );
-         if (messageIdValidation) return messageIdValidation;
+         //Validations
+         if (await CommonUtils.isValueNull(messageObject.userId)) {
+            LoggerFactory.getApplicationLogger.error(`UserId not provided!`);
+            return new SignifyResult(null);
+         }
 
-         //database validations - get user by phone number
-         const sender =
-            await ServiceFactory.getUserService.getDocumentByCustomFilters({
-               phoneNumber: request.body.senderPhoneNumber,
-            });
-         const senderUserObjectValidation = await ExceptionHelper.validate(
-            sender,
-            400,
-            `senderPhoneNumber doesnt Exist in the user table!`,
-            response,
-         );
-         if (senderUserObjectValidation) return senderUserObjectValidation;
-
-         // Get message by ID and sender ID (to ensure ownership)
-         const messageToDelete =
-            await ServiceFactory.getMessageService.getDocumentByCustomFilters({
-               _id: new mongoose.Types.ObjectId(request.body.messageId),
-               senderId: sender._id,
-            });
-         const messageToDeleteValidation = await ExceptionHelper.validate(
-            messageToDelete,
-            400,
-            `Message Doesn't Belong to the user!`,
-            response,
-         );
-         if (messageToDeleteValidation) return messageToDeleteValidation;
+         if (await CommonUtils.isValueNull(messageObject.chatId)) {
+            LoggerFactory.getApplicationLogger.error(`ChatId not provided!`);
+            return new SignifyResult(null);
+         }
 
          // Perform soft delete
-         await ServiceFactory.getMessageService.softDeleteMessage(
-            messageToDelete._id.toString(),
+         const updatedMessages =
+            await ServiceFactory.getMessageService.softDeleteMessages(
+               { chatId: messageObject.chatId, senderId: messageObject.userId },
+               {
+                  $addToSet: { deletedBy: messageObject.userId },
+                  updatedAt: new Date(),
+               },
+               mongooseSession,
+            );
+         await ServiceFactory.getMongooseService.commitMongooseTransaction(
+            mongooseSession,
          );
-
-         return response.json({
-            success: true,
-            message: 'Message soft deleted successfully',
-         });
+         return new SignifyResult(updatedMessages);
       } catch (exception) {
-         return response.status(500).json({ error: exception.message });
+         await ServiceFactory.getMongooseService.abandonMongooseTransaction(
+            mongooseSession,
+         );
+         const signifyException = new SignifyException(
+            500,
+            `Exception Occured: ${exception.message}`,
+         );
+         return new SignifyResult(null, signifyException);
       }
-   };
+   }
 
    // Improved edit message method
    editMessage = async (request, response) => {
@@ -483,7 +469,6 @@ class MessageController {
                   $all: targetUserIds,
                   $size: targetUserIds.length,
                },
-               isDeleted: false, // Only consider non-deleted chats
             });
 
          let chatId;
@@ -493,7 +478,6 @@ class MessageController {
                mainUserId: senderId,
                participants: targetUserIds,
                lastActivity: new Date(),
-               isDeleted: false,
             });
             chatId = newChat[0]._id.toString();
          } else {

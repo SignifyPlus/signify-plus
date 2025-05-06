@@ -4,9 +4,22 @@ class ControllerConstants {
 
    static SALT_ROUND_FOR_USERS_CONTROLLER = 10;
 
+   static VOICE = 'voice';
+
+   static VIDEO = 'video';
+
+   static OUTGOING = 'outgoing';
+
+   static INCOMING = 'incoming';
+
    static ZERO_INDEX = 0;
 
    static TWILIO_VERIFY_CHANNEL = 'sms';
+
+   static ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT = {
+      English: 0,
+      Turkish: 1,
+   };
 
    static ACCESSIBILITY_SETTINGS_ASL_TRANSLATE_DICT = {
       English: 0,

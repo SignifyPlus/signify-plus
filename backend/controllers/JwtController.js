@@ -3,14 +3,10 @@ const LoggerFactory = require('../factories/loggerFactory.js');
 const ExceptionHelper = require('../exception/ExceptionHelper.js');
 const ServiceFactory = require('../factories/serviceFactory.js');
 const SignifyException = require('../exception/SignifyException.js');
-const EventDispatcher = require('../events/eventDispatcher.js');
-const EventConstants = require('../constants/eventConstants.js');
-const OtpDto = require('../dtos/OtpDto.js');
-const ControllerConstants = require('../constants/controllerConstants.js');
 const JwtRequestDto = require('../dtos/JwtRequestDto.js');
 class JwtController {
    constructor() {}
-   validateTokens = async (request, response) => {
+   refreshToken = async (request, response) => {
       try {
          const jwtRequestDto = new JwtRequestDto(
             request.body?.phoneNumber,
@@ -45,19 +41,28 @@ class JwtController {
          );
          if (userValidation) return userValidation;
 
-         const result = await ManagerFactory.getJwtManager().verifyRefreshToken(
-            jwtRequestDto.refreshToken,
-         );
-         if (result.exception) {
+         const refreshTokenResult =
+            await ManagerFactory.getJwtManager().verifyRefreshToken(
+               jwtRequestDto.refreshToken,
+            );
+
+         if (refreshTokenResult.exception) {
             const signifyException = new SignifyException(
                401,
-               `Token expired or it is invalid - please provide a valid token, or login again to generate a new refresh token: ${result.exception.message}`,
+               `Token expired or it is invalid - please provide a valid token, or login again to generate a new refresh token: ${refreshTokenResult.exception.message}`,
             );
+
             return response
                .status(signifyException.status)
                .json(signifyException.loadResult());
          }
-         response.json({ isValid: true, details: result.data });
+
+         const accessToken =
+            await ManagerFactory.getJwtManager().generateAccessToken(
+               userObject._id.toString(),
+            );
+
+         response.json({ accessToken: accessToken });
       } catch (exception) {
          const signifyException = new SignifyException(
             500,
