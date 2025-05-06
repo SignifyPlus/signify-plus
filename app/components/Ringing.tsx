@@ -73,7 +73,7 @@ export const Ringing = () => {
               color: '#cccccc',
             }}
           >
-            Ringing...
+            Connecting...
           </Text>
         </View>
 

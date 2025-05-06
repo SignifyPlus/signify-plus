@@ -1,5 +1,4 @@
 import { ChatMessageBox } from '@/components/ChatMessageBox';
-import { ReplyMessageBar } from '@/components/ReplyMessageBar';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -38,18 +37,23 @@ const Page = () => {
   useEffect(() => {
     if (!data) return;
     setMessages(
-      data.map((message) => {
-        return {
-          _id: message._id,
-          text: message.content,
-          createdAt: new Date(message.createdAt),
-          user: {
-            _id: message.senderId._id,
-          },
-        };
-      })
+      data
+        .filter(
+          (message) =>
+            message.deletedBy && !message.deletedBy.includes(user!._id)
+        )
+        .map((message) => {
+          return {
+            _id: message._id,
+            text: message.content,
+            createdAt: new Date(message.createdAt),
+            user: {
+              _id: message.senderId._id,
+            },
+          };
+        })
     );
-  }, [data]);
+  }, [data, user]);
 
   const onSend = useCallback(
     async (messages: IMessage[] = []) => {
@@ -129,7 +133,6 @@ const Page = () => {
       <GiftedChat
         messages={messages}
         onSend={(messages: any) => onSend(messages)}
-        // onInputTextChanged={setText}
         user={{
           _id: user?._id ?? '',
         }}
@@ -196,13 +199,14 @@ const Page = () => {
           </View>
         )}
         renderInputToolbar={renderInputToolbar}
-        renderChatFooter={() => (
-          <ReplyMessageBar
-            clearReply={() => setReplyMessage(null)}
-            message={replyMessage}
-          />
-        )}
-        onLongPress={(_context, message) => setReplyMessage(message)}
+        // renderChatFooter={() => (
+        //   <ReplyMessageBar
+        //     clearReply={() => setReplyMessage(null)}
+        //     message={replyMessage}
+        //   />
+        // )}
+        // onLongPress={(_context, message) => setReplyMessage(message)}
+        onLongPress={(_context, _message) => {}}
         renderMessage={(props) => (
           <ChatMessageBox
             {...props}

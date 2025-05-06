@@ -33,7 +33,9 @@ const LoginScreen = () => {
     'pending' | 'checked' | 'failed'
   >('pending');
 
+  // Error states for validation
   const [phoneError, setPhoneError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
 
   const { mutate, isPending } = useLoginUserMutation();
@@ -41,19 +43,72 @@ const LoginScreen = () => {
   const { mutateAsync: userVerificationMutate } = useUserVerificationMutation();
 
   const validatePhoneNumber = (number: string) => {
+    // First check if empty
+    if (!number.trim()) {
+      setPhoneError('Phone number is required');
+      return false;
+    }
+
+    // Check format: must be international format with country code
     const phoneRegex = /^\+(?:[0-9] ?){6,14}[0-9]$/;
     if (!phoneRegex.test(number)) {
       setPhoneError('Invalid phone number. Use format +491234567890');
       return false;
     }
+
     setPhoneError('');
     return true;
   };
 
+  const validatePassword = (password: string) => {
+    // Check if empty
+    if (!password) {
+      setPasswordError('Password is required');
+      return false;
+    }
+
+    // Check minimum length
+    if (password.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return false;
+    }
+
+    setPasswordError('');
+    return true;
+  };
+
+  // Only update state without validation on change
+  const handlePhoneNumberChange = (text: string) => {
+    setPhoneNumber(text);
+  };
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+  };
+
+  // Validate on blur
+  const handlePhoneBlur = () => {
+    validatePhoneNumber(phoneNumber);
+  };
+
+  const handlePasswordBlur = () => {
+    validatePassword(password);
+  };
+
   const handleLogin = () => {
-    if (!validatePhoneNumber(phoneNumber)) return;
-    const santizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
+    // Reset errors
     setLoginError('');
+
+    // Validate both fields
+    const isPhoneValid = validatePhoneNumber(phoneNumber);
+    const isPasswordValid = validatePassword(password);
+
+    if (!isPhoneValid || !isPasswordValid) {
+      return;
+    }
+
+    const santizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
+
     mutate(
       { phoneNumber: santizedPhoneNumber, password },
       {
@@ -74,7 +129,8 @@ const LoginScreen = () => {
     );
   };
 
-  const isInvalid = !(phoneNumber && password && !phoneError);
+  const isInvalid =
+    !phoneNumber || !password || !!phoneError || !!passwordError;
 
   useEffect(() => {
     (async () => {
@@ -121,60 +177,76 @@ const LoginScreen = () => {
       <Image source={{ uri: logo_image }} style={styles.welcome} />
       <Text style={styles.headline}>Login to Signify Plus</Text>
 
-      <PhoneInput
-        containerStyle={{
-          width: '100%',
-          borderWidth: 1,
-          borderColor: Colors.gray,
-          marginBottom: 10,
-          borderRadius: 10,
-          padding: 0,
-          height: 50,
-        }}
-        codeTextStyle={{
-          padding: 0,
-          margin: 0,
-          height: 60,
-          lineHeight: 60,
-        }}
-        countryPickerButtonStyle={{
-          padding: 0,
-          margin: 0,
-        }}
-        flagButtonStyle={{
-          padding: 0,
-          margin: 0,
-        }}
-        textContainerStyle={{
-          borderRadius: 10,
-        }}
-        textInputStyle={{
-          marginTop: 4.5,
-          height: 60,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        defaultCode="TR"
-        layout="first"
-        onChangeFormattedText={setPhoneNumber}
-      />
-      {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
-
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Password"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
+      <View style={{ width: '100%' }}>
+        <PhoneInput
+          containerStyle={{
+            width: '100%',
+            borderWidth: 1,
+            borderColor: phoneError ? Colors.red : Colors.gray,
+            marginBottom: phoneError ? 5 : 10,
+            borderRadius: 10,
+            padding: 0,
+            height: 50,
+          }}
+          codeTextStyle={{
+            padding: 0,
+            margin: 0,
+            height: 60,
+            lineHeight: 60,
+          }}
+          countryPickerButtonStyle={{
+            padding: 0,
+            margin: 0,
+          }}
+          flagButtonStyle={{
+            padding: 0,
+            margin: 0,
+          }}
+          textContainerStyle={{
+            borderRadius: 10,
+          }}
+          textInputStyle={{
+            marginTop: 4.5,
+            height: 60,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          defaultCode="TR"
+          layout="first"
+          onChangeFormattedText={handlePhoneNumberChange}
+          textInputProps={{
+            onBlur: handlePhoneBlur,
+          }}
         />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons
-            name={showPassword ? 'eye-off' : 'eye'}
-            color={Colors.primary}
-            size={24}
+        {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
+      </View>
+
+      <View style={{ width: '100%' }}>
+        <View
+          style={[
+            styles.passwordContainer,
+            passwordError ? { borderColor: Colors.red } : {},
+          ]}
+        >
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={handlePasswordChange}
+            onBlur={handlePasswordBlur}
           />
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Ionicons
+              name={showPassword ? 'eye-off' : 'eye'}
+              color={Colors.primary}
+              size={24}
+            />
+          </TouchableOpacity>
+        </View>
+        {passwordError ? (
+          <Text style={styles.errorText}>{passwordError}</Text>
+        ) : null}
       </View>
 
       <Link href={'/forgot-password'} replace asChild>
@@ -236,12 +308,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 5,
   },
   passwordInput: {
     flex: 1,
   },
   errorText: {
-    color: 'red',
+    color: Colors.red || 'red',
     fontSize: 14,
     marginBottom: 10,
     width: '100%',
