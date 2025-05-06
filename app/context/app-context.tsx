@@ -237,7 +237,9 @@ export const AppProviderInner: FC<{ children: ReactNode }> = ({ children }) => {
       setIsConnected(true);
     });
 
-    socket.on('disconnect', () => setIsConnected(false));
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
 
     socket.on('meeting-id-offer', (data) => {
       const callType = data.isVoiceCall ? 'voice' : 'video';

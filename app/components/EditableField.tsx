@@ -15,6 +15,7 @@ interface EditableFieldProps {
   onSave: (value: string) => void;
   size?: 'large' | 'small';
   name: string;
+  max?: number;
 }
 
 export const EditableField: React.FC<EditableFieldProps> = ({
@@ -22,23 +23,45 @@ export const EditableField: React.FC<EditableFieldProps> = ({
   onSave,
   size = 'small',
   name,
+  max,
 }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [error, setError] = useState('');
 
   const startEdit = () => {
     setDraft(value);
+    setError('');
     setEditing(true);
   };
 
   const cancelEdit = () => {
     setDraft(value);
+    setError('');
     setEditing(false);
   };
 
   const confirmEdit = () => {
+    if (max && draft.length > max) {
+      setError(`Maximum ${max} characters allowed`);
+      return;
+    }
     onSave(draft);
     setEditing(false);
+    setError('');
+  };
+
+  const handleChangeText = (text: string) => {
+    if (max && text.length > max) {
+      setError(`Maximum ${max} characters allowed`);
+      return;
+    }
+
+    if (error && text.length <= (max || Infinity)) {
+      setError('');
+    }
+
+    setDraft(text);
   };
 
   const sharedTextStyle = [
@@ -52,7 +75,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
         <View style={styles.editRow}>
           <TextInput
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={handleChangeText}
             autoFocus
             onSubmitEditing={confirmEdit}
             blurOnSubmit
@@ -71,13 +94,14 @@ export const EditableField: React.FC<EditableFieldProps> = ({
           <Text style={sharedTextStyle}>{value || `Set ${name}`}</Text>
         </TouchableWithoutFeedback>
       )}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   fieldContainer: {
-    marginBottom: 4,
+    marginBottom: 8,
   },
   editRow: {
     flexDirection: 'row',
@@ -101,10 +125,15 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginRight: 12,
     flex: 1,
-    paddingVertical: 0, // tighter vertical space
-    paddingHorizontal: 0, // remove default iOS padding
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   iconBtn: {
     marginHorizontal: 4,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 12,
+    marginTop: 2,
   },
 });

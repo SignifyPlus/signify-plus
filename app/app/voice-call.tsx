@@ -18,6 +18,7 @@ import { ControlsContainer } from '@/components/ControlsContainer';
 import { useAppContext } from '@/context/app-context';
 import { useUpdateContacts } from '@/context/use-update-contacts';
 import { Ringing } from '@/components/Ringing';
+import { Timer } from '@/components/Timer';
 
 register();
 
@@ -147,19 +148,22 @@ const MeetingView: React.FC = () => {
                     .toUpperCase()}
             </Text>
           </View>
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: 'bold',
-              marginBottom: 10,
-            }}
-          >
-            {typeof incomingCallUser === 'string'
-              ? incomingCallUser
-              : (incomingCallUser?.displayName ??
-                contact?.displayName ??
-                'Unknown Caller')}
-          </Text>
+          <View>
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: 'bold',
+                marginBottom: 10,
+              }}
+            >
+              {typeof incomingCallUser === 'string'
+                ? incomingCallUser
+                : (incomingCallUser?.displayName ??
+                  contact?.displayName ??
+                  'Unknown Caller')}
+            </Text>
+            <Timer color="#404040" />
+          </View>
         </View>
       </View>
       <ControlsContainer hideVideo />

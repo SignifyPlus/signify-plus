@@ -277,7 +277,7 @@ class MessageController {
          // Perform soft delete
          const updatedMessages =
             await ServiceFactory.getMessageService.softDeleteMessages(
-               { chatId: messageObject.chatId, senderId: messageObject.userId },
+               { chatId: messageObject.chatId },
                {
                   $addToSet: { deletedBy: messageObject.userId },
                   updatedAt: new Date(),

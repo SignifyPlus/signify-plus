@@ -127,6 +127,7 @@ const Page = () => {
     >
       <View style={styles.container}>
         <Stack.Screen options={{ title: phone }} />
+
         <Text style={styles.legal}>
           We have sent you an SMS with a code to the number above.
         </Text>

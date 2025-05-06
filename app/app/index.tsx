@@ -119,7 +119,7 @@ const LoginScreen = () => {
           if (data.userAuthenticationRecord?.isVerified) {
             router.replace(`/(tabs)/chats`);
           } else {
-            router.replace(`/verify/${phoneNumber}`);
+            router.push(`/verify/${phoneNumber}`);
           }
         },
         onError: () => {
@@ -147,7 +147,7 @@ const LoginScreen = () => {
             await setAsyncStorageValue('user', JSON.stringify(parsedUser));
             router.replace(`/(tabs)/chats`);
           } else {
-            router.replace(`/verify/${parsedUser.phoneNumber}`);
+            router.push(`/verify/${parsedUser.phoneNumber}`);
           }
           setIsJwtChecked('checked');
         } catch (e) {
@@ -268,7 +268,7 @@ const LoginScreen = () => {
         </Text>
       </TouchableOpacity>
 
-      <Link href={'/signup'} replace asChild>
+      <Link href={'/signup'} asChild>
         <TouchableOpacity>
           <Text style={styles.linkText}>
             Don&#39;t have an account? Sign Up
