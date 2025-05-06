@@ -17,6 +17,7 @@ export interface Message {
   createdAt: string;
   receiverIds: User[];
   senderId: User;
+  deletedBy: string[];
 }
 
 export const chatMessagesQueryKey = (chatId: string) => [

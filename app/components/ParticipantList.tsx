@@ -77,7 +77,7 @@ export const ParticipantList: React.FC<ParticipantListProps> = ({
   //             marginBottom: 10,
   //           }}
   //         >
-  //           Ringing...
+  //           Connecting...
   //         </Text>
   //       </View>
   //     </View>

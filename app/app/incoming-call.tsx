@@ -13,7 +13,8 @@ import { useRouter } from 'expo-router';
 const { width } = Dimensions.get('window');
 
 const AcceptCallScreen = () => {
-  const { call, declineCall, incomingCallUser } = useAppContext();
+  const { call, declineCall, incomingCallUser, sendMeetingAccepted } =
+    useAppContext();
 
   const router = useRouter();
 
@@ -21,6 +22,8 @@ const AcceptCallScreen = () => {
     if (!call) {
       return;
     }
+
+    sendMeetingAccepted();
 
     switch (call.type) {
       case 'video':
